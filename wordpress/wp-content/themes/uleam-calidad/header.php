@@ -18,7 +18,6 @@
 <div class="topbar">
   <div class="topbar__contact">
     <a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', uleam_opt( 'uleam_telefono' ) ) ); ?>">
-      <i class="fa-solid fa-phone" aria-hidden="true"></i>
       <?php echo esc_html( uleam_opt( 'uleam_telefono' ) ); ?>
     </a>
     <a href="mailto:<?php echo esc_attr( uleam_opt( 'uleam_email' ) ); ?>">
@@ -28,9 +27,15 @@
   </div>
   <div class="topbar__social">
     <span>Síguenos</span>
-    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
-    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
-    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube" aria-hidden="true"></i></a>
+    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.facebook.com/UleamEc' ); ?>" target="_blank" rel="noopener noreferrer" title="Facebook" aria-label="Facebook ULEAM">
+      <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
+    </a>
+    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.instagram.com/uleam_ecuador_oficial/' ); ?>" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram ULEAM">
+      <i class="fa-brands fa-instagram" aria-hidden="true"></i>
+    </a>
+    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.tiktok.com/@uleamecuador' ); ?>" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok ULEAM">
+      <i class="fa-brands fa-tiktok" aria-hidden="true"></i>
+    </a>
   </div>
 </div>
 
@@ -49,7 +54,7 @@
   </div>
   <form class="search" role="search" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
     <input type="search" name="s" placeholder="Buscar en el sitio..." value="<?php echo get_search_query(); ?>" />
-    <button type="submit">⌕</button>
+    <button type="submit" aria-label="Buscar"><?php echo uleam_icon( 'search' ); ?></button>
   </form>
 </header>
 
