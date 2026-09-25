@@ -41,10 +41,51 @@ add_action( 'after_setup_theme', 'uleam_setup' );
  * Estilos y scripts
  * ---------------------------------------------------------------------- */
 function uleam_scripts() {
-	wp_enqueue_style( 'uleam-style', get_stylesheet_uri(), array(), '1.0.0' );
+	wp_enqueue_style(
+		'uleam-fonts',
+		'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap',
+		array(),
+		null
+	);
+	wp_enqueue_style(
+		'uleam-fontawesome',
+		'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+		array(),
+		'6.5.2'
+	);
+	wp_enqueue_style(
+		'uleam-style',
+		get_stylesheet_uri(),
+		array( 'uleam-fonts', 'uleam-fontawesome' ),
+		'1.3.0'
+	);
 	wp_enqueue_script( 'uleam-main', get_template_directory_uri() . '/js/main.js', array(), '1.0.0', true );
 }
 add_action( 'wp_enqueue_scripts', 'uleam_scripts' );
+
+/**
+ * Icono Font Awesome.
+ *
+ * @param string $name Nombre lógico del icono.
+ * @return string Markup del icono.
+ */
+function uleam_icon( $name ) {
+	$map = array(
+		'chart'     => 'fa-solid fa-chart-column',
+		'clipboard' => 'fa-solid fa-clipboard-list',
+		'refresh'   => 'fa-solid fa-arrows-rotate',
+		'folder'    => 'fa-solid fa-folder-open',
+		'graduate'  => 'fa-solid fa-graduation-cap',
+		'mail'      => 'fa-solid fa-envelope',
+		'file'      => 'fa-solid fa-file-lines',
+	);
+
+	if ( ! isset( $map[ $name ] ) ) {
+		return '';
+	}
+
+	return '<i class="' . esc_attr( $map[ $name ] ) . '" aria-hidden="true"></i>';
+}
 
 /* -------------------------------------------------------------------------
  * Tipos de contenido personalizados
