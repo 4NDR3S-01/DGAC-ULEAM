@@ -10,9 +10,10 @@ get_header();
 
 <section class="hero" id="inicio">
   <div class="hero-copy">
+    <p class="hero-kicker">ULEAM · Aseguramiento de la Calidad</p>
     <h1><?php echo wp_kses_post( uleam_opt( 'uleam_hero_titulo' ) ); ?></h1>
     <p><?php echo esc_html( uleam_opt( 'uleam_hero_subtitulo' ) ); ?></p>
-    <a class="btn" href="#direccion">Conócenos →</a>
+    <a class="btn" href="#direccion">Conócenos</a>
   </div>
   <?php $uleam_hero_url = wp_get_attachment_image_url( (int) uleam_opt( 'uleam_hero_imagen' ), 'full' ); ?>
   <div class="hero-image" role="img" aria-label="Campus universitario"<?php echo $uleam_hero_url ? ' style="background-image:url(' . esc_url( $uleam_hero_url ) . ');"' : ''; ?>></div>

@@ -57,7 +57,7 @@ function uleam_scripts() {
 		'uleam-style',
 		get_stylesheet_uri(),
 		array( 'uleam-fonts', 'uleam-fontawesome' ),
-		'1.3.0'
+		'1.4.2'
 	);
 	wp_enqueue_script( 'uleam-main', get_template_directory_uri() . '/js/main.js', array(), '1.0.0', true );
 }
