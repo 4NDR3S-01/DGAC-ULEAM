@@ -86,15 +86,27 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
   gap:.65rem;
 }
 .topbar__social span{opacity:.9;margin-right:.15rem}
-.topbar__social a{
-  width:1.65rem;height:1.65rem;border-radius:50%;
+.topbar__social a,
+.topbar__social-link{
+  width:1.85rem;height:1.85rem;border-radius:50%;
   display:grid;place-items:center;
   border:1px solid rgba(255,255,255,.28);
-  font-size:.75rem;
+  font-size:.8rem;
+  color:#fff !important;
+  text-decoration:none;
+  cursor:pointer;
+  position:relative;
+  z-index:2;
 }
-.topbar__social a:hover{
+.topbar__social a i,
+.topbar__social-link i{
+  pointer-events:none;
+}
+.topbar__social a:hover,
+.topbar__social-link:hover{
   background:rgba(255,255,255,.12);
   border-color:var(--uleam-blue-400);
+  color:var(--uleam-blue-400) !important;
 }
 .header{
   padding:18px 5%;
@@ -329,8 +341,9 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
   font-size:16px;
   color:var(--uleam-blue-900);
 }
-.card a{color:var(--uleam-blue-700);font-weight:600;font-size:14px}
+.card a{color:var(--uleam-blue-700);font-weight:600;font-size:14px;display:inline-flex;align-items:center;gap:.35rem}
 .card a:hover{color:var(--uleam-blue-400)}
+.card a i,.news-more i{font-size:.75em}
 .two-col{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -393,6 +406,9 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
 .news-more{
   color:var(--uleam-blue-700);
   font-weight:600;
+  display:inline-flex;
+  align-items:center;
+  gap:.4rem;
 }
 .news-more:hover{color:var(--accent)}
 .library{
@@ -477,6 +493,43 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
   line-height:1.7;
 }
 .footer a:hover{color:var(--accent)}
+.footer-contact{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:.7rem;
+}
+.footer-contact li{
+  display:flex;
+  align-items:flex-start;
+  gap:.55rem;
+  color:#d9e8f7;
+  font-size:14px;
+  line-height:1.5;
+}
+.footer-contact i{
+  margin-top:.2rem;
+  color:var(--uleam-blue-400);
+  width:1rem;
+  text-align:center;
+}
+.footer-social{
+  display:flex;
+  gap:.65rem;
+  margin-top:.35rem;
+}
+.footer-social a{
+  width:2.2rem;height:2.2rem;border-radius:50%;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.28);
+  color:#fff;font-size:.9rem;
+}
+.footer-social a:hover{
+  background:rgba(255,255,255,.12);
+  border-color:var(--uleam-blue-400);
+  color:var(--uleam-blue-400);
+}
 .copy{
   text-align:center;
   border-top:1px solid rgba(255,255,255,.15);

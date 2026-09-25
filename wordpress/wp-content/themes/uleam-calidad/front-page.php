@@ -22,12 +22,12 @@ get_header();
 <section class="section" id="direccion">
   <h2>Accesos rápidos</h2>
   <div class="quick-grid">
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'chart' ); ?></div><h3>Indicadores</h3><a href="#desempeno">Ver más →</a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'clipboard' ); ?></div><h3>Evaluaciones</h3><a href="#desempeno">Ver más →</a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'refresh' ); ?></div><h3>Procesos</h3><a href="#procesos">Ver más →</a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'folder' ); ?></div><h3>Documentos</h3><a href="#documentos">Ver más →</a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'graduate' ); ?></div><h3>Desempeño</h3><a href="#desempeno">Ver más →</a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'mail' ); ?></div><h3>Contacto</h3><a href="#contacto">Ver más →</a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'chart' ); ?></div><h3>Indicadores</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'clipboard' ); ?></div><h3>Evaluaciones</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'refresh' ); ?></div><h3>Procesos</h3><a href="#procesos">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'folder' ); ?></div><h3>Documentos</h3><a href="#documentos">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'graduate' ); ?></div><h3>Desempeño</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
+    <div class="card"><div class="icon"><?php echo uleam_icon( 'mail' ); ?></div><h3>Contacto</h3><a href="#contacto">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
   </div>
 </section>
 
@@ -94,7 +94,7 @@ get_header();
       echo '<p>No hay noticias publicadas todavía.</p>';
     endif;
     ?>
-    <a class="news-more" href="<?php echo esc_url( get_post_type_archive_link( 'noticia' ) ); ?>">Ver todas las noticias →</a>
+    <a class="news-more" href="<?php echo esc_url( get_post_type_archive_link( 'noticia' ) ); ?>">Ver todas las noticias <?php echo uleam_icon( 'arrow' ); ?></a>
   </div>
 </section>
 

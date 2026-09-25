@@ -57,7 +57,7 @@ function uleam_scripts() {
 		'uleam-style',
 		get_stylesheet_uri(),
 		array( 'uleam-fonts', 'uleam-fontawesome' ),
-		'1.4.2'
+		'1.4.4'
 	);
 	wp_enqueue_script( 'uleam-main', get_template_directory_uri() . '/js/main.js', array(), '1.0.0', true );
 }
@@ -78,6 +78,11 @@ function uleam_icon( $name ) {
 		'graduate'  => 'fa-solid fa-graduation-cap',
 		'mail'      => 'fa-solid fa-envelope',
 		'file'      => 'fa-solid fa-file-lines',
+		'search'    => 'fa-solid fa-magnifying-glass',
+		'phone'     => 'fa-solid fa-phone',
+		'location'  => 'fa-solid fa-location-dot',
+		'arrow'     => 'fa-solid fa-arrow-right',
+		'download'  => 'fa-solid fa-download',
 	);
 
 	if ( ! isset( $map[ $name ] ) ) {

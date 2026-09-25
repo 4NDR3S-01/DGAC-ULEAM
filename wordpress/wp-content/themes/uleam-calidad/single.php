@@ -27,7 +27,7 @@ while ( have_posts() ) :
 			if ( $doc_url ) :
 				?>
 				<p style="margin-top:24px">
-					<a class="btn" href="<?php echo esc_url( $doc_url ); ?>" target="_blank" rel="noopener">Descargar documento →</a>
+					<a class="btn" href="<?php echo esc_url( $doc_url ); ?>" target="_blank" rel="noopener"><?php echo uleam_icon( 'download' ); ?> Descargar documento</a>
 				</p>
 				<?php
 			endif;
