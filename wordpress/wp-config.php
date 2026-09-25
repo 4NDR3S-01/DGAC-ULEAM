@@ -73,6 +73,16 @@ $table_prefix = 'wp_';
 
 /* Add any custom values between this line and the "stop editing" line. */
 
+/*
+ * URLs dinámicas: el sitio funciona tanto en http://localhost:8000 como en
+ * http://<IP-de-la-máquina>:8000 (para que otro equipo en la LAN pueda abrirlo).
+ * Toma el host de cada petición, así no hay URLs fijas que se rompan.
+ */
+$uleam_scheme = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) ? 'https' : 'http';
+$uleam_host   = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'localhost:8000';
+define( 'WP_HOME',    $uleam_scheme . '://' . $uleam_host );
+define( 'WP_SITEURL', $uleam_scheme . '://' . $uleam_host );
+unset( $uleam_scheme, $uleam_host );
 
 
 /**
