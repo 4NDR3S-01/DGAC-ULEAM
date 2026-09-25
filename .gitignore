@@ -1,0 +1,9 @@
+
+# Logs / temporales
+*.log
+/tmp/
+
+# Entorno local
+.env
+.env.*
+!.env.example
