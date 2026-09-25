@@ -16,8 +16,22 @@
 <?php wp_body_open(); ?>
 
 <div class="topbar">
-  <div>☎ <?php echo esc_html( uleam_opt( 'uleam_telefono' ) ); ?> &nbsp;&nbsp; ✉ <?php echo esc_html( uleam_opt( 'uleam_email' ) ); ?></div>
-  <div>Síguenos: &nbsp; f &nbsp; ◎ &nbsp; ▶</div>
+  <div class="topbar__contact">
+    <a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', uleam_opt( 'uleam_telefono' ) ) ); ?>">
+      <i class="fa-solid fa-phone" aria-hidden="true"></i>
+      <?php echo esc_html( uleam_opt( 'uleam_telefono' ) ); ?>
+    </a>
+    <a href="mailto:<?php echo esc_attr( uleam_opt( 'uleam_email' ) ); ?>">
+      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+      <?php echo esc_html( uleam_opt( 'uleam_email' ) ); ?>
+    </a>
+  </div>
+  <div class="topbar__social">
+    <span>Síguenos</span>
+    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f" aria-hidden="true"></i></a>
+    <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram" aria-hidden="true"></i></a>
+    <a href="#" aria-label="YouTube"><i class="fa-brands fa-youtube" aria-hidden="true"></i></a>
+  </div>
 </div>
 
 <header class="header">
