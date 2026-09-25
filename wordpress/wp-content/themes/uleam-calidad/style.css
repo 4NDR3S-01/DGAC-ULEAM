@@ -111,7 +111,7 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
   font-size:24px;
   font-weight:600;
   line-height:1.2;
-  color:var(--uleam-blue-900);
+  color:#f00000;
 }
 .search{
   display:flex;
@@ -184,9 +184,9 @@ h1,h2,h3,h4,.btn,.nav-inner a,.title,.uleam{
   font-size:46px;
   line-height:1.05;
   margin:0 0 16px;
-  color:var(--uleam-blue-900);
+  color: #bd1d1f;
 }
-.hero-copy h1 span{color:var(--uleam-blue-400)}
+.hero-copy h1 span{color:#f00000}
 .hero-copy p{
   font-size:18px;
   line-height:1.7;
