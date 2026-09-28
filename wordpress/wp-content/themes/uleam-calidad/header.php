@@ -58,15 +58,20 @@
   </form>
 </header>
 
-<nav class="nav">
+<nav class="nav" aria-label="Menú principal">
+  <button class="nav-toggle" id="navToggle" type="button" aria-expanded="false" aria-controls="primaryMenu" aria-label="Abrir menú de navegación">
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+    <span>Menú</span>
+  </button>
   <?php
   wp_nav_menu(
     array(
       'theme_location' => 'primary',
+      'menu_id'        => 'primaryMenu',
       'menu_class'     => 'nav-inner',
       'container'      => false,
       'fallback_cb'    => 'uleam_menu_fallback',
-      'depth'          => 1,
+      'depth'          => 3,
     )
   );
   ?>

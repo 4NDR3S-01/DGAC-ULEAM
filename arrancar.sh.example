@@ -7,7 +7,7 @@ WP="$SCRIPT_DIR/wordpress"
 DB_PASS='0043fc294eed0bc74d2baae3506bf76d'
 
 port_open() {
-  timeout 1 bash -c "echo >/dev/tcp/127.0.0.1/$1" 2>/dev/null
+  timeout 1 bash -c "echo >/dev/tcp/0.0.0.0/$1" 2>/dev/null
 }
 
 if [ ! -d "$WP" ]; then
@@ -64,7 +64,7 @@ if port_open 8000; then
   echo "✔ El servidor ya está corriendo (puerto 8000)."
 else
   echo "▶ Arrancando servidor PHP..."
-  setsid php -S 127.0.0.1:8000 -t "$WP" </dev/null >/tmp/php-server.log 2>&1 &
+  setsid php -S 0.0.0.0:8000 -t "$WP" </dev/null >/tmp/php-server.log 2>&1 &
   disown 2>/dev/null || true
   sleep 2
 fi
