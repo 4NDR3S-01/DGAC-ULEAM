@@ -58,22 +58,33 @@
     currentAncestor.classList.add('is-open');
   }
 
-  // Título padre con submenú en dispositivos táctiles / pantallas pequeñas
+  // Título padre con submenú en dispositivos táctiles y escritorio
   var parentMenuItems = document.querySelectorAll('.nav-inner .menu-item-has-children');
   parentMenuItems.forEach(function (item) {
     var link = item.querySelector(':scope > a');
     if (link) {
       link.addEventListener('click', function (e) {
+        var href = link.getAttribute('href') || '';
+        if (href === '#' || href === '' || href.charAt(0) === '#') {
+          e.preventDefault();
+          link.blur();
+        }
         if (window.innerWidth <= 960) {
           var hasSubmenu = item.querySelector('.sub-menu');
           if (hasSubmenu) {
-            e.preventDefault();
             e.stopPropagation();
             item.classList.toggle('is-open');
           }
         }
       });
     }
+
+    // Al salir el cursor del elemento padre en escritorio, asegurar que no queden focos colgados
+    item.addEventListener('mouseleave', function () {
+      if (window.innerWidth > 960 && link) {
+        link.blur();
+      }
+    });
   });
 
   // Control de elemento activo en el menú
