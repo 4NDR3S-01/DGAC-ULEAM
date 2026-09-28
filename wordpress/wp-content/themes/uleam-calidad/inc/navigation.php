@@ -17,7 +17,7 @@ function uleam_menu_fallback() {
 	echo '<ul id="primaryMenu" class="nav-inner">';
 	echo '<li class="menu-item ' . ( $is_home ? 'current-menu-item active' : '' ) . '"><a class="' . ( $is_home ? 'active' : '' ) . '" href="' . esc_url( home_url( '/' ) ) . '">Inicio</a></li>';
 	echo '<li class="menu-item menu-item-has-children">';
-	echo '<a href="' . esc_url( home_url( '/quienes-somos/' ) ) . '">Quiénes Somos</a>';
+	echo '<a href="#">Quiénes Somos</a>';
 	echo '<ul class="sub-menu">';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/resena-historica/' ) ) . '">Reseña Histórica</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/mision-vision/' ) ) . '">Misión y Visión</a></li>';
@@ -30,7 +30,7 @@ function uleam_menu_fallback() {
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/gestion-de-procesos/' ) ) . '">Gestión de Procesos</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/aseguramiento-de-la-calidad/' ) ) . '">Aseguramiento de la Calidad</a></li>';
 	echo '<li class="menu-item menu-item-has-children">';
-	echo '<a href="' . esc_url( home_url( '/auditoria-de-la-calidad/' ) ) . '">Auditoría de la Calidad</a>';
+	echo '<a href="#">Auditoría de la Calidad</a>';
 	echo '<ul class="sub-menu">';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad/' ) ) . '">Seguimiento y Control a Procesos del Sistema de Gestión de la Calidad</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/seguimiento-y-control-a-planes-de-mejora/' ) ) . '">Seguimiento y Control a Planes de Mejora</a></li>';
@@ -48,7 +48,7 @@ function uleam_custom_rewrite_rules() {
 add_action( 'init', 'uleam_custom_rewrite_rules' );
 
 /**
- * Redirección canónica amigable para rutas con tildes o eñes (ej: /reseña-historica/ -> /resena-historica/)
+ * Redirección canónica amigable para rutas con tildes o eñes, o secciones padre que redirigen al primer subelemento
  */
 function uleam_handle_accented_slugs() {
 	$raw_uri = isset( $_SERVER['REQUEST_URI'] ) ? rawurldecode( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '';
@@ -62,7 +62,9 @@ function uleam_handle_accented_slugs() {
 		'estructura-orgánica'     => 'estructura-organica',
 		'horario-atención'        => 'horario-atencion',
 		'gestión-de-procesos'     => 'gestion-de-procesos',
-		'auditoría-de-la-calidad' => 'auditoria-de-la-calidad',
+		'quienes-somos'           => 'resena-historica',
+		'auditoria-de-la-calidad' => 'seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad',
+		'auditoría-de-la-calidad' => 'seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad',
 	);
 
 	foreach ( $map as $accented => $canonical ) {

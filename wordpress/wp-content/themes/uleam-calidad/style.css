@@ -294,6 +294,15 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   color:var(--uleam-blue-700);
 }
 @media(min-width:961px){
+  .nav-inner .menu-item-has-children > a[href="#"],
+  .nav-inner .menu-item-has-children > a:not([href]){
+    cursor:default;
+    pointer-events:none;
+    user-select:none;
+  }
+  .nav-inner .menu-item-has-children{
+    cursor:default;
+  }
   .nav-inner .sub-menu{
     display:none;
     position:absolute;
@@ -310,14 +319,14 @@ h1,h2,h3,h4,.btn,.title,.uleam{
     margin:0;
     list-style:none;
     z-index:1000;
+    pointer-events:auto;
   }
   .nav-inner > li:last-child .sub-menu,
   .nav-inner > li:nth-last-child(2) .sub-menu{
     left:auto;
     right:0;
   }
-  .nav-inner .menu-item-has-children:hover > .sub-menu,
-  .nav-inner .menu-item-has-children:focus-within > .sub-menu{
+  .nav-inner .menu-item-has-children:hover > .sub-menu{
     display:block;
     animation:uleamDropdown 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
@@ -768,6 +777,10 @@ h1,h2,h3,h4,.btn,.title,.uleam{
     white-space:normal;
     line-height:1.35;
     cursor:pointer;
+  }
+  .nav-inner .menu-item-has-children > a{
+    cursor:pointer !important;
+    pointer-events:auto !important;
   }
   .nav-inner .menu-item-has-children > a::after{
     margin-left:auto;
