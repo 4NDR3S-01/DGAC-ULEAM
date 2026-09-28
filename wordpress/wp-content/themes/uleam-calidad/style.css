@@ -1650,24 +1650,15 @@ h1,h2,h3,h4,.btn,.title,.uleam{
  * Horario de Atención y Canales de Contacto
  * ---------------------------------------------------------------------- */
 .dgac-schedule-hero{
-  background:linear-gradient(135deg, #f7faff 0%, #ffffff 100%);
-  border:1px solid #dce8f5;
-  border-left:5px solid var(--uleam-blue-700);
-  border-radius:14px;
-  padding:32px 34px;
-  margin-bottom:34px;
-  box-shadow:0 4px 20px rgba(0, 89, 168, 0.05);
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:28px;
-  flex-wrap:wrap;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-top:4px solid var(--uleam-blue-700);
+  border-radius:16px;
+  padding:36px 32px 30px;
+  margin-bottom:36px;
+  box-shadow:0 4px 20px rgba(0, 50, 100, 0.05);
+  text-align:center;
   position:relative;
-  overflow:hidden;
-}
-.dgac-schedule-hero__main{
-  max-width:620px;
-  z-index:1;
 }
 .dgac-schedule-badge{
   display:inline-flex;
@@ -1676,11 +1667,11 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   background:#ecfdf5;
   color:#065f46;
   border:1px solid #a7f3d0;
-  padding:5px 14px;
+  padding:6px 16px;
   border-radius:30px;
   font-size:12.5px;
   font-weight:600;
-  margin-bottom:12px;
+  margin:0 auto 14px;
 }
 .dgac-pulse-dot{
   width:8px;
@@ -1696,7 +1687,7 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
 }
 .dgac-schedule-title{
-  font-size:clamp(26px, 3.5vw, 34px);
+  font-size:clamp(26px, 4vw, 36px);
   font-weight:800;
   margin:0 0 10px;
   color:var(--uleam-blue-900) !important;
@@ -1704,46 +1695,57 @@ h1,h2,h3,h4,.btn,.title,.uleam{
 }
 .dgac-schedule-desc{
   font-size:15px;
-  color:#475569;
-  margin:0;
+  color:#64748b;
+  margin:0 auto 28px;
+  max-width:760px;
   line-height:1.65;
 }
-.dgac-schedule-hero__side{
-  background:#ffffff;
-  border:1px solid #e2e8f0;
-  border-radius:12px;
-  padding:20px 22px;
-  min-width:260px;
-  z-index:1;
-  box-shadow:0 2px 10px rgba(0, 0, 0, 0.03);
+.dgac-schedule-features{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:16px;
+  max-width:960px;
+  margin:0 auto;
 }
-.dgac-schedule-side-item{
+.dgac-schedule-feature-item{
+  background:#f8fafc;
+  border:1px solid #edf2f7;
+  border-radius:12px;
+  padding:16px 18px;
   display:flex;
   align-items:center;
-  gap:12px;
-  margin-bottom:12px;
+  gap:14px;
+  text-align:left;
+  transition:all 0.2s ease;
 }
-.dgac-schedule-side-item:last-child{margin-bottom:0}
-.dgac-schedule-side-icon{
-  width:38px;
-  height:38px;
+.dgac-schedule-feature-item:hover{
+  background:#ffffff;
+  border-color:#cbd5e1;
+  box-shadow:0 4px 14px rgba(0, 0, 0, 0.05);
+  transform:translateY(-2px);
+}
+.dgac-schedule-feature-icon{
+  width:42px;
+  height:42px;
   border-radius:10px;
-  background:#eff6ff;
-  border:1px solid #dbeafe;
+  background:#e0f2fe;
+  color:var(--uleam-blue-700);
   display:grid;
   place-items:center;
-  font-size:15px;
-  color:var(--uleam-blue-700);
+  font-size:17px;
   flex-shrink:0;
 }
-.dgac-schedule-side-text strong{
+.dgac-schedule-feature-text strong{
   display:block;
-  font-size:13px;
+  font-size:13.5px;
   color:var(--uleam-blue-900);
+  margin-bottom:2px;
 }
-.dgac-schedule-side-text span{
+.dgac-schedule-feature-text span{
   font-size:12px;
   color:#64748b;
+  line-height:1.4;
+  display:block;
 }
 
 /* Fila de Contacto Principal (Teléfonos y Correo de Dirección) */
@@ -1952,7 +1954,7 @@ h1,h2,h3,h4,.btn,.title,.uleam{
 .dgac-area-contacts{
   list-style:none;
   padding:0;
-  margin:16px 0 0;
+  margin:18px 0 0;
   border-top:1px solid #f1f5f9;
   padding-top:14px;
   display:flex;
@@ -1961,37 +1963,86 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   flex-grow:1;
 }
 .dgac-area-contact-item{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:9px 12px;
-  border-radius:8px;
-  background:#f8fafc;
-  border:1px solid #f1f5f9;
-  transition:all 0.2s ease;
-}
-.dgac-area-contact-item:hover{
-  background:#eff6ff;
-  border-color:#dbeafe;
-}
-.dgac-area-contact-item i{
-  color:var(--uleam-blue-700);
-  font-size:13px;
-  flex-shrink:0;
+  padding:0;
+  margin:0;
+  list-style:none;
 }
 .dgac-area-contact-link{
-  font-size:13px;
-  color:var(--uleam-blue-800) !important;
-  text-decoration:none !important;
-  word-break:break-all;
-  font-weight:600;
   display:flex;
   align-items:center;
   justify-content:space-between;
   width:100%;
+  padding:9px 12px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  text-decoration:none !important;
+  transition:all 0.2s ease;
+  box-sizing:border-box;
+  gap:8px;
 }
 .dgac-area-contact-link:hover{
-  color:var(--accent) !important;
+  background:#eff6ff;
+  border-color:#93c5fd;
+  transform:translateY(-1px);
+  box-shadow:0 3px 10px rgba(0, 89, 168, 0.08);
+}
+.dgac-contact-link-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  flex:1;
+}
+.dgac-contact-mail-icon{
+  width:28px;
+  height:28px;
+  border-radius:6px;
+  background:#e2e8f0;
+  color:var(--uleam-blue-800);
+  display:grid;
+  place-items:center;
+  font-size:12px;
+  flex-shrink:0;
+  transition:all 0.2s ease;
+}
+.dgac-area-contact-link:hover .dgac-contact-mail-icon{
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+}
+.dgac-contact-email-text{
+  font-size:12.5px;
+  font-weight:600;
+  color:var(--uleam-blue-900);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  transition:color 0.2s ease;
+}
+.dgac-area-contact-link:hover .dgac-contact-email-text{
+  color:var(--uleam-blue-700);
+}
+.dgac-contact-arrow-btn{
+  width:28px;
+  height:28px;
+  min-width:28px;
+  border-radius:6px;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--uleam-blue-700);
+  font-size:11px;
+  flex-shrink:0;
+  transition:all 0.2s ease;
+  box-shadow:0 1px 3px rgba(0,0,0,0.04);
+}
+.dgac-area-contact-link:hover .dgac-contact-arrow-btn{
+  background:var(--accent);
+  border-color:var(--accent);
+  color:#ffffff;
+  transform:scale(1.06);
 }
 
 /* Nota de Atención Institucional */
@@ -2026,6 +2077,7 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   .dgac-pilares-grid{grid-template-columns:repeat(2, minmax(0, 1fr))}
   .dgac-contact-top-grid{grid-template-columns:1fr}
   .dgac-areas-grid{grid-template-columns:1fr}
+  .dgac-schedule-features{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   .dgac-timeline{padding-left:28px}
@@ -2034,7 +2086,6 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   .dgac-pilares-grid{grid-template-columns:1fr}
   .dgac-intro-box{padding:20px}
   .dgac-normativa-box{flex-direction:column;align-items:flex-start}
-  .dgac-schedule-hero{padding:24px 20px}
-  .dgac-schedule-hero__side{width:100%}
+  .dgac-schedule-hero{padding:26px 18px}
   .dgac-contact-box{padding:20px}
 }
