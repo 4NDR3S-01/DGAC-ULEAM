@@ -57,7 +57,7 @@ function uleam_scripts() {
 		'uleam-style',
 		get_stylesheet_uri(),
 		array( 'uleam-fonts', 'uleam-fontawesome' ),
-		'1.4.4'
+		'1.6.0'
 	);
 	wp_enqueue_script( 'uleam-main', get_template_directory_uri() . '/js/main.js', array(), '1.0.0', true );
 }
@@ -83,6 +83,7 @@ function uleam_icon( $name ) {
 		'location'  => 'fa-solid fa-location-dot',
 		'arrow'     => 'fa-solid fa-arrow-right',
 		'download'  => 'fa-solid fa-download',
+		'calendar'  => 'fa-regular fa-calendar',
 	);
 
 	if ( ! isset( $map[ $name ] ) ) {
@@ -201,8 +202,55 @@ function uleam_register_taxonomies() {
 			'show_in_rest' => true,
 		)
 	);
+	register_taxonomy(
+		'categoria_noticia',
+		'noticia',
+		array(
+			'labels'       => array(
+				'name'          => 'Categorías de noticias',
+				'singular_name' => 'Categoría',
+				'search_items'  => 'Buscar categorías',
+				'all_items'     => 'Todas las categorías',
+				'edit_item'     => 'Editar categoría',
+				'add_new_item'  => 'Añadir categoría',
+			),
+			'hierarchical' => true,
+			'show_in_rest' => true,
+			'rewrite'      => array( 'slug' => 'categoria-noticia' ),
+		)
+	);
 }
 add_action( 'init', 'uleam_register_taxonomies' );
+
+/**
+ * Filtra el archivo de noticias por categoría vía query string.
+ */
+function uleam_noticia_archive_query( $query ) {
+	if ( is_admin() || ! $query->is_main_query() ) {
+		return;
+	}
+	if ( ! $query->is_post_type_archive( 'noticia' ) ) {
+		return;
+	}
+	if ( empty( $_GET['categoria_noticia'] ) ) {
+		return;
+	}
+	$slug = sanitize_title( wp_unslash( $_GET['categoria_noticia'] ) );
+	if ( '' === $slug ) {
+		return;
+	}
+	$query->set(
+		'tax_query',
+		array(
+			array(
+				'taxonomy' => 'categoria_noticia',
+				'field'    => 'slug',
+				'terms'    => $slug,
+			),
+		)
+	);
+}
+add_action( 'pre_get_posts', 'uleam_noticia_archive_query' );
 
 /* -------------------------------------------------------------------------
  * Metabox: URL del archivo del documento
@@ -324,14 +372,92 @@ add_action( 'customize_register', 'uleam_customize_register' );
  * Menú por defecto (anclas de la portada)
  * ---------------------------------------------------------------------- */
 function uleam_menu_fallback() {
-	echo '<div class="nav-inner">';
-	echo '<a class="active" href="' . esc_url( home_url( '/#inicio' ) ) . '">Inicio</a>';
-	echo '<a href="' . esc_url( home_url( '/#direccion' ) ) . '">La Dirección</a>';
-	echo '<a href="' . esc_url( home_url( '/#procesos' ) ) . '">Procesos</a>';
-	echo '<a href="' . esc_url( home_url( '/#calidad' ) ) . '">Aseguramiento de la Calidad</a>';
-	echo '<a href="' . esc_url( home_url( '/#desempeno' ) ) . '">Evaluación de Desempeño</a>';
-	echo '<a href="' . esc_url( home_url( '/#documentos' ) ) . '">Documentos</a>';
-	echo '<a href="' . esc_url( home_url( '/#noticias' ) ) . '">Noticias</a>';
-	echo '<a href="' . esc_url( home_url( '/#contacto' ) ) . '">Contacto</a>';
-	echo '</div>';
+	echo '<ul id="primaryMenu" class="nav-inner">';
+	echo '<li class="menu-item current-menu-item active"><a class="active" href="' . esc_url( home_url( '/#inicio' ) ) . '">Inicio</a></li>';
+	echo '<li class="menu-item menu-item-has-children">';
+	echo '<a href="' . esc_url( home_url( '/#quienes-somos' ) ) . '">Quiénes Somos</a>';
+	echo '<ul class="sub-menu">';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#resena-historica' ) ) . '">Reseña Histórica</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#mision-vision' ) ) . '">Misión y Visión</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#estructura-organica' ) ) . '">Estructura Orgánica</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#recursos-humanos' ) ) . '">Recursos Humanos</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#poa' ) ) . '">POA</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#horario-atencion' ) ) . '">Horario de Atención</a></li>';
+	echo '</ul>';
+	echo '</li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#procesos' ) ) . '">Gestión de Procesos</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#calidad' ) ) . '">Aseguramiento de la Calidad</a></li>';
+	echo '<li class="menu-item menu-item-has-children">';
+	echo '<a href="' . esc_url( home_url( '/#auditoria-calidad' ) ) . '">Auditoría de la Calidad</a>';
+	echo '<ul class="sub-menu">';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#seguimiento-procesos' ) ) . '">Seguimiento y Control a Procesos del Sistema de Gestión de la Calidad</a></li>';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/#planes-mejora' ) ) . '">Seguimiento y Control a Planes de Mejora</a></li>';
+	echo '</ul>';
+	echo '</li>';
+	echo '</ul>';
 }
+
+/**
+ * Filtro para marcar activo el enlace actual en el menú de WordPress
+ */
+function uleam_nav_menu_active_classes( $classes, $item ) {
+	if ( is_front_page() || is_home() ) {
+		$clean_item_url = untrailingslashit( strtok( $item->url, '#' ) );
+		$clean_home_url = untrailingslashit( home_url( '/' ) );
+		$has_hash = ( false !== strpos( $item->url, '#' ) && false === strpos( $item->url, '#inicio' ) );
+		$is_inicio = ( ! $has_hash && ( $clean_item_url === $clean_home_url || 'Inicio' === $item->title || false !== strpos( $item->url, '#inicio' ) ) );
+
+		if ( $is_inicio ) {
+			if ( ! in_array( 'current-menu-item', $classes, true ) ) {
+				$classes[] = 'current-menu-item';
+			}
+			if ( ! in_array( 'active', $classes, true ) ) {
+				$classes[] = 'active';
+			}
+		} else {
+			$to_remove = array(
+				'current-menu-item',
+				'active',
+				'current_page_item',
+				'current-menu-ancestor',
+				'current-menu-parent',
+				'current_page_parent',
+				'current_page_ancestor',
+				'menu-item-home',
+			);
+			$classes = array_diff( $classes, $to_remove );
+		}
+	}
+	return $classes;
+}
+add_filter( 'nav_menu_css_class', 'uleam_nav_menu_active_classes', 10, 2 );
+
+function uleam_nav_menu_link_attributes( $atts, $item ) {
+	if ( is_front_page() || is_home() ) {
+		$has_hash = ( false !== strpos( $item->url, '#' ) && false === strpos( $item->url, '#inicio' ) );
+		$clean_item_url = untrailingslashit( strtok( $item->url, '#' ) );
+		$clean_home_url = untrailingslashit( home_url( '/' ) );
+		$is_inicio = ( ! $has_hash && ( $clean_item_url === $clean_home_url || 'Inicio' === $item->title || false !== strpos( $item->url, '#inicio' ) ) );
+
+		if ( $is_inicio ) {
+			$classes = isset( $atts['class'] ) ? explode( ' ', $atts['class'] ) : array();
+			if ( ! in_array( 'active', $classes, true ) ) {
+				$classes[] = 'active';
+			}
+			$atts['class'] = trim( implode( ' ', $classes ) );
+			$atts['aria-current'] = 'page';
+		} else {
+			unset( $atts['aria-current'] );
+			if ( isset( $atts['class'] ) ) {
+				$cls = explode( ' ', $atts['class'] );
+				$cls = array_diff( $cls, array( 'active' ) );
+				$atts['class'] = trim( implode( ' ', $cls ) );
+				if ( empty( $atts['class'] ) ) {
+					unset( $atts['class'] );
+				}
+			}
+		}
+	}
+	return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'uleam_nav_menu_link_attributes', 10, 2 );

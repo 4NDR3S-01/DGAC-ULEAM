@@ -2,13 +2,13 @@
 # Plantilla: cp detener.sh.example detener.sh && chmod +x detener.sh
 
 port_open() {
-  timeout 1 bash -c "echo >/dev/tcp/127.0.0.1/$1" 2>/dev/null
+  timeout 1 bash -c "echo >/dev/tcp/0.0.0.0/$1" 2>/dev/null
 }
 
 echo "▶ Deteniendo servidor PHP (puerto 8000)..."
 if port_open 8000; then
   fuser -k 8000/tcp >/dev/null 2>&1 || true
-  pkill -f "php -S 127.0.0.1:8000" >/dev/null 2>&1 || true
+    pkill -f "php -S 0.0.0.0:8000" >/dev/null 2>&1 || true
   echo "✔ Servidor PHP detenido."
 else
   echo "  (no estaba corriendo)"
