@@ -20,7 +20,7 @@ else
     --socket="$HOME/local-mariadb/mysql.sock" \
     --pid-file="$HOME/local-mariadb/mysql.pid" \
     --port=3307 \
-    --bind-address=127.0.0.1 \
+    --bind-address=0.0.0.0 \
     > /tmp/mariadb.log 2>&1 &
   # Espera a que el puerto esté listo (máx ~15 s)
   for i in $(seq 1 15); do
