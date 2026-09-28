@@ -64,7 +64,7 @@
     var link = item.querySelector(':scope > a');
     if (link) {
       link.addEventListener('click', function (e) {
-        if (window.innerWidth <= 860) {
+        if (window.innerWidth <= 960) {
           var hasSubmenu = item.querySelector('.sub-menu');
           if (hasSubmenu) {
             e.preventDefault();
@@ -146,7 +146,7 @@
       }
 
       // Si es móvil, cerrar el menú al hacer clic en un enlace de navegación
-      if (window.innerWidth <= 860) {
+      if (window.innerWidth <= 960) {
         var isParent = a.parentElement && a.parentElement.classList.contains('menu-item-has-children');
         if (!isParent || a.closest('.sub-menu')) {
           if (primaryMenu) {

@@ -76,3 +76,5 @@
   );
   ?>
 </nav>
+
+<main id="main" class="site-main">

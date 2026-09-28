@@ -5,6 +5,8 @@
  * @package uleam-calidad
  */
 ?>
+</main>
+
 <footer class="footer" id="contacto">
   <div class="footer-grid">
     <div>
