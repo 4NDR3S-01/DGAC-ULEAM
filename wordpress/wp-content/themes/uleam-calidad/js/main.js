@@ -52,6 +52,12 @@
     });
   }
 
+  // Abrir submenú padre en móvil si contiene la página activa
+  var currentAncestor = document.querySelector('.nav-inner .menu-item-has-children.current-menu-ancestor');
+  if (currentAncestor) {
+    currentAncestor.classList.add('is-open');
+  }
+
   // Título padre con submenú en dispositivos táctiles / pantallas pequeñas
   var parentMenuItems = document.querySelectorAll('.nav-inner .menu-item-has-children');
   parentMenuItems.forEach(function (item) {
@@ -61,56 +67,65 @@
         if (window.innerWidth <= 860) {
           var hasSubmenu = item.querySelector('.sub-menu');
           if (hasSubmenu) {
-            var href = link.getAttribute('href') || '';
-            if (href === '#' || href === '' || !item.classList.contains('is-open')) {
-              e.preventDefault();
-              item.classList.toggle('is-open');
-            }
+            e.preventDefault();
+            e.stopPropagation();
+            item.classList.toggle('is-open');
           }
         }
       });
     }
   });
 
-  // Control de elemento activo en el menú (resaltado único)
+  // Control de elemento activo en el menú
   function setActiveMenuItem(targetHref) {
+    if (!targetHref) return;
+
     var allItems = document.querySelectorAll('.nav-inner li');
     var allLinks = document.querySelectorAll('.nav-inner a');
-
-    allItems.forEach(function (li) {
-      li.classList.remove('current-menu-item', 'active', 'current_page_item');
-    });
-    allLinks.forEach(function (a) {
-      a.classList.remove('active');
-    });
-
     var matchedLink = null;
 
-    if (targetHref && targetHref !== '#') {
+    if (targetHref.charAt(0) === '#') {
       for (var i = 0; i < allLinks.length; i++) {
         var link = allLinks[i];
         var href = link.getAttribute('href') || '';
-        if (targetHref.charAt(0) === '#' && href.indexOf(targetHref) !== -1) {
+        if (href.indexOf(targetHref) !== -1) {
           matchedLink = link;
           break;
-        } else if (href === targetHref) {
-          matchedLink = link;
+        }
+      }
+    } else {
+      var targetPath = targetHref.replace(/^(?:https?:\/\/[^\/]+)?/, '').replace(/\/$/, '') || '/';
+      for (var j = 0; j < allLinks.length; j++) {
+        var l = allLinks[j];
+        var linkHref = l.getAttribute('href') || '';
+        var linkPath = linkHref.replace(/^(?:https?:\/\/[^\/]+)?/, '').replace(/\/$/, '') || '/';
+        if (linkPath === targetPath) {
+          matchedLink = l;
           break;
         }
       }
     }
 
-    if (!matchedLink) {
-      matchedLink = document.querySelector('.nav-inner > li:first-child > a') ||
-                    document.querySelector('.nav-inner a[href*="#inicio"]') ||
-                    document.querySelector('.nav-inner a');
-    }
-
     if (matchedLink) {
+      allItems.forEach(function (li) {
+        li.classList.remove('current-menu-item', 'active', 'current_page_item', 'current-menu-ancestor', 'current-menu-parent');
+      });
+      allLinks.forEach(function (a) {
+        a.classList.remove('active');
+      });
+
       matchedLink.classList.add('active');
-      var topLi = matchedLink.closest('.nav-inner > li');
-      if (topLi) {
-        topLi.classList.add('current-menu-item', 'active');
+      var matchedLi = matchedLink.closest('li');
+      if (matchedLi) {
+        matchedLi.classList.add('current-menu-item', 'active');
+        var parentLi = matchedLi.parentElement ? matchedLi.parentElement.closest('.nav-inner > li') : null;
+        if (parentLi && parentLi !== matchedLi) {
+          parentLi.classList.add('current-menu-ancestor', 'active');
+          var parentLink = parentLi.querySelector(':scope > a');
+          if (parentLink) {
+            parentLink.classList.add('active');
+          }
+        }
       }
     }
   }
@@ -120,23 +135,28 @@
   menuLinks.forEach(function (a) {
     a.addEventListener('click', function () {
       var href = a.getAttribute('href') || '';
-      if (href && href !== '#') {
-        var hash = href.indexOf('#') !== -1 ? href.substring(href.indexOf('#')) : '';
-        setActiveMenuItem(hash || href);
+      if (!href || href === '#') return;
 
-        // Si es móvil, cerrar el menú al hacer clic en un enlace de destino
-        if (window.innerWidth <= 860) {
-          var isParent = a.parentElement && a.parentElement.classList.contains('menu-item-has-children');
-          if (!isParent || a.closest('.sub-menu')) {
-            if (primaryMenu) {
-              primaryMenu.classList.remove('is-active');
-            }
-            if (navToggle) {
-              navToggle.setAttribute('aria-expanded', 'false');
-              var icon = navToggle.querySelector('i');
-              if (icon) {
-                icon.className = 'fa-solid fa-bars';
-              }
+      var isHashOnly = href.charAt(0) === '#';
+      var isSamePageHash = href.indexOf('#') !== -1 && (href.split('#')[0] === '' || href.split('#')[0] === window.location.href.split('#')[0] || href.split('#')[0] === window.location.pathname);
+
+      if (isHashOnly || isSamePageHash) {
+        var hash = href.substring(href.indexOf('#'));
+        setActiveMenuItem(hash);
+      }
+
+      // Si es móvil, cerrar el menú al hacer clic en un enlace de navegación
+      if (window.innerWidth <= 860) {
+        var isParent = a.parentElement && a.parentElement.classList.contains('menu-item-has-children');
+        if (!isParent || a.closest('.sub-menu')) {
+          if (primaryMenu) {
+            primaryMenu.classList.remove('is-active');
+          }
+          if (navToggle) {
+            navToggle.setAttribute('aria-expanded', 'false');
+            var icon = navToggle.querySelector('i');
+            if (icon) {
+              icon.className = 'fa-solid fa-bars';
             }
           }
         }
@@ -144,19 +164,26 @@
     });
   });
 
-  // Inicializar estado activo al cargar
-  var initialTarget = window.location.hash || '#inicio';
-  setActiveMenuItem(initialTarget);
+  // Inicializar estado activo al cargar sólo si hay un ancla o falta la clase nativa
+  if (window.location.hash) {
+    setActiveMenuItem(window.location.hash);
+  } else {
+    var hasCurrent = document.querySelector('.nav-inner .current-menu-item, .nav-inner .current_page_item');
+    if (!hasCurrent && (window.location.pathname === '/' || window.location.pathname.indexOf('index.php') !== -1)) {
+      setActiveMenuItem('/');
+    }
+  }
 
-  // Scrollspy para actualizar el resaltado según la sección visible
+  // Scrollspy solo cuando existan secciones internas y enlaces con ancla en el menú
   var sections = document.querySelectorAll('section[id], footer[id]');
-  if (sections.length && 'IntersectionObserver' in window) {
+  var hasInternalHashLinks = document.querySelector('.nav-inner a[href*="#"]');
+  if (sections.length && hasInternalHashLinks && 'IntersectionObserver' in window) {
     var observer = new IntersectionObserver(
       function (entries) {
         entries.forEach(function (entry) {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.25) {
             var id = entry.target.getAttribute('id');
-            if (id) {
+            if (id && document.querySelector('.nav-inner a[href*="#' + id + '"]')) {
               setActiveMenuItem('#' + id);
             }
           }
