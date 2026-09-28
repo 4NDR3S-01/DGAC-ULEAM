@@ -347,8 +347,8 @@ function uleam_customize_register( $wp_customize ) {
 					array(
 						'label'       => $cfg['label'],
 						'section'     => 'uleam_contenido',
-						'width'       => 1600,
-						'height'      => 600,
+						'width'       => 1024,
+						'height'      => 683,
 						'flex_width'  => true,
 						'flex_height' => true,
 					)
