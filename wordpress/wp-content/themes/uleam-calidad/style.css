@@ -1652,9 +1652,8 @@ h1,h2,h3,h4,.btn,.title,.uleam{
 .dgac-schedule-hero{
   background:#ffffff;
   border:1px solid #e2e8f0;
-  border-top:4px solid var(--uleam-blue-700);
   border-radius:16px;
-  padding:36px 32px 30px;
+  padding:34px 28px;
   margin-bottom:36px;
   box-shadow:0 4px 20px rgba(0, 50, 100, 0.05);
   text-align:center;
@@ -1671,7 +1670,7 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   border-radius:30px;
   font-size:12.5px;
   font-weight:600;
-  margin:0 auto 14px;
+  margin:0 auto 12px;
 }
 .dgac-pulse-dot{
   width:8px;
@@ -1686,66 +1685,24 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   70%{box-shadow:0 0 0 8px rgba(16,185,129,0)}
   100%{box-shadow:0 0 0 0 rgba(16,185,129,0)}
 }
+.dgac-schedule-hero h2.dgac-schedule-title,
 .dgac-schedule-title{
-  font-size:clamp(26px, 4vw, 36px);
+  font-size:clamp(24px, 3.8vw, 34px);
   font-weight:800;
-  margin:0 0 10px;
+  margin:0 auto 10px !important;
   color:var(--uleam-blue-900) !important;
   letter-spacing:-0.02em;
+  text-align:center !important;
+  display:block !important;
+  width:100%;
 }
 .dgac-schedule-desc{
   font-size:15px;
   color:#64748b;
-  margin:0 auto 28px;
-  max-width:760px;
-  line-height:1.65;
-}
-.dgac-schedule-features{
-  display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
-  gap:16px;
-  max-width:960px;
   margin:0 auto;
-}
-.dgac-schedule-feature-item{
-  background:#f8fafc;
-  border:1px solid #edf2f7;
-  border-radius:12px;
-  padding:16px 18px;
-  display:flex;
-  align-items:center;
-  gap:14px;
-  text-align:left;
-  transition:all 0.2s ease;
-}
-.dgac-schedule-feature-item:hover{
-  background:#ffffff;
-  border-color:#cbd5e1;
-  box-shadow:0 4px 14px rgba(0, 0, 0, 0.05);
-  transform:translateY(-2px);
-}
-.dgac-schedule-feature-icon{
-  width:42px;
-  height:42px;
-  border-radius:10px;
-  background:#e0f2fe;
-  color:var(--uleam-blue-700);
-  display:grid;
-  place-items:center;
-  font-size:17px;
-  flex-shrink:0;
-}
-.dgac-schedule-feature-text strong{
-  display:block;
-  font-size:13.5px;
-  color:var(--uleam-blue-900);
-  margin-bottom:2px;
-}
-.dgac-schedule-feature-text span{
-  font-size:12px;
-  color:#64748b;
-  line-height:1.4;
-  display:block;
+  max-width:740px;
+  line-height:1.65;
+  text-align:center;
 }
 
 /* Fila de Contacto Principal (Teléfonos y Correo de Dirección) */
@@ -2011,12 +1968,11 @@ h1,h2,h3,h4,.btn,.title,.uleam{
   color:#ffffff;
 }
 .dgac-contact-email-text{
-  font-size:12.5px;
+  font-size:clamp(11px, 2.6vw, 13px);
   font-weight:600;
   color:var(--uleam-blue-900);
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
+  word-break:break-all;
+  line-height:1.35;
   transition:color 0.2s ease;
 }
 .dgac-area-contact-link:hover .dgac-contact-email-text{
