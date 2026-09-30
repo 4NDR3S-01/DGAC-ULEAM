@@ -1,0 +1,108 @@
+/* ==========================================================================
+   Páginas Estáticas, Cabeceras y Contenedor Principal (page.php)
+   ========================================================================== */
+
+/* Cabecera de Página (Page Header) */
+.page-header{
+  background:linear-gradient(180deg, #f0f6fc 0%, #ffffff 100%);
+  border-bottom:1px solid var(--line);
+  padding:36px 5% 26px;
+  width:100%;
+}
+.page-header__wrap{
+  max-width:1120px;
+  margin:0 auto;
+}
+.page-header__badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:12px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--uleam-blue-700);
+  background:rgba(0,89,168,0.08);
+  padding:5px 14px;
+  border-radius:20px;
+  margin-bottom:10px;
+}
+.page-header h1,
+.page-header__title{
+  color:var(--uleam-blue-900);
+  font-size:clamp(26px, 4vw, 36px);
+  margin:0;
+  font-weight:700;
+  line-height:1.2;
+}
+
+/* Contenido Principal de WordPress (Entry Content) */
+.entry-content{
+  max-width:1120px;
+  width:100%;
+  margin:0 auto;
+  padding:30px 5% 60px;
+  line-height:1.75;
+  text-align:left;
+  flex:1 0 auto;
+}
+.entry-content h1,
+.entry-content h2,
+.entry-content h3{
+  color:var(--uleam-blue-900);
+  text-align:left;
+}
+.entry-content a{
+  color:var(--uleam-blue-700);
+  text-decoration:underline;
+}
+.entry-content a:hover{
+  color:var(--accent);
+}
+.entry-content ul,
+.entry-content ol{
+  padding-left:22px;
+}
+.entry-content img{
+  border-radius:6px;
+}
+.alignleft{
+  float:left;
+  margin:0 20px 20px 0;
+}
+.alignright{
+  float:right;
+  margin:0 0 20px 20px;
+}
+.aligncenter{
+  display:block;
+  margin:0 auto;
+}
+
+/* Lista de Archivo Genérico */
+.archive-list{
+  max-width:860px;
+  margin:0 auto;
+  padding:0 5% 40px;
+  flex:1 0 auto;
+  width:100%;
+}
+.archive-list article{
+  background:#fff;
+  border:1px solid var(--line);
+  border-radius:8px;
+  padding:20px;
+  margin-bottom:16px;
+}
+.archive-list h2{
+  margin:0 0 8px;
+  font-size:20px;
+}
+.archive-list h2 a{
+  color:var(--uleam-blue-900);
+}
+.archive-list .meta{
+  color:var(--muted);
+  font-size:13px;
+  margin-bottom:10px;
+}

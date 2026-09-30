@@ -1,0 +1,75 @@
+/* -------------------------------------------------------------------------
+ * Footer Institucional ULEAM
+ * ---------------------------------------------------------------------- */
+.footer{
+  background:linear-gradient(135deg, var(--uleam-blue-900) 0%, var(--uleam-blue-800) 55%, var(--uleam-blue-700) 100%);
+  color:#fff;
+  padding:34px 5% 20px;
+  margin-top:auto;
+  width:100%;
+}
+.footer-grid{
+  display:grid;
+  grid-template-columns:1.25fr 1fr 1.35fr 1fr;
+  gap:30px;
+}
+.footer h4{margin:0 0 12px;color:#fff}
+.footer p,.footer a{
+  color:#d9e8f7;
+  font-size:14px;
+  line-height:1.7;
+}
+.footer a:hover{color:var(--accent)}
+.footer-contact{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:.7rem;
+}
+.footer-contact li{
+  display:flex;
+  align-items:flex-start;
+  gap:.55rem;
+  color:#d9e8f7;
+  font-size:14px;
+  line-height:1.5;
+}
+.footer-contact i{
+  margin-top:.2rem;
+  color:var(--uleam-blue-400);
+  width:1rem;
+  text-align:center;
+}
+.footer-social{
+  display:flex;
+  gap:.65rem;
+  margin-top:.35rem;
+}
+.footer-social a{
+  width:2.2rem;height:2.2rem;border-radius:50%;
+  display:grid;place-items:center;
+  border:1px solid rgba(255,255,255,.28);
+  color:#fff;font-size:.9rem;
+}
+.footer-social a:hover{
+  background:rgba(255,255,255,.12);
+  border-color:var(--uleam-blue-400);
+  color:var(--uleam-blue-400);
+}
+.copy{
+  text-align:center;
+  border-top:1px solid rgba(255,255,255,.15);
+  margin-top:24px;
+  padding-top:16px;
+  color:#c5daf0;
+  font-size:13px;
+}
+
+/* Responsividad del Footer */
+@media(max-width:960px){
+  .footer-grid{grid-template-columns:1fr 1fr}
+}
+@media(max-width:560px){
+  .footer-grid{grid-template-columns:1fr}
+}
