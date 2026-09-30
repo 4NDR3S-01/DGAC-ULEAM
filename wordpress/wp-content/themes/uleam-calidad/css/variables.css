@@ -1,0 +1,30 @@
+/* ==========================================================================
+   Colorimetría institucional ULEAM y Variables CSS (Design Tokens)
+   ========================================================================== */
+:root{
+  --uleam-blue-900:#004499;
+  --uleam-blue-800:#005689;
+  --uleam-blue-700:#0059A8;
+  --uleam-blue-400:#46A4FF;
+
+  --uleam-fac-educacion:#E84E2F;
+  --uleam-fac-salud:#39BBD8;
+  --uleam-fac-vida-ti:#309947;
+  --uleam-fac-artes:#633252;
+  --uleam-fac-admin:#035685;
+  --uleam-fac-sociales:#A73145;
+  --uleam-fac-ingenieria:#3C4A93;
+
+  --navy:var(--uleam-blue-800);
+  --navy2:var(--uleam-blue-700);
+  --accent:var(--uleam-blue-400);
+  --accent-dark:var(--uleam-blue-900);
+  --primary:var(--uleam-blue-700);
+  --primary-dark:var(--uleam-blue-800);
+
+  --text:#0f2744;
+  --muted:#5b6b7c;
+  --bg:#ffffff;
+  --card:#ffffff;
+  --line:#e2eaf3;
+}
