@@ -10,3 +10,10 @@
 
 # wp-config.php
 /wordpress/wp-config.php
+# Archivos subidos a WordPress (pesan GB; se suben directo al hosting)
+/wordpress/wp-content/uploads/
+
+# Respaldos y exportaciones de base de datos locales
+/respaldo-*.sql
+/spam-eliminado-*.tsv
+/paginas-antes-de-papelera-*.csv

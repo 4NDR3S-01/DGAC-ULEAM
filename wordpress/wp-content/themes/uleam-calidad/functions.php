@@ -10,6 +10,7 @@
  * /inc/metaboxes.php   -> Metaboxes para documentos y enlaces de descarga.
  * /inc/customizer.php  -> Opciones editables del personalizador de WordPress.
  * /inc/navigation.php  -> Menú principal, fallback, reglas de reescritura y estado activo.
+ * /inc/editor.php      -> Ajustes del editor (TinyMCE) para editar páginas sin perder iconos ni estructura.
  *
  * @package uleam-calidad
  */
@@ -43,3 +44,6 @@ require_once ULEAM_THEME_DIR . '/inc/customizer.php';
 
 // 7. Navegación, menús, reglas de reescritura y enlaces activos
 require_once ULEAM_THEME_DIR . '/inc/navigation.php';
+
+// 8. Editor: conservar iconos, acordeones y enlaces al editar páginas
+require_once ULEAM_THEME_DIR . '/inc/editor.php';
