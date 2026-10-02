@@ -1,0 +1,837 @@
+/* -------------------------------------------------------------------------
+ * Gestión de Procesos Institucionales - ULEAM DGAC
+ * ---------------------------------------------------------------------- */
+
+/* 1. Encabezado e Introducción de Gestión de Procesos */
+.dgac-proc-intro{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:28px 32px;
+  margin-bottom:32px;
+  box-shadow:0 4px 20px rgba(0, 50, 100, 0.05);
+}
+.dgac-proc-intro__lead{
+  font-size:15.5px;
+  line-height:1.7;
+  color:#1e355b;
+  margin:0 0 24px;
+}
+
+/* 2. Switcher de Misión / Objetivo / Productos */
+.dgac-pill-tabs{
+  display:flex;
+  gap:10px;
+  border-bottom:2px solid #f1f5f9;
+  padding-bottom:12px;
+  margin-bottom:22px;
+  overflow-x:auto;
+}
+.dgac-pill-tab{
+  appearance:none;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:30px;
+  padding:8px 18px;
+  font-size:13.5px;
+  font-weight:700;
+  color:#475569;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.2s ease;
+  white-space:nowrap;
+}
+.dgac-pill-tab:hover{
+  background:#e2e8f0;
+  color:#0f172a;
+}
+.dgac-pill-tab.is-active{
+  background:var(--uleam-blue-700);
+  border-color:var(--uleam-blue-700);
+  color:#ffffff;
+  box-shadow:0 3px 10px rgba(0, 89, 168, 0.25);
+}
+.dgac-pill-tab .dot{
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  display:inline-block;
+}
+.dgac-pill-tab .dot--green{background:#10b981}
+.dgac-pill-tab .dot--orange{background:#f97316}
+.dgac-pill-tab .dot--blue{background:#0284c7}
+
+.dgac-overview-panel{
+  display:none;
+  animation:dgacFade 0.3s ease;
+}
+.dgac-overview-panel.is-active{
+  display:block;
+}
+@keyframes dgacFade{
+  from{opacity:0;transform:translateY(4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+.dgac-overview-card{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:22px 24px;
+}
+.dgac-overview-card p{
+  font-size:14.5px;
+  line-height:1.75;
+  color:#334155;
+  margin:0;
+}
+.dgac-products-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:12px;
+}
+.dgac-product-item{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  padding:10px 14px;
+  font-size:13px;
+  line-height:1.45;
+  color:#1e293b;
+  transition:border-color 0.2s ease, transform 0.2s ease;
+}
+.dgac-product-item:hover{
+  border-color:var(--uleam-blue-400);
+  transform:translateY(-1px);
+}
+.dgac-product-item i{
+  color:var(--uleam-blue-700);
+  font-size:14px;
+  margin-top:2px;
+  flex-shrink:0;
+}
+
+/* 3. Banner de Catálogos Institucionales Vigentes */
+.dgac-catalog-banner{
+  background:linear-gradient(135deg, #f0f7ff 0%, #e0effe 100%);
+  border:1px solid #bfdbfe;
+  border-left:5px solid var(--uleam-blue-700);
+  border-radius:14px;
+  padding:24px 28px;
+  margin-bottom:38px;
+  box-shadow:0 4px 16px rgba(0, 89, 168, 0.06);
+}
+.dgac-catalog-banner__head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:18px;
+}
+.dgac-catalog-banner__head i{
+  font-size:22px;
+  color:var(--accent);
+}
+.dgac-catalog-banner__head h3{
+  font-size:16px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  margin:0;
+}
+.dgac-catalog-cards{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:18px;
+}
+.dgac-catalog-card{
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  border-radius:12px;
+  padding:18px 20px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  text-decoration:none !important;
+  transition:all 0.2s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.03);
+}
+.dgac-catalog-card:hover{
+  transform:translateY(-2px);
+  border-color:var(--uleam-blue-700);
+  box-shadow:0 6px 18px rgba(0, 89, 168, 0.12);
+}
+.dgac-catalog-card__info{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.dgac-catalog-card__icon{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  font-size:20px;
+  flex-shrink:0;
+}
+.dgac-catalog-card--procedimientos .dgac-catalog-card__icon{
+  background:#dcfce7;
+  color:#15803d;
+}
+.dgac-catalog-card--formatos .dgac-catalog-card__icon{
+  background:#ffedd5;
+  color:#c2410c;
+}
+.dgac-catalog-card__title{
+  font-size:14.5px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  margin:0 0 2px;
+}
+.dgac-catalog-card__desc{
+  font-size:12px;
+  color:#64748b;
+  margin:0;
+}
+.dgac-catalog-card__btn{
+  background:#f1f5f9;
+  border:1px solid #cbd5e1;
+  color:var(--uleam-blue-800);
+  padding:8px 14px;
+  border-radius:8px;
+  font-size:12.5px;
+  font-weight:600;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  transition:all 0.2s ease;
+}
+.dgac-catalog-card:hover .dgac-catalog-card__btn{
+  background:var(--uleam-blue-700);
+  border-color:var(--uleam-blue-700);
+  color:#ffffff;
+}
+
+/* 4. Sección Principal: SUBSISTEMAS DE GESTIÓN UNIVERSITARIA */
+.dgac-subsistemas-section{
+  margin-top:20px;
+}
+.dgac-section-title-wrap{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:20px;
+  flex-wrap:wrap;
+}
+.dgac-section-title{
+  font-size:clamp(20px, 3.2vw, 26px);
+  font-weight:800;
+  color:var(--uleam-blue-900);
+  margin:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.dgac-section-title i{
+  color:#10b981;
+}
+
+/* Barra de Búsqueda y Filtro de Procedimientos en Vivo */
+.dgac-toolbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:12px 18px;
+  margin-bottom:24px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.03);
+  flex-wrap:wrap;
+}
+.dgac-search-box{
+  position:relative;
+  flex:1;
+  min-width:280px;
+}
+.dgac-search-box i{
+  position:absolute;
+  left:14px;
+  top:50%;
+  transform:translateY(-50%);
+  color:#94a3b8;
+  font-size:14px;
+  pointer-events:none;
+}
+.dgac-search-input{
+  width:100%;
+  padding:9px 14px 9px 38px;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  font-size:13.5px;
+  color:#1e293b;
+  outline:none;
+  transition:border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing:border-box;
+}
+.dgac-search-input:focus{
+  border-color:var(--uleam-blue-700);
+  box-shadow:0 0 0 3px rgba(0, 89, 168, 0.12);
+}
+.dgac-toolbar-actions{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.dgac-count-badge{
+  font-size:12.5px;
+  color:#64748b;
+  font-weight:600;
+  background:#f1f5f9;
+  padding:5px 12px;
+  border-radius:20px;
+}
+.dgac-toggle-all-btn{
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:8px;
+  padding:7px 12px;
+  font-size:12px;
+  font-weight:600;
+  color:#475569;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.dgac-toggle-all-btn:hover{
+  background:#e2e8f0;
+  color:#0f172a;
+}
+
+/* Pestañas Principales de los 4 Subsistemas */
+.dgac-subsistema-tabs{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:12px;
+  margin-bottom:28px;
+}
+.dgac-subsistema-tab{
+  background:#ffffff;
+  border:2px solid #e2e8f0;
+  border-radius:12px;
+  padding:14px 16px;
+  cursor:pointer;
+  transition:all 0.2s ease;
+  text-align:left;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,0.02);
+}
+.dgac-subsistema-tab:hover{
+  transform:translateY(-2px);
+  border-color:#93c5fd;
+  box-shadow:0 4px 14px rgba(0, 89, 168, 0.08);
+}
+.dgac-subsistema-tab.is-active{
+  border-color:var(--uleam-blue-700);
+  background:linear-gradient(180deg, #f0f7ff 0%, #ffffff 100%);
+  box-shadow:0 4px 18px rgba(0, 89, 168, 0.12);
+}
+.dgac-subtab-badge{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:0.04em;
+  text-transform:uppercase;
+  color:#0284c7;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.dgac-subtab-title{
+  font-size:14px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  line-height:1.3;
+}
+.dgac-subtab-meta{
+  font-size:11.5px;
+  color:#64748b;
+}
+
+/* Paneles de Contenido de Subsistemas */
+.dgac-subsistema-content{
+  display:none;
+}
+.dgac-subsistema-content.is-active{
+  display:block;
+  animation:dgacFade 0.3s ease;
+}
+
+/* Tarjeta Acordeón de Macroproceso */
+.dgac-macro-card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  margin-bottom:18px;
+  overflow:hidden;
+  transition:all 0.2s ease;
+  box-shadow:0 2px 8px rgba(0,0,0,0.02);
+}
+.dgac-macro-card:hover{
+  border-color:#cbd5e1;
+  box-shadow:0 4px 16px rgba(0,0,0,0.04);
+}
+.dgac-macro-card[open]{
+  border-color:#b9d5f3;
+  box-shadow:0 6px 20px rgba(0, 89, 168, 0.06);
+}
+.dgac-macro-card--blue{border-left:5px solid #0284c7}
+.dgac-macro-card--green{border-left:5px solid #059669}
+.dgac-macro-card--red{border-left:5px solid #dc2626}
+.dgac-macro-card--purple{border-left:5px solid #7c3aed}
+.dgac-macro-card--orange{border-left:5px solid #ea580c}
+.dgac-macro-card--dark{border-left:5px solid #334155}
+
+.dgac-macro-summary{
+  padding:16px 20px;
+  background:#ffffff;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  list-style:none;
+  user-select:none;
+  transition:background 0.2s ease;
+}
+.dgac-macro-summary::-webkit-details-marker{display:none}
+.dgac-macro-summary:hover{
+  background:#f8fafc;
+}
+.dgac-macro-summary__left{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.dgac-macro-icon{
+  width:36px;
+  height:36px;
+  border-radius:8px;
+  display:grid;
+  place-items:center;
+  font-size:16px;
+  flex-shrink:0;
+}
+.dgac-macro-card--blue .dgac-macro-icon{background:#e0f2fe;color:#0284c7}
+.dgac-macro-card--green .dgac-macro-icon{background:#d1fae5;color:#059669}
+.dgac-macro-card--red .dgac-macro-icon{background:#fee2e2;color:#dc2626}
+.dgac-macro-card--purple .dgac-macro-icon{background:#ede9fe;color:#7c3aed}
+.dgac-macro-card--orange .dgac-macro-icon{background:#ffedd5;color:#ea580c}
+.dgac-macro-card--dark .dgac-macro-icon{background:#f1f5f9;color:#334155}
+
+.dgac-macro-title{
+  font-size:15px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+}
+.dgac-macro-summary__right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.dgac-macro-count{
+  font-size:12px;
+  font-weight:600;
+  color:#64748b;
+  background:#f1f5f9;
+  padding:4px 10px;
+  border-radius:20px;
+}
+.dgac-macro-chevron{
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  background:#f1f5f9;
+  display:grid;
+  place-items:center;
+  font-size:11px;
+  color:var(--uleam-blue-700);
+  transition:transform 0.25s ease, background 0.2s ease;
+}
+.dgac-macro-card[open] .dgac-macro-chevron{
+  transform:rotate(180deg);
+  background:#e0f2fe;
+}
+.dgac-macro-body{
+  padding:16px 20px 20px;
+  border-top:1px solid #f1f5f9;
+  background:#fafcff;
+}
+
+/* Sección de Subproceso dentro de un Macroproceso */
+.dgac-subproceso-group{
+  margin-bottom:20px;
+}
+.dgac-subproceso-group:last-child{margin-bottom:0}
+.dgac-subproceso-title{
+  font-size:12.5px;
+  font-weight:700;
+  text-transform:uppercase;
+  letter-spacing:0.04em;
+  color:#475569;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin:0 0 10px;
+  padding-bottom:5px;
+  border-bottom:1px solid #e2e8f0;
+}
+.dgac-subproceso-title i{
+  color:var(--uleam-blue-700);
+  font-size:11px;
+}
+
+/* Fila / Acordeón Individual de Procedimiento */
+.dgac-proc-list{
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.dgac-proc-row{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  overflow:hidden;
+  transition:all 0.2s ease;
+}
+.dgac-proc-row:hover{
+  border-color:#93c5fd;
+  box-shadow:0 3px 10px rgba(0, 89, 168, 0.05);
+}
+.dgac-proc-row[open]{
+  border-color:#93c5fd;
+  box-shadow:0 4px 14px rgba(0, 89, 168, 0.08);
+}
+.dgac-proc-row-summary{
+  padding:10px 14px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  list-style:none;
+  user-select:none;
+}
+.dgac-proc-row-summary::-webkit-details-marker{display:none}
+.dgac-proc-row-left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+  flex:1;
+}
+.dgac-proc-doc-icon{
+  width:32px;
+  height:32px;
+  border-radius:6px;
+  background:#fee2e2;
+  color:#dc2626;
+  display:grid;
+  place-items:center;
+  font-size:14px;
+  flex-shrink:0;
+}
+.dgac-proc-info{
+  min-width:0;
+}
+.dgac-proc-name{
+  font-size:13.5px;
+  font-weight:600;
+  color:var(--uleam-blue-900);
+  margin:0 0 2px;
+  line-height:1.35;
+}
+.dgac-proc-code{
+  font-size:11.5px;
+  color:#64748b;
+  font-family:monospace;
+}
+.dgac-proc-row-right{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-shrink:0;
+}
+.dgac-proc-badge-status{
+  font-size:11px;
+  font-weight:700;
+  padding:3px 9px;
+  border-radius:12px;
+  background:#ecfdf5;
+  color:#065f46;
+  border:1px solid #a7f3d0;
+  white-space:nowrap;
+}
+.dgac-proc-open-btn{
+  font-size:11.5px;
+  font-weight:600;
+  color:var(--uleam-blue-700);
+  background:#f0f7ff;
+  border:1px solid #bae6fd;
+  padding:5px 10px;
+  border-radius:6px;
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  transition:all 0.2s ease;
+}
+.dgac-proc-row[open] .dgac-proc-open-btn{
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+  border-color:var(--uleam-blue-700);
+}
+.dgac-proc-row[open] .dgac-proc-open-btn i{
+  transform:rotate(180deg);
+}
+
+/* Cajón Desplegable con Archivos y Formatos del Procedimiento */
+.dgac-proc-drawer{
+  padding:14px 16px;
+  background:#f8fafc;
+  border-top:1px solid #edf2f7;
+}
+.dgac-proc-drawer__header{
+  font-size:12px;
+  font-weight:700;
+  color:#334155;
+  margin:0 0 10px;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.dgac-files-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  gap:10px;
+}
+.dgac-file-card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:8px;
+  padding:10px 12px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.dgac-file-card__left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.dgac-file-card__icon{
+  width:30px;
+  height:30px;
+  border-radius:6px;
+  display:grid;
+  place-items:center;
+  font-size:13px;
+  flex-shrink:0;
+}
+.dgac-file-card__icon--pdf{background:#fee2e2;color:#dc2626}
+.dgac-file-card__icon--docx{background:#e0f2fe;color:#0284c7}
+.dgac-file-card__icon--flow{background:#ede9fe;color:#7c3aed}
+
+.dgac-file-card__info{
+  min-width:0;
+}
+.dgac-file-card__name{
+  font-size:12.5px;
+  font-weight:600;
+  color:#1e293b;
+  margin:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.dgac-file-card__meta{
+  font-size:11px;
+  color:#64748b;
+  margin:0;
+}
+.dgac-file-card__actions{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  flex-shrink:0;
+}
+.dgac-file-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+  padding:5px 9px;
+  border-radius:6px;
+  font-size:11.5px;
+  font-weight:600;
+  text-decoration:none !important;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.dgac-file-btn--view{
+  background:#eff6ff;
+  border:1px solid #bfdbfe;
+  color:var(--uleam-blue-700) !important;
+}
+.dgac-file-btn--view:hover{
+  background:var(--uleam-blue-700);
+  color:#ffffff !important;
+}
+.dgac-file-btn--download{
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  color:#475569 !important;
+}
+.dgac-file-btn--download:hover{
+  background:#1e293b;
+  border-color:#1e293b;
+  color:#ffffff !important;
+}
+
+/* Modal de Previsualización / Aviso Amigable para Archivos en Carga */
+.dgac-modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(15, 23, 42, 0.6);
+  backdrop-filter:blur(4px);
+  z-index:99999;
+  display:none;
+  place-items:center;
+  padding:20px;
+}
+.dgac-modal-overlay.is-active{
+  display:grid;
+}
+.dgac-modal{
+  background:#ffffff;
+  border-radius:16px;
+  max-width:520px;
+  width:100%;
+  box-shadow:0 20px 40px rgba(0,0,0,0.2);
+  overflow:hidden;
+  animation:dgacModalIn 0.25s ease;
+}
+@keyframes dgacModalIn{
+  from{opacity:0;transform:scale(0.95)}
+  to{opacity:1;transform:scale(1)}
+}
+.dgac-modal__header{
+  background:linear-gradient(135deg, var(--uleam-blue-900) 0%, var(--uleam-blue-700) 100%);
+  color:#ffffff;
+  padding:18px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.dgac-modal__header h4{
+  margin:0;
+  font-size:16px;
+  font-weight:700;
+  color:#ffffff;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.dgac-modal__close{
+  background:transparent;
+  border:none;
+  color:#ffffff;
+  font-size:18px;
+  cursor:pointer;
+  width:28px;
+  height:28px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  opacity:0.8;
+  transition:all 0.2s ease;
+}
+.dgac-modal__close:hover{
+  opacity:1;
+  background:rgba(255,255,255,0.15);
+}
+.dgac-modal__body{
+  padding:24px;
+  text-align:center;
+}
+.dgac-modal__icon{
+  width:56px;
+  height:56px;
+  border-radius:50%;
+  background:#e0f2fe;
+  color:var(--uleam-blue-700);
+  display:grid;
+  place-items:center;
+  font-size:24px;
+  margin:0 auto 16px;
+}
+.dgac-modal__title{
+  font-size:17px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  margin:0 0 8px;
+}
+.dgac-modal__desc{
+  font-size:13.5px;
+  color:#475569;
+  line-height:1.6;
+  margin:0 0 18px;
+}
+.dgac-modal__footer{
+  padding:14px 24px;
+  background:#f8fafc;
+  border-top:1px solid #e2e8f0;
+  display:flex;
+  justify-content:flex-end;
+}
+.dgac-btn-close-modal{
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+  border:none;
+  padding:8px 18px;
+  border-radius:8px;
+  font-size:13px;
+  font-weight:600;
+  cursor:pointer;
+  transition:background 0.2s ease;
+}
+.dgac-btn-close-modal:hover{
+  background:var(--uleam-blue-900);
+}
+
+/* Responsividad de Gestión de Procesos */
+@media(max-width:960px){
+  .dgac-subsistema-tabs{grid-template-columns:repeat(2, minmax(0, 1fr))}
+  .dgac-products-grid{grid-template-columns:1fr}
+  .dgac-catalog-cards{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .dgac-proc-intro{padding:20px 18px}
+  .dgac-subsistema-tabs{grid-template-columns:1fr}
+  .dgac-catalog-card{flex-direction:column;align-items:flex-start}
+  .dgac-catalog-card__btn{width:100%;justify-content:center}
+  .dgac-proc-row-summary{flex-direction:column;align-items:flex-start;gap:8px}
+  .dgac-proc-row-right{width:100%;justify-content:space-between}
+  .dgac-toolbar{flex-direction:column;align-items:stretch}
+  .dgac-toolbar-actions{justify-content:space-between}
+}

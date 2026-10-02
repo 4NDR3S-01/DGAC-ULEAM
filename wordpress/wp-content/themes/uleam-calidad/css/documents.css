@@ -194,9 +194,11 @@
   border-radius:20px;
   font-size:13px;
   font-weight:700;
+  background:#dcfce7;
+  color:#15803d;
 }
-.dgac-year-pill--orange{background:#ffedd5;color:#c2410c}
-.dgac-year-pill--green{background:#dcfce7;color:#15803d}
+.dgac-year-pill--green,
+.dgac-year-pill--orange{background:#dcfce7;color:#15803d}
 .dgac-year-pill--blue{background:#e0f2fe;color:#0369a1}
 .dgac-year-pill--gray{background:#f1f5f9;color:#475569}
 
@@ -354,7 +356,153 @@
   flex-shrink:0;
 }
 
+/* Nota Informativa Institucional */
+.dgac-note-box{
+  background:linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+  border:1px solid #c8dff5;
+  border-left:4px solid var(--uleam-blue-700);
+  border-radius:12px;
+  padding:20px 24px;
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  margin-top:30px;
+  box-shadow:0 3px 12px rgba(0, 89, 168, 0.04);
+  font-size:14px;
+  line-height:1.65;
+  color:#1e3a5f;
+}
+.dgac-note-box i{
+  font-size:22px;
+  color:var(--uleam-blue-700);
+  flex-shrink:0;
+  margin-top:2px;
+}
+.dgac-note-box p,
+.dgac-note-box .dgac-note-content,
+.dgac-note-box > div{
+  font-size:14px;
+  line-height:1.65;
+  color:#1e3a5f;
+  margin:0;
+  flex:1;
+  min-width:0;
+}
+.dgac-note-box a{
+  color:var(--uleam-blue-700);
+  font-weight:600;
+  text-decoration:none;
+}
+.dgac-note-box a:hover{
+  text-decoration:underline;
+}
+
+/* Hub Portal: Auditoría de la Calidad */
+.dgac-audit-hub-grid{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+  gap:24px;
+  margin:28px 0 36px;
+}
+.dgac-audit-card{
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:28px 24px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  box-shadow:0 4px 16px rgba(0, 50, 100, 0.04);
+  transition:all 0.25s ease;
+  position:relative;
+  overflow:hidden;
+}
+.dgac-audit-card::before{
+  content:'';
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  height:4px;
+  background:linear-gradient(90deg, var(--uleam-blue-700), #0ea5e9);
+  opacity:0;
+  transition:opacity 0.25s ease;
+}
+.dgac-audit-card:hover{
+  border-color:#93c5fd;
+  transform:translateY(-3px);
+  box-shadow:0 8px 24px rgba(0, 89, 168, 0.1);
+}
+.dgac-audit-card:hover::before{
+  opacity:1;
+}
+.dgac-audit-card__icon{
+  width:52px;
+  height:52px;
+  border-radius:12px;
+  background:#e0f2fe;
+  color:var(--uleam-blue-700);
+  display:grid;
+  place-items:center;
+  font-size:22px;
+  margin-bottom:18px;
+  transition:all 0.25s ease;
+}
+.dgac-audit-card:hover .dgac-audit-card__icon{
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+}
+.dgac-audit-card__title{
+  font-size:18px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  margin:0 0 10px;
+  line-height:1.35;
+}
+.dgac-audit-card__desc{
+  font-size:14px;
+  line-height:1.65;
+  color:#475569;
+  margin:0 0 20px;
+  flex:1;
+}
+.dgac-audit-card__footer{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding-top:16px;
+  border-top:1px solid #f1f5f9;
+}
+.dgac-audit-card__btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--uleam-blue-700);
+  text-decoration:none !important;
+  transition:color 0.2s ease, transform 0.2s ease;
+}
+.dgac-audit-card__btn:hover{
+  color:var(--uleam-blue-900);
+  transform:translateX(3px);
+}
+.dgac-audit-card__tag{
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font-size:12px;
+  font-weight:600;
+  color:#64748b;
+  background:#f8fafc;
+  padding:4px 10px;
+  border-radius:6px;
+}
+
 /* Responsividad de Documentos y Auditoría */
+@media(max-width:768px){
+  .dgac-audit-hub-grid{grid-template-columns:1fr;gap:18px}
+}
 @media(max-width:600px){
   .dgac-doc-featured__body{flex-direction:column;align-items:stretch}
   .dgac-doc-actions{width:100%;justify-content:stretch}
@@ -362,3 +510,4 @@
   .dgac-doc-row{flex-direction:column;align-items:stretch;gap:10px}
   .dgac-doc-row-btns{width:100%;justify-content:flex-end}
 }
+
