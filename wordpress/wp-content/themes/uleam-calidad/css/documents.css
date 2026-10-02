@@ -194,9 +194,11 @@
   border-radius:20px;
   font-size:13px;
   font-weight:700;
+  background:#dcfce7;
+  color:#15803d;
 }
-.dgac-year-pill--orange{background:#ffedd5;color:#c2410c}
-.dgac-year-pill--green{background:#dcfce7;color:#15803d}
+.dgac-year-pill--green,
+.dgac-year-pill--orange{background:#dcfce7;color:#15803d}
 .dgac-year-pill--blue{background:#e0f2fe;color:#0369a1}
 .dgac-year-pill--gray{background:#f1f5f9;color:#475569}
 
