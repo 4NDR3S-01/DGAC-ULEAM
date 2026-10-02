@@ -17,3 +17,11 @@
 /respaldo-*.sql
 /spam-eliminado-*.tsv
 /paginas-antes-de-papelera-*.csv
+
+# Scripts de un solo uso de la migración
+/fix_post_types.sh
+/importar_datos.sh
+
+# Importador de WordPress (solo se usó para la migración)
+/wordpress/wp-content/plugins/wordpress-importer/
+/wordpress/wp-content/languages/plugins/wordpress-importer-*
