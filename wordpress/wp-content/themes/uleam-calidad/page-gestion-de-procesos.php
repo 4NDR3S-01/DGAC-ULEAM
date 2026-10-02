@@ -126,8 +126,8 @@ get_header();
 				<input type="search" id="dgacProcessSearch" class="dgac-search-input" placeholder="Buscar procedimiento, macroproceso o código (ej. Matrícula, Titulación, Nómina)..." aria-label="Buscar procedimiento">
 			</div>
 			<div class="dgac-toolbar-actions">
-				<button type="button" class="dgac-toggle-all-btn" id="dgacToggleAllBtn">
-					<i class="fa-solid fa-up-down"></i> <span id="dgacToggleAllText">Colapsar todos</span>
+				<button type="button" class="dgac-toggle-all-btn" id="dgacToggleAllBtn" aria-expanded="false">
+					<i class="fa-solid fa-up-down"></i> <span id="dgacToggleAllText">Expandir todos</span>
 				</button>
 			</div>
 		</div>
@@ -166,7 +166,7 @@ get_header();
 		<div id="subsys-docencia" class="dgac-subsistema-content is-active" role="tabpanel" aria-labelledby="subtab-docencia">
 			
 			<!-- Macroproceso 1: Admisión -->
-			<details class="dgac-macro-card dgac-macro-card--blue" open>
+			<details class="dgac-macro-card dgac-macro-card--blue">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-user-plus"></i></div>
@@ -287,7 +287,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 2: Aseguramiento de la Calidad -->
-			<details class="dgac-macro-card dgac-macro-card--green" open>
+			<details class="dgac-macro-card dgac-macro-card--green">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-award"></i></div>
@@ -352,7 +352,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 3: Gestión Andragógica y Curricular -->
-			<details class="dgac-macro-card dgac-macro-card--red" open>
+			<details class="dgac-macro-card dgac-macro-card--red">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-book-open-reader"></i></div>
@@ -438,7 +438,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 4: Gestión de Ambientes de Aprendizaje -->
-			<details class="dgac-macro-card dgac-macro-card--dark" open>
+			<details class="dgac-macro-card dgac-macro-card--dark">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-landmark"></i></div>
@@ -510,7 +510,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 5: Graduación -->
-			<details class="dgac-macro-card dgac-macro-card--orange" open>
+			<details class="dgac-macro-card dgac-macro-card--orange">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-user-graduate"></i></div>
@@ -587,7 +587,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 6: Gestión del Personal Académico -->
-			<details class="dgac-macro-card dgac-macro-card--blue" open>
+			<details class="dgac-macro-card dgac-macro-card--blue">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-chalkboard-user"></i></div>
@@ -652,7 +652,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 7: Gestión y Desarrollo Estudiantil -->
-			<details class="dgac-macro-card dgac-macro-card--purple" open>
+			<details class="dgac-macro-card dgac-macro-card--purple">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-users"></i></div>
@@ -735,7 +735,7 @@ get_header();
 		<div id="subsys-investigacion" class="dgac-subsistema-content" role="tabpanel" aria-labelledby="subtab-investigacion">
 			
 			<!-- Macroproceso 1: Gestión del Conocimiento, Innovación y Transferencia Tecnológica -->
-			<details class="dgac-macro-card dgac-macro-card--green" open>
+			<details class="dgac-macro-card dgac-macro-card--green">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-lightbulb"></i></div>
@@ -795,7 +795,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 2: Redes del Conocimiento, Investigación e Innovación -->
-			<details class="dgac-macro-card dgac-macro-card--blue" open>
+			<details class="dgac-macro-card dgac-macro-card--blue">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-network-wired"></i></div>
@@ -854,7 +854,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 3: Generación del Conocimiento y Saberes -->
-			<details class="dgac-macro-card dgac-macro-card--purple" open>
+			<details class="dgac-macro-card dgac-macro-card--purple">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-brain"></i></div>
@@ -921,7 +921,7 @@ get_header();
 		<div id="subsys-vinculacion" class="dgac-subsistema-content" role="tabpanel" aria-labelledby="subtab-vinculacion">
 			
 			<!-- Macroproceso 1: Gestión del Conocimiento -->
-			<details class="dgac-macro-card dgac-macro-card--purple" open>
+			<details class="dgac-macro-card dgac-macro-card--purple">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-people-roof"></i></div>
@@ -980,7 +980,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 2: Educación Continua -->
-			<details class="dgac-macro-card dgac-macro-card--orange" open>
+			<details class="dgac-macro-card dgac-macro-card--orange">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-chalkboard"></i></div>
@@ -1039,7 +1039,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 3: Cooperación, Desarrollo y Emprendimiento -->
-			<details class="dgac-macro-card dgac-macro-card--blue" open>
+			<details class="dgac-macro-card dgac-macro-card--blue">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-rocket"></i></div>
@@ -1098,7 +1098,7 @@ get_header();
 			</details>
 
 			<!-- Macroproceso 4: Redes -->
-			<details class="dgac-macro-card dgac-macro-card--red" open>
+			<details class="dgac-macro-card dgac-macro-card--red">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-circle-nodes"></i></div>
@@ -1164,7 +1164,7 @@ get_header();
 		<div id="subsys-admin" class="dgac-subsistema-content" role="tabpanel" aria-labelledby="subtab-admin">
 			
 			<!-- Macroproceso 1: Gestión Administrativa del Talento Humano -->
-			<details class="dgac-macro-card dgac-macro-card--green" open>
+			<details class="dgac-macro-card dgac-macro-card--green">
 				<summary class="dgac-macro-summary">
 					<div class="dgac-macro-summary__left">
 						<div class="dgac-macro-icon"><i class="fa-solid fa-id-card-clip"></i></div>
@@ -1369,7 +1369,7 @@ get_header();
 			);
 			foreach ( $otros_macroprocesos as $macro ) :
 				?>
-				<details class="dgac-macro-card dgac-macro-card--<?php echo esc_attr( $macro['color'] ); ?>" open>
+				<details class="dgac-macro-card dgac-macro-card--<?php echo esc_attr( $macro['color'] ); ?>">
 					<summary class="dgac-macro-summary">
 						<div class="dgac-macro-summary__left">
 							<div class="dgac-macro-icon"><i class="fa-solid <?php echo esc_attr( $macro['icon'] ); ?>"></i></div>
@@ -1499,6 +1499,7 @@ document.addEventListener('DOMContentLoaded', function() {
 				activePanel.classList.add('is-active');
 			}
 			updateCounter();
+			updateToggleBtnState();
 		});
 	});
 
@@ -1553,25 +1554,63 @@ document.addEventListener('DOMContentLoaded', function() {
 		});
 	}
 
-	// 4. Botón Expandir / Colapsar todos
+	// 4. Botón Expandir / Colapsar todos acorde a la sección activa
 	const toggleBtn = document.getElementById('dgacToggleAllBtn');
 	const toggleText = document.getElementById('dgacToggleAllText');
-	let allExpanded = true;
+
+	function updateToggleBtnState() {
+		if (!toggleBtn || !toggleText) return;
+		const activeSubsys = document.querySelector('.dgac-subsistema-content.is-active');
+		if (!activeSubsys) return;
+
+		const macroCards = activeSubsys.querySelectorAll('.dgac-macro-card');
+		if (macroCards.length === 0) return;
+
+		// Si todas las tarjetas de la sección activa están abiertas, el botón ofrece colapsar
+		const allOpen = Array.from(macroCards).every(card => card.open);
+		toggleText.textContent = allOpen ? 'Colapsar todos' : 'Expandir todos';
+		toggleBtn.setAttribute('aria-expanded', allOpen ? 'true' : 'false');
+	}
 
 	if (toggleBtn) {
 		toggleBtn.addEventListener('click', function() {
 			const activeSubsys = document.querySelector('.dgac-subsistema-content.is-active');
 			if (!activeSubsys) return;
+
 			const macroCards = activeSubsys.querySelectorAll('.dgac-macro-card');
-			const procRows = activeSubsys.querySelectorAll('.dgac-proc-row');
+			if (macroCards.length === 0) return;
 
-			allExpanded = !allExpanded;
-			macroCards.forEach(card => card.open = allExpanded);
-			procRows.forEach(row => row.open = allExpanded);
+			// Si todas están abiertas, se colapsa la sección; si alguna o todas están cerradas, se expande la sección
+			const allOpen = Array.from(macroCards).every(card => card.open);
+			const willExpand = !allOpen;
 
-			toggleText.textContent = allExpanded ? 'Colapsar todos' : 'Expandir todos';
+			macroCards.forEach(card => {
+				card.open = willExpand;
+			});
+
+			// Al colapsar, también cerramos los cajones de procedimientos para mantener la sección ordenada
+			if (!willExpand) {
+				activeSubsys.querySelectorAll('.dgac-proc-row').forEach(row => {
+					row.open = false;
+				});
+			}
+
+			updateToggleBtnState();
 		});
 	}
+
+	// Sincronizar el botón cuando el usuario abre o cierra manualmente un macroproceso
+	document.querySelectorAll('.dgac-macro-card').forEach(card => {
+		card.addEventListener('toggle', function() {
+			const activeSubsys = document.querySelector('.dgac-subsistema-content.is-active');
+			if (activeSubsys && activeSubsys.contains(this)) {
+				updateToggleBtnState();
+			}
+		});
+	});
+
+	// Inicializar estado del botón según la sección activa
+	updateToggleBtnState();
 
 	// 5. Modal amigable para avisos de descarga / consulta de archivos
 	const modalOverlay = document.getElementById('dgacDocModal');

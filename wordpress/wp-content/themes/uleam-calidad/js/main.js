@@ -25,6 +25,34 @@
     });
   }
 
+  // Pestañas Misión / Objetivo / Productos (DGAC Pill Tabs)
+  var pillTabs = document.querySelectorAll('.dgac-pill-tab');
+  if (pillTabs.length) {
+    pillTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var container = tab.closest('.dgac-proc-intro') || tab.closest('.entry-content') || document;
+        var target = tab.getAttribute('data-tab');
+        var groupTabs = container.querySelectorAll('.dgac-pill-tab');
+        var groupPanels = container.querySelectorAll('.dgac-overview-panel');
+
+        groupTabs.forEach(function (t) {
+          t.classList.remove('is-active');
+          t.setAttribute('aria-selected', 'false');
+        });
+        groupPanels.forEach(function (p) {
+          p.classList.remove('is-active');
+        });
+
+        tab.classList.add('is-active');
+        tab.setAttribute('aria-selected', 'true');
+        var activePanel = container.querySelector('#panel-' + target);
+        if (activePanel) {
+          activePanel.classList.add('is-active');
+        }
+      });
+    });
+  }
+
   // Menú móvil y submenús interactivos
   var navToggle = document.getElementById('navToggle');
   var primaryMenu = document.getElementById('primaryMenu');

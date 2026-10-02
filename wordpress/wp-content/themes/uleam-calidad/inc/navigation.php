@@ -30,8 +30,9 @@ function uleam_menu_fallback() {
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/gestion-de-procesos/' ) ) . '">Gestión de Procesos</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/aseguramiento-de-la-calidad/' ) ) . '">Aseguramiento de la Calidad</a></li>';
 	echo '<li class="menu-item menu-item-has-children">';
-	echo '<a href="#">Auditoría de la Calidad</a>';
+	echo '<a href="' . esc_url( home_url( '/auditoria-de-la-calidad/' ) ) . '">Auditoría de la Calidad</a>';
 	echo '<ul class="sub-menu">';
+	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/auditoria-de-la-calidad/' ) ) . '">Información del Área (Misión y Objetivos)</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad/' ) ) . '">Seguimiento y Control a Procesos del Sistema de Gestión de la Calidad</a></li>';
 	echo '<li class="menu-item"><a href="' . esc_url( home_url( '/seguimiento-y-control-a-planes-de-mejora/' ) ) . '">Seguimiento y Control a Planes de Mejora</a></li>';
 	echo '</ul>';
@@ -63,8 +64,7 @@ function uleam_handle_accented_slugs() {
 		'horario-atención'        => 'horario-atencion',
 		'gestión-de-procesos'     => 'gestion-de-procesos',
 		'quienes-somos'           => 'resena-historica',
-		'auditoria-de-la-calidad' => 'seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad',
-		'auditoría-de-la-calidad' => 'seguimiento-y-control-a-procesos-del-sistema-de-gestion-de-la-calidad',
+		'auditoría-de-la-calidad' => 'auditoria-de-la-calidad',
 	);
 
 	foreach ( $map as $accented => $canonical ) {
