@@ -356,6 +356,47 @@
   flex-shrink:0;
 }
 
+/* Nota Informativa Institucional */
+.dgac-note-box{
+  background:linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
+  border:1px solid #c8dff5;
+  border-left:4px solid var(--uleam-blue-700);
+  border-radius:12px;
+  padding:20px 24px;
+  display:flex;
+  align-items:flex-start;
+  gap:16px;
+  margin-top:30px;
+  box-shadow:0 3px 12px rgba(0, 89, 168, 0.04);
+  font-size:14px;
+  line-height:1.65;
+  color:#1e3a5f;
+}
+.dgac-note-box i{
+  font-size:22px;
+  color:var(--uleam-blue-700);
+  flex-shrink:0;
+  margin-top:2px;
+}
+.dgac-note-box p,
+.dgac-note-box .dgac-note-content,
+.dgac-note-box > div{
+  font-size:14px;
+  line-height:1.65;
+  color:#1e3a5f;
+  margin:0;
+  flex:1;
+  min-width:0;
+}
+.dgac-note-box a{
+  color:var(--uleam-blue-700);
+  font-weight:600;
+  text-decoration:none;
+}
+.dgac-note-box a:hover{
+  text-decoration:underline;
+}
+
 /* Responsividad de Documentos y Auditoría */
 @media(max-width:600px){
   .dgac-doc-featured__body{flex-direction:column;align-items:stretch}
