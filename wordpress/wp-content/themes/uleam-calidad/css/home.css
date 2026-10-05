@@ -237,26 +237,35 @@
 .photo-carousel__track{
   position:absolute;
   inset:0;
-  display:flex;
-  overflow-x:auto;
-  scroll-snap-type:x mandatory;
-  scroll-behavior:smooth;
-  scrollbar-width:none;
+  touch-action:pan-y;
 }
-.photo-carousel__track::-webkit-scrollbar{display:none}
 .photo-carousel__track:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+/* Fundido entre fotos: todas apiladas, solo la activa es visible */
 .photo-carousel__slide{
-  position:relative;
-  flex:0 0 100%;
+  position:absolute;
+  inset:0;
   margin:0;
-  scroll-snap-align:start;
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .9s ease, visibility 0s linear .9s;
+}
+.photo-carousel__slide.is-active{
+  opacity:1;
+  visibility:visible;
+  z-index:1;
+  transition:opacity .9s ease, visibility 0s;
 }
 .photo-carousel__img{
   width:100%;
   height:100%;
   object-fit:cover;
   display:block;
+  transform:scale(1.06);
+  transition:transform 6s ease-out;
 }
+/* Acercamiento suave mientras la foto está visible */
+.photo-carousel__slide.is-active .photo-carousel__img{transform:scale(1)}
+.photo-carousel__nav,.photo-carousel__dots{z-index:2}
 .photo-carousel__caption{
   position:absolute;
   left:0;
@@ -313,7 +322,8 @@
 }
 .photo-carousel__dot.is-active{width:22px;background:#fff}
 @media (prefers-reduced-motion:reduce){
-  .photo-carousel__track{scroll-behavior:auto}
+  .photo-carousel__slide,.photo-carousel__slide.is-active{transition:none}
+  .photo-carousel__img{transform:none;transition:none}
 }
 
 /* Biblioteca Rápida de Documentos */
