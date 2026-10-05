@@ -32,6 +32,7 @@ function uleam_setup() {
 	register_nav_menus(
 		array(
 			'primary' => 'Menú principal',
+			'footer'  => 'Pie de página: enlaces rápidos',
 		)
 	);
 }

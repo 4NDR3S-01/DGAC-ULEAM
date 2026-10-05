@@ -171,3 +171,21 @@ function uleam_nav_menu_link_attributes( $atts, $item ) {
 	return $atts;
 }
 add_filter( 'nav_menu_link_attributes', 'uleam_nav_menu_link_attributes', 10, 2 );
+
+/**
+ * Enlaces del pie mientras no se haya asignado un menú en Apariencia → Menús.
+ */
+function uleam_footer_menu_fallback() {
+	$enlaces = array(
+		'Gestión de Procesos'         => '/gestion-de-procesos/',
+		'Aseguramiento de la Calidad' => '/aseguramiento-de-la-calidad/',
+		'Planes de mejora'            => '/aseguramiento-de-la-calidad/#planes-de-mejora',
+		'Auditoría de la Calidad'     => '/auditoria-de-la-calidad/',
+		'Horario de atención'         => '/horario-atencion/',
+	);
+	echo '<ul class="footer-links">';
+	foreach ( $enlaces as $texto => $ruta ) {
+		echo '<li><a href="' . esc_url( home_url( $ruta ) ) . '">' . esc_html( $texto ) . '</a></li>';
+	}
+	echo '</ul>';
+}

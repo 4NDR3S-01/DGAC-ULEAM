@@ -64,6 +64,9 @@
   align-items:center;
   gap:30px;
   background:#fff;
+  /* Por encima del menú (z-index:120) para que las sugerencias de búsqueda no queden tapadas. */
+  position:relative;
+  z-index:130;
 }
 .brand{
   display:flex;
@@ -104,13 +107,13 @@
 }
 
 /* Buscador */
-.search{
+form.search{
   display:flex;
   width:100%;
   max-width:340px;
   min-width:0;
 }
-.search input{
+form.search input{
   flex:1;
   padding:13px 14px;
   border:1px solid var(--line);
@@ -118,11 +121,11 @@
   outline:none;
   font-family:inherit;
 }
-.search input:focus{
+form.search input:focus{
   border-color:var(--accent);
   box-shadow:0 0 0 3px rgba(70,164,255,.2);
 }
-.search button{
+form.search button{
   border:none;
   background:var(--primary);
   color:#fff;
@@ -131,7 +134,7 @@
   cursor:pointer;
   font-size:18px;
 }
-.search button:hover{background:var(--uleam-blue-900)}
+form.search button:hover{background:var(--uleam-blue-900)}
 
 /* Barra de Navegación (Nav) */
 .nav{
@@ -206,7 +209,7 @@
 .nav-inner > li.current_page_parent > a,
 .nav-inner > li.active > a{
   color:var(--uleam-blue-700);
-  border-bottom-color:var(--accent);
+  border-bottom-color:var(--uleam-red-700);
   font-weight:600;
 }
 .nav-inner .menu-item-has-children > a::after{
@@ -319,7 +322,7 @@
     flex-direction:column;
     gap:16px;
   }
-  .search{
+  form.search{
     min-width:100%;
     width:100%;
     max-width:100%;

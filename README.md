@@ -71,7 +71,52 @@ Monocromía del tono azul. Valores **WEB (Hex)**, **RGB** y **CMYK**.
 
 ## Colores de apoyo (20 % cromática secundaria)
 
-Paleta secundaria asociada a facultades. Usar con moderación (máx. ~20 % de la composición).
+Rojos institucionales que acompañan a los azules. Valores **WEB (Hex)**, **RGB** y **CMYK**. Usar con moderación (máx. ~20 % de la composición).
+
+| Vista | Color | Hexadecimal | RGB | CMYK |
+|-------|-------|-------------|-----|------|
+| ![#FF0000](https://placehold.co/48x24/FF0000/FF0000) | Color de apoyo 1 | `#FF0000` | `255, 0, 0` | `0, 95, 91, 0` |
+| ![#B11719](https://placehold.co/48x24/B11719/B11719) | Color de apoyo 2 | `#B11719` | `177, 23, 25` | `20, 100, 97, 13` |
+| ![#DB1D1F](https://placehold.co/48x24/DB1D1F/DB1D1F) | Color de apoyo 3 | `#DB1D1F` | `219, 29, 31` | `5, 97, 93, 0` |
+
+### Variables CSS (apoyo)
+
+```css
+:root {
+  --uleam-red-500: #FF0000; /* Color de apoyo 1 */
+  --uleam-red-700: #DB1D1F; /* Color de apoyo 3 */
+  --uleam-red-900: #B11719; /* Color de apoyo 2 */
+}
+```
+
+### Uso accesible (contraste WCAG 2.1)
+
+Para que el texto sea legible, el contraste mínimo es **4.5:1** (texto normal) y **3:1** (texto grande ≥ 24 px o elementos gráficos).
+
+| Color | Sobre blanco | Texto blanco encima | Sobre azul `#004499` | Uso permitido |
+|-------|--------------|---------------------|----------------------|---------------|
+| Apoyo 1 `#FF0000` | 4.00:1 | 4.00:1 | 2.30:1 | **Solo decorativo**: líneas, franjas, detalles gráficos. No para texto pequeño. |
+| Apoyo 2 `#B11719` | 6.99:1 | 6.99:1 | 1.31:1 | Texto pequeño en rojo (antetítulos, etiquetas) y fondos con texto blanco. |
+| Apoyo 3 `#DB1D1F` | 4.99:1 | 4.99:1 | 1.84:1 | Iconos, bordes, indicadores activos y texto. |
+
+> **Nunca combinar rojo y azul institucional como texto/fondo**: el contraste no supera 2.3:1.
+
+### Combinación con el color principal (sitio web)
+
+| Elemento | Color |
+|----------|-------|
+| Cabecera, menú, botones, enlaces, títulos, fondos | Azules institucionales (**80 %**) |
+| Antetítulos de sección ("REPOSITORIO DOCUMENTAL", "SERVICIOS DEL ÁREA") | Apoyo 2 `#B11719` |
+| Iconos de los títulos de sección | Apoyo 3 `#DB1D1F` |
+| Indicador de la página activa en el menú | Apoyo 3 `#DB1D1F` |
+| Línea bajo el título de cada página y franja superior del pie | Degradado Apoyo 3 → Apoyo 1 |
+| Iconos de archivos PDF y avisos | Apoyo 3 sobre fondo rojo muy claro |
+
+Los colores se definen una sola vez en `wordpress/wp-content/themes/uleam-calidad/css/variables.css`; el resto del tema los usa mediante las variables.
+
+### Colores por facultad (complementarios)
+
+Paleta asociada a facultades, para piezas propias de cada una.
 
 | Color | Hex (aprox.) | Facultad |
 |-------|--------------|----------|
@@ -83,9 +128,7 @@ Paleta secundaria asociada a facultades. Usar con moderación (máx. ~20 % de la
 | ![#A73145](https://placehold.co/48x24/A73145/A73145) | `#A73145` | Fac. de Ciencias Sociales |
 | ![#3C4A93](https://placehold.co/48x24/3C4A93/3C4A93) | `#3C4A93` | Fac. de Ingeniería, Industria y Construcción |
 
-> Los hex de colores de apoyo se extrajeron de la guía visual. Si la institución publica valores oficiales distintos, actualizar esta sección.
-
-### Variables CSS (apoyo)
+> Los hex por facultad se extrajeron de la guía visual. Si la institución publica valores oficiales distintos, actualizar esta sección.
 
 ```css
 :root {
@@ -104,7 +147,7 @@ Paleta secundaria asociada a facultades. Usar con moderación (máx. ~20 % de la
 ## Jerarquía de uso
 
 1. **80 %** — Azules institucionales (`#005689`, `#0059A8`, `#004499`, `#46A4FF`)
-2. **20 %** — Colores de apoyo por facultad / acentos secundarios
+2. **20 %** — Colores de apoyo: rojos `#B11719`, `#DB1D1F` y `#FF0000` (solo decorativo) como acento; colores por facultad en piezas de cada facultad
 3. **Tipografía** — Solo Montserrat Regular y SemiBold en piezas institucionales
 
 ---

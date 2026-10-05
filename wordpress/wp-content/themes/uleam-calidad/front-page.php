@@ -13,27 +13,29 @@ get_header();
     <p class="hero-kicker">ULEAM · Aseguramiento de la Calidad</p>
     <h1><?php echo wp_kses_post( uleam_opt( 'uleam_hero_titulo' ) ); ?></h1>
     <p><?php echo esc_html( uleam_opt( 'uleam_hero_subtitulo' ) ); ?></p>
-    <a class="btn" href="#direccion">Conócenos</a>
+    <?php if ( uleam_opt( 'uleam_hero_boton' ) ) : ?>
+      <a class="btn" href="<?php echo esc_url( uleam_opt( 'uleam_hero_boton_url' ) ); ?>"><?php echo esc_html( uleam_opt( 'uleam_hero_boton' ) ); ?></a>
+    <?php endif; ?>
   </div>
   <?php $uleam_hero_url = wp_get_attachment_image_url( (int) uleam_opt( 'uleam_hero_imagen' ), 'full' ); ?>
   <div class="hero-image" role="img" aria-label="Campus universitario"<?php echo $uleam_hero_url ? ' style="background-image:url(' . esc_url( $uleam_hero_url ) . ');"' : ''; ?>></div>
 </section>
 
 <section class="section" id="direccion">
-  <h2>Accesos rápidos</h2>
-  <div class="quick-grid">
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'chart' ); ?></div><h3>Indicadores</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'clipboard' ); ?></div><h3>Evaluaciones</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'refresh' ); ?></div><h3>Procesos</h3><a href="#procesos">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'folder' ); ?></div><h3>Documentos</h3><a href="#documentos">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'graduate' ); ?></div><h3>Desempeño</h3><a href="#desempeno">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-    <div class="card"><div class="icon"><?php echo uleam_icon( 'mail' ); ?></div><h3>Contacto</h3><a href="#contacto">Ver más <?php echo uleam_icon( 'arrow' ); ?></a></div>
-  </div>
+  <?php
+  // Contenido editable: Páginas → "Inicio" (asignada como portada en Ajustes → Lectura).
+  $portada = (int) get_option( 'page_on_front' );
+  if ( $portada && '' !== trim( get_post_field( 'post_content', $portada ) ) ) {
+    remove_filter( 'the_content', 'wpautop' );
+    echo apply_filters( 'the_content', get_post_field( 'post_content', $portada ) ); // phpcs:ignore WordPress.Security.EscapeOutput -- contenido de la página filtrado por WordPress.
+    add_filter( 'the_content', 'wpautop' );
+  }
+  ?>
 </section>
 
 <section class="two-col" id="procesos">
   <div class="panel" id="desempeno">
-    <h3>Evaluación de Desempeño</h3>
+    <h2>Evaluación de Desempeño</h2>
     <?php
     $periodos = get_terms(
       array(
@@ -53,18 +55,18 @@ get_header();
         <?php endforeach; ?>
       </div>
       <p id="periodText"><?php echo esc_html( reset( $periodos )->description ); ?></p>
-      <a class="btn" href="#documentos">Ver resultados</a>
+      <a class="btn" href="<?php echo esc_url( home_url( '/aseguramiento-de-la-calidad/#evaluacion-del-desempeno' ) ); ?>">Ver resultados</a>
     <?php else : ?>
       <div class="tabs">
         <button class="tab active" data-text="Consulta los resultados de la evaluación de desempeño académico y administrativo del período 2025-1.">2025-1</button>
       </div>
       <p id="periodText">Consulta los resultados de la evaluación de desempeño académico y administrativo del período 2025-1.</p>
-      <a class="btn" href="#documentos">Ver resultados</a>
+      <a class="btn" href="<?php echo esc_url( home_url( '/aseguramiento-de-la-calidad/#evaluacion-del-desempeno' ) ); ?>">Ver resultados</a>
     <?php endif; ?>
   </div>
 
   <div class="panel" id="noticias">
-    <h3>Noticias y comunicados</h3>
+    <h2>Noticias y comunicados</h2>
     <?php
     $noticias = new WP_Query(
       array(
@@ -78,9 +80,7 @@ get_header();
         ?>
         <div class="news-item">
           <div class="news-thumb">
-            <?php if ( has_post_thumbnail() ) : ?>
-              <?php the_post_thumbnail( 'thumbnail', array( 'style' => 'width:92px;height:64px;object-fit:cover;border-radius:5px' ) ); ?>
-            <?php endif; ?>
+            <?php echo uleam_noticia_media( get_the_ID(), 'medium', 'news-thumb__img' ); // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image. ?>
           </div>
           <div>
             <strong><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></strong>
@@ -98,81 +98,94 @@ get_header();
   </div>
 </section>
 
-<section class="library" id="documentos">
-  <h3>Biblioteca documental</h3>
-  <form class="filters" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>">
-    <input type="hidden" name="post_type" value="documento" />
-    <input type="search" name="s" placeholder="Buscar documento..." value="<?php echo get_search_query(); ?>" />
+<section class="library" id="documentos" aria-labelledby="biblioteca-titulo">
+  <div class="library__head">
+    <h2 id="biblioteca-titulo">Biblioteca documental</h2>
+    <a class="news-more" href="<?php echo esc_url( home_url( '/aseguramiento-de-la-calidad/' ) ); ?>">Explorar el repositorio completo <?php echo uleam_icon( 'arrow' ); ?></a>
+  </div>
+  <form class="filters" method="get" action="<?php echo esc_url( home_url( '/' ) ); ?>" role="search" aria-label="Buscar documentos">
+    <input type="hidden" name="en" value="documento" />
+    <label class="screen-reader-text" for="biblio-q">Nombre o código del documento</label>
+    <input id="biblio-q" type="search" name="s" placeholder="Nombre o código del documento…" />
 
-    <select name="tipo_documento">
-      <option value="">Tipo de documento</option>
+    <label class="screen-reader-text" for="biblio-area">Área</label>
+    <select id="biblio-area" name="area">
+      <option value="">Todas las áreas</option>
       <?php
-      $tipos = get_terms( array( 'taxonomy' => 'tipo_documento', 'hide_empty' => false ) );
-      foreach ( $tipos as $tipo ) {
-        $sel = ( isset( $_GET['tipo_documento'] ) && $_GET['tipo_documento'] === $tipo->slug ) ? ' selected' : '';
-        echo '<option value="' . esc_attr( $tipo->slug ) . '"' . $sel . '>' . esc_html( $tipo->name ) . '</option>';
+      $raiz  = get_term_by( 'slug', 'aseguramiento-de-la-calidad', 'seccion' );
+      $areas = $raiz ? uleam_seccion_hijas( $raiz->term_id ) : array();
+      foreach ( $areas as $area ) {
+        echo '<option value="' . esc_attr( $area->slug ) . '">' . esc_html( $area->name ) . '</option>';
       }
       ?>
     </select>
 
-    <select name="proceso">
-      <option value="">Proceso</option>
+    <label class="screen-reader-text" for="biblio-tipo">Tipo de documento</label>
+    <select id="biblio-tipo" name="tipo_documento">
+      <option value="">Todos los tipos</option>
       <?php
-      $procesos = get_terms( array( 'taxonomy' => 'proceso', 'hide_empty' => false ) );
-      foreach ( $procesos as $proceso ) {
-        $sel = ( isset( $_GET['proceso'] ) && $_GET['proceso'] === $proceso->slug ) ? ' selected' : '';
-        echo '<option value="' . esc_attr( $proceso->slug ) . '"' . $sel . '>' . esc_html( $proceso->name ) . '</option>';
+      $tipos = get_terms( array( 'taxonomy' => 'tipo_documento', 'hide_empty' => true, 'meta_key' => 'orden', 'orderby' => 'meta_value_num' ) );
+      foreach ( (array) $tipos as $tipo ) {
+        echo '<option value="' . esc_attr( $tipo->slug ) . '">' . esc_html( $tipo->name ) . '</option>';
       }
       ?>
     </select>
 
-    <select name="anio">
-      <option value="">Año</option>
+    <label class="screen-reader-text" for="biblio-anio">Año</label>
+    <select id="biblio-anio" name="anio">
+      <option value="">Todos los años</option>
       <?php
-      $anios = get_terms( array( 'taxonomy' => 'anio', 'hide_empty' => false ) );
+      $anios = get_terms( array( 'taxonomy' => 'anio', 'hide_empty' => true ) );
+      $anios = is_array( $anios ) ? $anios : array();
+      usort(
+        $anios,
+        function ( $a, $b ) {
+          return uleam_periodo_cmp( $a->name, $b->name );
+        }
+      );
       foreach ( $anios as $anio ) {
-        $sel = ( isset( $_GET['anio'] ) && $_GET['anio'] === $anio->slug ) ? ' selected' : '';
-        echo '<option value="' . esc_attr( $anio->slug ) . '"' . $sel . '>' . esc_html( $anio->name ) . '</option>';
+        echo '<option value="' . esc_attr( $anio->slug ) . '">' . esc_html( $anio->name ) . '</option>';
       }
       ?>
     </select>
 
-    <button type="submit">Buscar</button>
+    <button type="submit"><i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i> Buscar</button>
   </form>
 
+  <h3 class="library__sub">Documentos recientes</h3>
   <div class="docs" id="docsList">
     <?php
-    $doc_args = array(
-      'post_type'      => 'documento',
-      'posts_per_page' => 12,
+    $docs = new WP_Query(
+      array(
+        'post_type'      => 'documento',
+        'post_status'    => 'publish',
+        'posts_per_page' => 8,
+        'tax_query'      => array(
+          array(
+            'taxonomy' => 'seccion',
+            'operator' => 'EXISTS',
+          ),
+        ),
+        'orderby'        => array(
+          'date' => 'DESC',
+          'ID'   => 'DESC',
+        ),
+      )
     );
-    if ( isset( $_GET['s'] ) && $_GET['s'] !== '' ) {
-      $doc_args['s'] = sanitize_text_field( wp_unslash( $_GET['s'] ) );
-    }
-    $tax_query = array();
-    if ( isset( $_GET['tipo_documento'] ) && $_GET['tipo_documento'] !== '' ) {
-      $tax_query[] = array( 'taxonomy' => 'tipo_documento', 'field' => 'slug', 'terms' => sanitize_title( wp_unslash( $_GET['tipo_documento'] ) ) );
-    }
-    if ( isset( $_GET['proceso'] ) && $_GET['proceso'] !== '' ) {
-      $tax_query[] = array( 'taxonomy' => 'proceso', 'field' => 'slug', 'terms' => sanitize_title( wp_unslash( $_GET['proceso'] ) ) );
-    }
-    if ( isset( $_GET['anio'] ) && $_GET['anio'] !== '' ) {
-      $tax_query[] = array( 'taxonomy' => 'anio', 'field' => 'slug', 'terms' => sanitize_title( wp_unslash( $_GET['anio'] ) ) );
-    }
-    if ( ! empty( $tax_query ) ) {
-      $doc_args['tax_query'] = $tax_query;
-    }
-
-    $docs = new WP_Query( $doc_args );
     if ( $docs->have_posts() ) :
       while ( $docs->have_posts() ) :
         $docs->the_post();
         $doc_url = get_post_meta( get_the_ID(), '_documento_url', true );
-        $tipo    = get_the_terms( get_the_ID(), 'tipo_documento' );
-        $tipo_n  = ( $tipo && ! is_wp_error( $tipo ) ) ? $tipo[0]->name : 'Archivo';
+        $datos   = array();
+        foreach ( array( 'tipo_documento', 'anio' ) as $tax ) {
+          $t = get_the_terms( get_the_ID(), $tax );
+          if ( $t && ! is_wp_error( $t ) ) {
+            $datos[] = $t[0]->name;
+          }
+        }
         ?>
         <div class="doc">
-          <div class="doc-icon"><?php echo uleam_icon( 'file' ); ?></div>
+          <div class="doc-icon"><i class="<?php echo esc_attr( uleam_doc_icono( (string) $doc_url ) ); ?>" aria-hidden="true"></i></div>
           <div>
             <strong>
               <?php if ( $doc_url ) : ?>
@@ -181,14 +194,14 @@ get_header();
                 <?php the_title(); ?>
               <?php endif; ?>
             </strong>
-            <small><?php echo esc_html( $tipo_n ); ?></small>
+            <small><?php echo esc_html( implode( ' · ', $datos ) ); ?></small>
           </div>
         </div>
         <?php
       endwhile;
       wp_reset_postdata();
     else :
-      echo '<p>No se encontraron documentos con ese criterio.</p>';
+      echo '<p>Aún no hay documentos publicados.</p>';
     endif;
     ?>
   </div>

@@ -1,0 +1,502 @@
+/* ==========================================================================
+   Búsqueda: buscador grande, sugerencias en vivo y página de resultados
+   ========================================================================== */
+
+/* Buscador grande en la cabecera de resultados */
+.dgac-search-hero{
+  position:relative;
+  display:flex;
+  align-items:center;
+  max-width:760px;
+  margin-top:18px;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  border-radius:14px;
+  box-shadow:0 6px 20px rgba(0, 50, 100, 0.06);
+  transition:border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dgac-search-hero:focus-within{
+  border-color:var(--uleam-blue-700);
+  box-shadow:0 0 0 4px rgba(0, 89, 168, 0.12);
+}
+.dgac-search-hero > i{
+  position:absolute;
+  left:18px;
+  color:#94a3b8;
+  font-size:17px;
+  pointer-events:none;
+}
+.dgac-search-hero input[type="search"]{
+  flex:1;
+  min-width:0;
+  border:none;
+  background:transparent;
+  padding:16px 12px 16px 50px;
+  font:inherit;
+  font-size:16px;
+  color:var(--text);
+  outline:none;
+}
+.dgac-search-hero button{
+  margin:6px;
+  border:none;
+  border-radius:10px;
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+  font:inherit;
+  font-weight:700;
+  padding:11px 22px;
+  cursor:pointer;
+  transition:background 0.2s ease;
+}
+.dgac-search-hero button:hover{
+  background:var(--uleam-blue-900);
+}
+
+/* Contenedor de resultados (mismo ancho que .entry-content) */
+.dgac-search-page{
+  max-width:1120px;
+  width:100%;
+  margin:0 auto;
+  padding:28px 5% 64px;
+  flex:1 0 auto;
+}
+
+/* Resumen y filtros por tipo */
+.dgac-search-summary__text{
+  margin:0 0 14px;
+  color:#475569;
+  font-size:15px;
+}
+.dgac-search-summary__text strong{
+  color:var(--uleam-blue-900);
+  font-size:18px;
+}
+.dgac-search-summary__q{
+  color:var(--uleam-blue-900);
+  font-weight:600;
+}
+.dgac-search-filters .dgac-pill-tab{
+  text-decoration:none;
+}
+.dgac-search-filters__n{
+  font-size:11.5px;
+  font-weight:700;
+  background:rgba(15, 23, 42, 0.07);
+  border-radius:20px;
+  padding:1px 8px;
+}
+.dgac-search-filters .is-active .dgac-search-filters__n{
+  background:#00467f;
+}
+
+/* Tarjetas de resultado */
+.dgac-search-results{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:14px;
+}
+.dgac-result{
+  display:flex;
+  gap:16px;
+  align-items:flex-start;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:18px 20px;
+  box-shadow:0 2px 10px rgba(0, 50, 100, 0.03);
+  transition:border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.dgac-result:hover{
+  border-color:#93c5fd;
+  box-shadow:0 6px 18px rgba(0, 89, 168, 0.08);
+  transform:translateY(-1px);
+}
+.dgac-result__icon,
+.dgac-result__thumb{
+  width:46px;
+  height:46px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  flex-shrink:0;
+  font-size:19px;
+  background:#e0f2fe;
+  color:#0369a1;
+  overflow:hidden;
+}
+.dgac-result--documento .dgac-result__icon{
+  background:var(--uleam-red-50);
+  color:var(--uleam-red-700);
+}
+.dgac-result--noticia .dgac-result__icon{
+  background:#ede9fe;
+  color:#7c3aed;
+}
+.dgac-result__thumb img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+}
+.dgac-result__body{
+  flex:1;
+  min-width:0;
+}
+.dgac-result__kicker{
+  display:block;
+  font-size:11.5px;
+  font-weight:700;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--uleam-blue-700);
+  margin-bottom:4px;
+}
+.dgac-result__title{
+  font-size:17px;
+  line-height:1.4;
+  margin:0 0 8px;
+  overflow-wrap:anywhere;
+}
+.dgac-result__title a{
+  color:var(--uleam-blue-900);
+  text-decoration:none;
+}
+.dgac-result__title a:hover{
+  color:var(--uleam-blue-700);
+  text-decoration:underline;
+}
+.dgac-result__chips{
+  list-style:none;
+  margin:0 0 10px;
+  padding:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.dgac-result__chips li{
+  font-size:12px;
+  font-weight:600;
+  color:#475569;
+  background:#f1f5f9;
+  border-radius:20px;
+  padding:3px 10px;
+}
+.dgac-result__excerpt{
+  margin:0 0 10px;
+  color:#475569;
+  font-size:14px;
+  line-height:1.6;
+}
+.dgac-result__actions{
+  display:flex;
+  flex-wrap:wrap;
+  align-items:center;
+  gap:8px 14px;
+}
+.dgac-result__link{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:13.5px;
+  font-weight:700;
+  color:var(--uleam-blue-700);
+  text-decoration:none;
+}
+.dgac-result__link:hover{
+  color:var(--uleam-blue-900);
+}
+.dgac-result__link i{
+  transition:transform 0.2s ease;
+}
+.dgac-result__link:hover i{
+  transform:translateX(3px);
+}
+.dgac-search-page mark,
+.dgac-suggest mark{
+  background:#fef08a;
+  color:inherit;
+  padding:0 1px;
+  border-radius:3px;
+}
+
+/* Paginación */
+.dgac-pagination{
+  margin-top:28px;
+}
+.dgac-pagination .nav-links{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:6px;
+}
+.dgac-pagination .page-numbers{
+  min-width:40px;
+  height:40px;
+  padding:0 12px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  border:1px solid #e2e8f0;
+  border-radius:10px;
+  background:#ffffff;
+  color:#334155;
+  font-weight:600;
+  text-decoration:none;
+}
+.dgac-pagination a.page-numbers:hover{
+  border-color:var(--uleam-blue-400);
+  color:var(--uleam-blue-700);
+}
+.dgac-pagination .page-numbers.current{
+  background:var(--uleam-blue-700);
+  border-color:var(--uleam-blue-700);
+  color:#ffffff;
+}
+.dgac-pagination .page-numbers.dots{
+  border:none;
+  background:transparent;
+}
+
+/* Sin resultados / sin búsqueda */
+.dgac-search-empty{
+  text-align:center;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:36px 24px;
+  box-shadow:0 4px 20px rgba(0, 50, 100, 0.05);
+}
+.dgac-search-empty__icon{
+  width:64px;
+  height:64px;
+  margin:0 auto 14px;
+  border-radius:50%;
+  display:grid;
+  place-items:center;
+  font-size:26px;
+  background:#e0f2fe;
+  color:#0369a1;
+}
+.dgac-search-empty h2{
+  margin:0 0 10px;
+  font-size:clamp(19px, 2.6vw, 23px);
+  color:var(--uleam-blue-900);
+  overflow-wrap:anywhere;
+}
+.dgac-search-empty p{
+  color:#475569;
+  margin:0 0 6px;
+}
+.dgac-search-empty__tips{
+  display:inline-block;
+  text-align:left;
+  color:#475569;
+  margin:4px 0 0;
+  padding-left:20px;
+  line-height:1.8;
+}
+.dgac-search-topics{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  align-items:center;
+  gap:8px;
+  margin-top:22px;
+}
+.dgac-search-topics__label{
+  font-size:13px;
+  font-weight:600;
+  color:#475569;
+  margin-right:4px;
+}
+.dgac-search-topics .dgac-pill-tab{
+  text-decoration:none;
+}
+.dgac-search-areas{
+  display:grid;
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+  gap:20px;
+}
+.dgac-search-area{
+  text-decoration:none;
+  color:inherit;
+}
+.dgac-search-area:hover{
+  border-color:#93c5fd;
+  transform:translateY(-2px);
+}
+.dgac-search-area .dgac-audit-card__btn{
+  margin-top:14px;
+}
+
+/* Sugerencias mientras se escribe */
+form.search,
+.dgac-search-hero{
+  position:relative;
+}
+.dgac-suggest{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  min-width:320px;
+  z-index:60;
+  background:#ffffff;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  box-shadow:0 14px 34px rgba(15, 39, 68, 0.16);
+  overflow:hidden;
+  text-align:left;
+}
+.dgac-suggest[hidden]{
+  display:none;
+}
+.dgac-suggest__list{
+  list-style:none;
+  margin:0;
+  padding:6px;
+  max-height:min(60vh, 420px);
+  overflow-y:auto;
+}
+.dgac-suggest__item a{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:9px 10px;
+  border-radius:8px;
+  color:var(--text);
+  text-decoration:none;
+}
+.dgac-suggest__item.is-active a,
+.dgac-suggest__item a:hover{
+  background:#f0f7ff;
+}
+.dgac-suggest__icon{
+  width:32px;
+  height:32px;
+  flex-shrink:0;
+  display:grid;
+  place-items:center;
+  border-radius:8px;
+  background:#e0f2fe;
+  color:#0369a1;
+  font-size:14px;
+}
+.dgac-suggest__item--documento .dgac-suggest__icon{
+  background:var(--uleam-red-50);
+  color:var(--uleam-red-700);
+}
+.dgac-suggest__item--noticia .dgac-suggest__icon{
+  background:#ede9fe;
+  color:#7c3aed;
+}
+.dgac-suggest__text{
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+}
+.dgac-suggest__title{
+  font-size:13.5px;
+  font-weight:600;
+  line-height:1.35;
+  color:var(--uleam-blue-900);
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.dgac-suggest__meta{
+  font-size:11.5px;
+  color:#475569;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.dgac-suggest__footer,
+.dgac-suggest__empty{
+  display:block;
+  padding:11px 16px;
+  border-top:1px solid #f1f5f9;
+  font-size:13px;
+  font-weight:700;
+  color:var(--uleam-blue-700);
+  text-decoration:none;
+  background:#f8fafc;
+}
+.dgac-suggest__footer.is-active,
+.dgac-suggest__footer:hover{
+  background:#eef5fc;
+}
+.dgac-suggest__empty{
+  font-weight:500;
+  color:#475569;
+  border-top:none;
+}
+
+/* Responsividad */
+@media(max-width:960px){
+  .dgac-search-areas{
+    grid-template-columns:1fr;
+  }
+}
+@media(max-width:600px){
+  .dgac-search-hero input[type="search"]{
+    font-size:15px;
+    padding:14px 8px 14px 44px;
+  }
+  .dgac-search-hero > i{
+    left:15px;
+  }
+  .dgac-search-hero button{
+    padding:10px 14px;
+  }
+  .dgac-result{
+    padding:16px;
+    gap:12px;
+  }
+  .dgac-result__icon,
+  .dgac-result__thumb{
+    width:38px;
+    height:38px;
+    font-size:16px;
+  }
+  .dgac-result__title{
+    font-size:16px;
+  }
+  .dgac-search-filters{
+    margin-left:-5vw;
+    margin-right:-5vw;
+    padding-left:5vw;
+    padding-right:5vw;
+  }
+  .dgac-suggest{
+    min-width:0;
+  }
+}
+
+/* Filtros de documentos aplicados (área, tipo, año) */
+.dgac-search-active{
+  list-style:none;
+  margin:-4px 0 14px;
+  padding:0;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.dgac-search-active a{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:5px 12px;
+  border-radius:20px;
+  background:#e0f2fe;
+  color:#075985;
+  font-size:13px;
+  font-weight:600;
+  text-decoration:none;
+}
+.dgac-search-active a:hover{
+  background:#bae6fd;
+}

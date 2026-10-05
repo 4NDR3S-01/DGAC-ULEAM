@@ -7,6 +7,17 @@
   --uleam-blue-700:#0059A8;
   --uleam-blue-400:#46A4FF;
 
+  /* Colores de apoyo institucionales (20 % cromática secundaria). Ver README.md
+     - red-500 (#FF0000, 4.0:1): SOLO decorativo (líneas, franjas). Nunca texto pequeño.
+     - red-700 (#DB1D1F, 5.0:1): iconos, bordes, indicadores activos.
+     - red-900 (#B11719, 7.0:1): texto pequeño en rojo (antetítulos, etiquetas) y fondos con texto blanco.
+     Nunca rojo sobre azul institucional (contraste < 2.4:1). */
+  --uleam-red-500:#FF0000;
+  --uleam-red-700:#DB1D1F;
+  --uleam-red-900:#B11719;
+  --uleam-red-50:#fdeceb;
+  --uleam-red-100:#f9d3d2;
+
   --uleam-fac-educacion:#E84E2F;
   --uleam-fac-salud:#39BBD8;
   --uleam-fac-vida-ti:#309947;
@@ -18,6 +29,8 @@
   --navy:var(--uleam-blue-800);
   --navy2:var(--uleam-blue-700);
   --accent:var(--uleam-blue-400);
+  /* Celeste de acento oscurecido para TEXTO (contraste 5.1:1 sobre blanco). El --accent claro queda para fondos, bordes e iconos. */
+  --accent-text:#1d6fc2;
   --accent-dark:var(--uleam-blue-900);
   --primary:var(--uleam-blue-700);
   --primary-dark:var(--uleam-blue-800);

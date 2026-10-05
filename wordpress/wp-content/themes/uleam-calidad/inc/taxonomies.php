@@ -18,9 +18,10 @@ function uleam_register_taxonomies() {
 		'tipo_documento',
 		'documento',
 		array(
-			'label'        => 'Tipo de documento',
-			'hierarchical' => true,
-			'show_in_rest' => true,
+			'label'             => 'Tipo de documento',
+			'hierarchical'      => true,
+			'show_in_rest'      => true,
+			'show_admin_column' => true,
 		)
 	);
 
@@ -40,9 +41,10 @@ function uleam_register_taxonomies() {
 		'anio',
 		'documento',
 		array(
-			'label'        => 'Año',
-			'hierarchical' => true,
-			'show_in_rest' => true,
+			'label'             => 'Año',
+			'hierarchical'      => true,
+			'show_in_rest'      => true,
+			'show_admin_column' => true,
 		)
 	);
 

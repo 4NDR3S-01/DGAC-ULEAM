@@ -57,7 +57,7 @@
   text-decoration:underline;
 }
 .entry-content a:hover{
-  color:var(--accent);
+  color:var(--uleam-blue-900);
 }
 .entry-content ul,
 .entry-content ol{
@@ -83,7 +83,7 @@
 .archive-list{
   max-width:860px;
   margin:0 auto;
-  padding:0 5% 40px;
+  padding:28px 5% 40px;
   flex:1 0 auto;
   width:100%;
 }
@@ -105,4 +105,46 @@
   color:var(--muted);
   font-size:13px;
   margin-bottom:10px;
+}
+
+/* Botones del editor de bloques (Gutenberg) con colores institucionales */
+.entry-content .wp-block-buttons{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin:24px 0;
+}
+.entry-content .wp-block-button__link{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:12px 24px;
+  border-radius:30px;
+  background:var(--uleam-blue-700);
+  color:#ffffff;
+  font-weight:600;
+  text-decoration:none;
+  transition:background 0.2s ease, box-shadow 0.2s ease;
+}
+.entry-content .wp-block-button__link:hover{
+  background:var(--uleam-blue-900);
+  color:#ffffff;
+  box-shadow:0 4px 12px rgba(0, 68, 153, 0.25);
+}
+.entry-content .is-style-outline .wp-block-button__link{
+  background:transparent;
+  color:var(--uleam-blue-700);
+  border:2px solid var(--uleam-blue-700);
+}
+
+/* Acento rojo institucional (color de apoyo, decorativo) bajo el título de cada página */
+.page-header__title::after,
+.news-archive__intro h1::after{
+  content:"";
+  display:block;
+  width:56px;
+  height:4px;
+  margin-top:12px;
+  border-radius:4px;
+  background:linear-gradient(90deg, var(--uleam-red-700), var(--uleam-red-500));
 }

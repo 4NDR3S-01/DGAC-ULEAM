@@ -3,6 +3,9 @@
  * ---------------------------------------------------------------------- */
 .footer{
   background:linear-gradient(135deg, var(--uleam-blue-900) 0%, var(--uleam-blue-800) 55%, var(--uleam-blue-700) 100%);
+  /* Franja de color de apoyo institucional (decorativa) */
+  border-top:4px solid var(--uleam-red-700);
+  border-image:linear-gradient(90deg, var(--uleam-red-700), var(--uleam-red-500)) 1;
   color:#fff;
   padding:34px 5% 20px;
   margin-top:auto;
@@ -13,13 +16,28 @@
   grid-template-columns:1.25fr 1fr 1.35fr 1fr;
   gap:30px;
 }
-.footer h4{margin:0 0 12px;color:#fff}
+.footer h4,
+.footer-title{margin:0 0 12px;color:#fff;font-size:17px;font-weight:600}
+.footer-links{
+  list-style:none;
+  margin:0;
+  padding:0;
+  display:grid;
+  gap:.3rem;
+}
+.footer a{
+  text-decoration:none;
+}
+.footer a:hover,
+.footer a:focus-visible{
+  color:#ffffff;
+  text-decoration:underline;
+}
 .footer p,.footer a{
   color:#d9e8f7;
   font-size:14px;
   line-height:1.7;
 }
-.footer a:hover{color:var(--accent)}
 .footer-contact{
   list-style:none;
   margin:0;

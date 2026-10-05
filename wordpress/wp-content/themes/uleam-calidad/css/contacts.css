@@ -50,7 +50,7 @@
 }
 .dgac-schedule-desc{
   font-size:15px;
-  color:#64748b;
+  color:#475569;
   margin:0 auto;
   max-width:740px;
   line-height:1.65;
@@ -97,8 +97,8 @@
   flex-shrink:0;
 }
 .dgac-contact-box__icon--red{
-  background:linear-gradient(135deg, #fde8e8 0%, #fad2d2 100%);
-  color:var(--accent);
+  background:linear-gradient(135deg, var(--uleam-red-50) 0%, var(--uleam-red-100) 100%);
+  color:var(--uleam-red-700);
 }
 .dgac-contact-box__title{
   font-size:18px;
@@ -140,7 +140,7 @@
 }
 .dgac-phone-info span{
   font-size:12px;
-  color:#64748b;
+  color:#475569;
 }
 .dgac-phone-btn{
   display:inline-flex;
@@ -172,7 +172,7 @@
 .dgac-main-email-block{
   margin-top:auto;
   padding:16px 18px;
-  background:#fdf2f2;
+  background:var(--uleam-red-50);
   border:1px solid #fbd5d5;
   border-radius:10px;
   display:flex;
@@ -184,7 +184,7 @@
 .dgac-main-email-block a{
   font-size:15px;
   font-weight:700;
-  color:var(--accent) !important;
+  color:var(--uleam-blue-700) !important;
   text-decoration:none !important;
   display:inline-flex;
   align-items:center;
@@ -196,7 +196,7 @@
 .dgac-email-badge{
   font-size:11.5px;
   font-weight:600;
-  color:#991b1b;
+  color:var(--uleam-red-900);
   background:rgba(239, 68, 68, 0.12);
   padding:3px 10px;
   border-radius:12px;
@@ -224,7 +224,7 @@
   box-shadow:0 8px 24px rgba(3, 46, 85, 0.08);
   border-color:#cbd5e1;
 }
-.dgac-area-card--procesos{border-top:4px solid #0284c7}
+.dgac-area-card--procesos{border-top:4px solid #0369a1}
 .dgac-area-card--calidad{border-top:4px solid #059669}
 .dgac-area-card--control{border-top:4px solid #7c3aed}
 
@@ -256,7 +256,7 @@
 }
 .dgac-area-desc{
   font-size:12.5px;
-  color:#64748b;
+  color:#475569;
   margin:0;
   line-height:1.5;
 }

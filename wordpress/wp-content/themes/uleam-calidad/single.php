@@ -31,7 +31,8 @@ while ( have_posts() ) :
 			<?php endif; ?>
 		</header>
 
-		<?php if ( has_post_thumbnail() ) : ?>
+		<?php // La portada de un PDF sirve de miniatura en listados, pero no como imagen principal de la noticia. ?>
+		<?php if ( has_post_thumbnail() && 'application/pdf' !== get_post_mime_type( get_post_thumbnail_id() ) ) : ?>
 			<figure class="reading__figure">
 				<?php
 				the_post_thumbnail(

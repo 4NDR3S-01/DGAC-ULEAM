@@ -60,24 +60,11 @@ $categorias  = get_terms(
 					the_post();
 					$cats     = get_the_terms( get_the_ID(), 'categoria_noticia' );
 					$cat_name = ( $cats && ! is_wp_error( $cats ) ) ? $cats[0]->name : 'Noticia';
-					$excerpt  = has_excerpt() ? get_the_excerpt() : wp_trim_words( wp_strip_all_tags( get_the_content() ), 28 );
+					$excerpt  = uleam_extracto_limpio( has_excerpt() ? get_the_excerpt() : get_the_content(), 28 );
 					?>
 					<article <?php post_class( 'news-card' ); ?>>
 						<a class="news-card__media" href="<?php the_permalink(); ?>" tabindex="-1" aria-hidden="true">
-							<?php if ( has_post_thumbnail() ) : ?>
-								<?php
-								the_post_thumbnail(
-									'medium_large',
-									array(
-										'class'   => 'news-card__image',
-										'loading' => 'lazy',
-										'alt'     => the_title_attribute( array( 'echo' => false ) ),
-									)
-								);
-								?>
-							<?php else : ?>
-								<span class="news-card__placeholder" aria-hidden="true"></span>
-							<?php endif; ?>
+							<?php echo uleam_noticia_media( get_the_ID() ); // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image. ?>
 						</a>
 
 						<div class="news-card__body">

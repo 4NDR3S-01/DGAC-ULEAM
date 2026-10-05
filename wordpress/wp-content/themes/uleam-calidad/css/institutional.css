@@ -52,7 +52,7 @@
   font-weight:700;
   text-transform:uppercase;
   letter-spacing:0.07em;
-  color:var(--uleam-blue-700);
+  color:var(--uleam-red-900);
   margin-bottom:6px;
 }
 .dgac-section-title{
@@ -64,7 +64,7 @@
   align-items:center;
   gap:10px;
 }
-.dgac-section-title i{color:var(--accent);font-size:22px}
+.dgac-section-title i{color:var(--uleam-red-700);font-size:22px}
 .dgac-section-subtitle{
   font-size:15px;
   color:var(--muted);
@@ -323,7 +323,7 @@
   font-weight:700;
   text-transform:uppercase;
   letter-spacing:0.08em;
-  color:var(--uleam-blue-700);
+  color:var(--uleam-red-900);
   display:block;
   margin-bottom:2px;
 }
@@ -395,6 +395,7 @@
   font-size:20px;
   margin:0 auto 14px;
 }
+.dgac-pilar-card h3,
 .dgac-pilar-card h4{
   font-size:15px;
   font-weight:700;
@@ -403,7 +404,7 @@
 }
 .dgac-pilar-card p{
   font-size:13px;
-  color:#64748b;
+  color:#475569;
   line-height:1.55;
   margin:0;
 }

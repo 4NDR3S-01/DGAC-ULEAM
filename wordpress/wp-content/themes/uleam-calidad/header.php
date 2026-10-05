@@ -15,28 +15,33 @@
 <body <?php body_class(); ?>>
 <?php wp_body_open(); ?>
 
-<div class="topbar">
+<a class="skip-link" href="#main">Saltar al contenido</a>
+
+<div class="topbar" role="region" aria-label="Contacto y redes sociales">
   <div class="topbar__contact">
-    <a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', uleam_opt( 'uleam_telefono' ) ) ); ?>">
-      <?php echo esc_html( uleam_opt( 'uleam_telefono' ) ); ?>
-    </a>
-    <a href="mailto:<?php echo esc_attr( uleam_opt( 'uleam_email' ) ); ?>">
-      <i class="fa-solid fa-envelope" aria-hidden="true"></i>
-      <?php echo esc_html( uleam_opt( 'uleam_email' ) ); ?>
-    </a>
+    <?php if ( uleam_opt( 'uleam_telefono' ) ) : ?>
+      <a href="tel:<?php echo esc_attr( preg_replace( '/[^\d+]/', '', uleam_opt( 'uleam_telefono' ) ) ); ?>">
+        <i class="fa-solid fa-phone" aria-hidden="true"></i>
+        <?php echo esc_html( uleam_opt( 'uleam_telefono' ) ); ?>
+      </a>
+    <?php endif; ?>
+    <?php if ( uleam_opt( 'uleam_email' ) ) : ?>
+      <a href="mailto:<?php echo esc_attr( uleam_opt( 'uleam_email' ) ); ?>">
+        <i class="fa-solid fa-envelope" aria-hidden="true"></i>
+        <?php echo esc_html( uleam_opt( 'uleam_email' ) ); ?>
+      </a>
+    <?php endif; ?>
   </div>
-  <div class="topbar__social">
-    <span>Síguenos</span>
-    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.facebook.com/UleamEc' ); ?>" target="_blank" rel="noopener noreferrer" title="Facebook" aria-label="Facebook ULEAM">
-      <i class="fa-brands fa-facebook-f" aria-hidden="true"></i>
-    </a>
-    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.instagram.com/uleam_ecuador_oficial/' ); ?>" target="_blank" rel="noopener noreferrer" title="Instagram" aria-label="Instagram ULEAM">
-      <i class="fa-brands fa-instagram" aria-hidden="true"></i>
-    </a>
-    <a class="topbar__social-link" href="<?php echo esc_url( 'https://www.tiktok.com/@uleamecuador' ); ?>" target="_blank" rel="noopener noreferrer" title="TikTok" aria-label="TikTok ULEAM">
-      <i class="fa-brands fa-tiktok" aria-hidden="true"></i>
-    </a>
-  </div>
+  <?php if ( uleam_redes() ) : ?>
+    <div class="topbar__social">
+      <span>Síguenos</span>
+      <?php foreach ( uleam_redes() as $red ) : ?>
+        <a class="topbar__social-link" href="<?php echo esc_url( $red[0] ); ?>" target="_blank" rel="noopener noreferrer" title="<?php echo esc_attr( $red[1] ); ?>" aria-label="<?php echo esc_attr( $red[1] . ' ULEAM (se abre en otra pestaña)' ); ?>">
+          <i class="<?php echo esc_attr( $red[2] ); ?>" aria-hidden="true"></i>
+        </a>
+      <?php endforeach; ?>
+    </div>
+  <?php endif; ?>
 </div>
 
 <header class="header">

@@ -12,8 +12,10 @@ get_header();
 while ( have_posts() ) :
 	the_post();
 
-	// Determinar dinámicamente el badge / sección padre según el menú principal
-	$badge_text = 'DGAC · ULEAM';
+	// Determinar dinámicamente el badge / sección padre según el menú principal.
+	// Una página de primer nivel muestra su propio nombre, como Auditoría o Gestión de Procesos.
+	$badge_text = get_the_title() . ' · ULEAM';
+	$badge_icon = get_post_meta( get_the_ID(), '_uleam_icono_cabecera', true );
 	$current_id = get_the_ID();
 	$locations  = get_nav_menu_locations();
 	if ( isset( $locations['primary'] ) ) {
@@ -28,14 +30,19 @@ while ( have_posts() ) :
 				}
 			}
 			if ( $my_parent_id && isset( $parent_map[ $my_parent_id ] ) ) {
-				$badge_text = esc_html( $parent_map[ $my_parent_id ] ) . ' · ULEAM';
+				$badge_text = $parent_map[ $my_parent_id ] . ' · ULEAM';
 			}
 		}
 	}
 	?>
 	<header class="page-header">
 		<div class="page-header__wrap">
-			<span class="page-header__badge"><?php echo esc_html( $badge_text ); ?></span>
+			<span class="page-header__badge">
+				<?php if ( $badge_icon ) : ?>
+					<i class="<?php echo esc_attr( $badge_icon ); ?>" aria-hidden="true"></i>
+				<?php endif; ?>
+				<?php echo esc_html( $badge_text ); ?>
+			</span>
 			<h1 class="page-header__title"><?php the_title(); ?></h1>
 		</div>
 	</header>

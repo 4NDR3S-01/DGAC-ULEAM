@@ -144,7 +144,7 @@
   display:inline-flex;
   align-items:center;
   gap:.4rem;
-  color:#64748b;
+  color:#475569;
   font-size:.82rem;
 }
 .news-card__meta i{font-size:.8rem;opacity:.85}
@@ -250,7 +250,7 @@
   align-items:center;
   gap:.5rem;
   font-size:.95rem;
-  color:#64748b;
+  color:#475569;
 }
 .reading__dot{
   width:4px;height:4px;border-radius:50%;
@@ -343,4 +343,47 @@
   .reading{padding:1.75rem 0 3rem}
   .reading__title{font-size:1.75rem}
   .reading__body.entry-content{font-size:17px}
+}
+
+/* Imágenes de noticias: portadas de PDF y respaldo institucional (inc/noticias.php) */
+.news-card__image.is-documento,
+.news-thumb img.is-documento{
+  object-position:top center;
+}
+.news-placeholder{
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  color:#ffffff;
+  background:
+    radial-gradient(circle at 85% 15%, rgba(255,255,255,.14) 0, rgba(255,255,255,0) 45%),
+    linear-gradient(135deg, var(--uleam-blue-700), var(--uleam-blue-900));
+}
+.news-placeholder i{
+  font-size:34px;
+  opacity:.9;
+}
+.news-placeholder span{
+  font-size:12px;
+  font-weight:700;
+  letter-spacing:.08em;
+  opacity:.85;
+}
+
+/* Última fila incompleta centrada (p. ej. 7 noticias = 3 + 3 + 1).
+   La cuadrícula usa 6 columnas y cada tarjeta ocupa 2, así se puede centrar 1 o 2 tarjetas sueltas. */
+@media(min-width:1025px){
+  .news-grid{grid-template-columns:repeat(6, minmax(0, 1fr))}
+  .news-grid > .news-card{grid-column:span 2}
+  .news-grid > .news-card:last-child:nth-child(3n+1){grid-column:3 / span 2}
+  .news-grid > .news-card:nth-last-child(2):nth-child(3n+1){grid-column:2 / span 2}
+}
+@media(min-width:641px) and (max-width:1024px){
+  .news-grid{grid-template-columns:repeat(4, minmax(0, 1fr))}
+  .news-grid > .news-card{grid-column:span 2}
+  .news-grid > .news-card:last-child:nth-child(2n+1){grid-column:2 / span 2}
 }

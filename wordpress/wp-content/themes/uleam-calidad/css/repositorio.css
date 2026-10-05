@@ -1,0 +1,177 @@
+/* ==========================================================================
+   Repositorio documental automático (bloque uleam/repositorio-documental)
+   Usa los componentes de Gestión de Procesos (.dgac-toolbar, .dgac-subsistema-tab,
+   .dgac-count-badge) y los acordeones/filas de documents.css.
+   ========================================================================== */
+.dgac-repo{
+  margin:8px 0 40px;
+  scroll-margin-top:24px;
+}
+
+/* Tarjetas de área: 3 columnas para 9 áreas */
+.dgac-repo .dgac-repo-areas{
+  grid-template-columns:repeat(3, minmax(0, 1fr));
+}
+.dgac-repo-tab{
+  font:inherit;
+  color:inherit;
+}
+.dgac-repo-tab .dgac-subtab-title{
+  font-size:14.5px;
+}
+.dgac-repo-tab:focus-visible{
+  outline:3px solid rgba(0, 89, 168, 0.35);
+  outline-offset:2px;
+}
+.dgac-repo-tab.is-empty{
+  opacity:0.45;
+}
+
+/* Cabecera del panel de cada área */
+.dgac-repo-panel{
+  display:none;
+  scroll-margin-top:24px;
+}
+.dgac-repo-panel.is-active{
+  display:block;
+  animation:dgacFade 0.3s ease;
+}
+.dgac-repo-panel__head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+  margin:0 0 16px;
+}
+.dgac-repo-panel__title{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin:0;
+  font-size:clamp(18px, 2.4vw, 22px);
+  color:var(--uleam-blue-900);
+}
+.dgac-repo-panel__title i{
+  color:var(--uleam-blue-700);
+}
+.dgac-repo-panel__desc{
+  color:#475569;
+  margin-bottom:18px;
+}
+
+/* Subsecciones (p. ej. Planes de Mejora › Carreras) */
+.dgac-repo-sub{
+  margin-bottom:28px;
+}
+.dgac-repo-sub__title{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  font-size:16px;
+  color:var(--uleam-blue-800);
+  margin:0 0 12px;
+}
+.dgac-repo-sub__count{
+  font-size:12px;
+  font-weight:600;
+  color:#475569;
+  background:#f1f5f9;
+  padding:2px 10px;
+  border-radius:20px;
+}
+.dgac-repo .dgac-doc-group + .dgac-doc-group{
+  margin-top:18px;
+}
+
+/* Resaltado de la búsqueda y estado sin resultados */
+.dgac-repo mark{
+  background:#fef08a;
+  color:inherit;
+  padding:0 1px;
+  border-radius:3px;
+}
+.dgac-repo-noresults{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:16px 18px;
+  border:1px dashed #cbd5e1;
+  border-radius:12px;
+  color:#475569;
+  background:#f8fafc;
+}
+.dgac-repo-noresults[hidden],
+.dgac-repo-toggle[hidden]{
+  display:none;
+}
+
+/* Botón para editar (solo usuarios con sesión) */
+.dgac-repo-edit{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:30px;
+  height:30px;
+  border-radius:6px;
+  color:#94a3b8;
+}
+.dgac-repo-edit:hover{
+  background:#f1f5f9;
+  color:var(--uleam-blue-700);
+}
+.dgac-repo-aviso{
+  padding:16px;
+  border:2px dashed #cbd5e1;
+  border-radius:10px;
+  color:#475569;
+}
+
+/* Búsqueda activa: se muestran todas las áreas con coincidencias */
+.dgac-repo.is-searching .dgac-repo-panel{
+  display:block;
+  margin-bottom:32px;
+}
+.dgac-repo .is-filtered-out,
+.dgac-repo .dgac-doc-row[hidden]{
+  display:none !important;
+}
+
+/* Responsividad */
+@media(max-width:960px){
+  .dgac-repo .dgac-repo-areas{
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+  }
+}
+@media(max-width:640px){
+  /* En móvil las 9 áreas van en un carrusel horizontal para no empujar los documentos hacia abajo. */
+  .dgac-repo .dgac-repo-areas{
+    display:flex;
+    overflow-x:auto;
+    scroll-snap-type:x mandatory;
+    gap:10px;
+    padding:4px 2px 12px;
+    margin:0 -2px 20px;
+  }
+  .dgac-repo .dgac-repo-tab{
+    flex:0 0 72%;
+    scroll-snap-align:start;
+  }
+  .dgac-repo .dgac-repo-tab:hover{
+    transform:none;
+  }
+  .dgac-repo .dgac-toolbar-actions{
+    width:100%;
+  }
+  .dgac-repo .dgac-search-box{
+    min-width:0;
+  }
+  .dgac-repo .dgac-doc-row-btns{
+    width:100%;
+  }
+  .dgac-repo .dgac-doc-mini-btn{
+    flex:1;
+    justify-content:center;
+  }
+}

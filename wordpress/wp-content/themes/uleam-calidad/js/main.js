@@ -208,7 +208,9 @@
     setActiveMenuItem(window.location.hash);
   } else {
     var hasCurrent = document.querySelector('.nav-inner .current-menu-item, .nav-inner .current_page_item');
-    if (!hasCurrent && (window.location.pathname === '/' || window.location.pathname.indexOf('index.php') !== -1)) {
+    // La página de resultados (/?s=…) también usa "/", pero no es Inicio.
+    var isSearch = /[?&]s=/.test(window.location.search);
+    if (!hasCurrent && !isSearch && (window.location.pathname === '/' || window.location.pathname.indexOf('index.php') !== -1)) {
       setActiveMenuItem('/');
     }
   }
@@ -236,6 +238,437 @@
 
     sections.forEach(function (sec) {
       observer.observe(sec);
+    });
+  }
+
+  // Repositorio documental: tarjetas de área, buscador con resaltado y "Expandir todos"
+  function normalizar(s) {
+    return (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  }
+  function escaparHtml(s) {
+    return s.replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  }
+  // Resalta q dentro de texto sin importar tildes ni mayúsculas.
+  function resaltar(texto, q) {
+    if (!q) {
+      return escaparHtml(texto);
+    }
+    var base = '';
+    var mapa = [];
+    for (var i = 0; i < texto.length; i++) {
+      var n = normalizar(texto[i]);
+      for (var k = 0; k < n.length; k++) {
+        base += n[k];
+        mapa.push(i);
+      }
+    }
+    var html = '';
+    var desde = 0;
+    var pos = base.indexOf(q);
+    while (pos !== -1) {
+      var ini = mapa[pos];
+      var fin = mapa[pos + q.length - 1] + 1;
+      html += escaparHtml(texto.slice(desde, ini)) + '<mark>' + escaparHtml(texto.slice(ini, fin)) + '</mark>';
+      desde = fin;
+      pos = base.indexOf(q, pos + q.length);
+    }
+    return html + escaparHtml(texto.slice(desde));
+  }
+  function plural(n, uno, varios) {
+    return n + ' ' + (n === 1 ? uno : varios);
+  }
+
+  document.querySelectorAll('.dgac-repo').forEach(function (repo) {
+    var repoTabs = repo.querySelectorAll('.dgac-repo-tab');
+    var panels = repo.querySelectorAll('.dgac-repo-panel');
+    var input = repo.querySelector('.dgac-repo-search__input');
+    var noResults = repo.querySelector('.dgac-repo-noresults');
+    var counter = repo.querySelector('.dgac-repo-count');
+    var toggle = repo.querySelector('.dgac-repo-toggle');
+
+    function activate(id, updateHash) {
+      var found = false;
+      panels.forEach(function (p) {
+        var on = p.id === id;
+        p.classList.toggle('is-active', on);
+        found = found || on;
+      });
+      if (!found) {
+        return false;
+      }
+      repoTabs.forEach(function (t) {
+        var on = t.getAttribute('aria-controls') === id;
+        t.classList.toggle('is-active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+      });
+      if (updateHash && history.replaceState) {
+        history.replaceState(null, '', '#' + id);
+      }
+      syncToggle();
+      return true;
+    }
+
+    repoTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var id = tab.getAttribute('aria-controls');
+        if (input && input.value) {
+          // Durante una búsqueda, la tarjeta lleva a los resultados de esa área.
+          var panel = repo.querySelector('#' + CSS.escape(id));
+          if (panel && !panel.classList.contains('is-filtered-out')) {
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+          return;
+        }
+        activate(id, true);
+      });
+    });
+
+    // Permite enlazar directo a un área: /aseguramiento-de-la-calidad/#planes-de-mejora
+    if (location.hash) {
+      activate(decodeURIComponent(location.hash.slice(1)), false);
+    }
+    window.addEventListener('hashchange', function () {
+      if (activate(decodeURIComponent(location.hash.slice(1)), false)) {
+        repo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    });
+
+    // "Expandir todos" / "Contraer todos" sobre los acordeones visibles.
+    function visibleAccordions() {
+      var scope = repo.classList.contains('is-searching') ? repo : repo.querySelector('.dgac-repo-panel.is-active') || repo;
+      return Array.prototype.filter.call(scope.querySelectorAll('.dgac-year-accordion'), function (d) {
+        return !d.classList.contains('is-filtered-out');
+      });
+    }
+    function syncToggle() {
+      if (!toggle) {
+        return;
+      }
+      var list = visibleAccordions();
+      var allOpen = list.length > 0 && list.every(function (d) { return d.open; });
+      toggle.setAttribute('aria-expanded', allOpen ? 'true' : 'false');
+      toggle.querySelector('span').textContent = allOpen ? 'Contraer todos' : 'Expandir todos';
+      toggle.hidden = list.length === 0;
+    }
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        var open = toggle.getAttribute('aria-expanded') !== 'true';
+        visibleAccordions().forEach(function (d) { d.open = open; });
+        syncToggle();
+      });
+      repo.querySelectorAll('.dgac-year-accordion').forEach(function (d) {
+        d.addEventListener('toggle', syncToggle);
+      });
+      syncToggle();
+    }
+
+    // Búsqueda en todas las áreas a la vez.
+    var titles = repo.querySelectorAll('.dgac-doc-row-title');
+    titles.forEach(function (t) { t.setAttribute('data-original', t.textContent); });
+
+    function filter(raw) {
+      var q = normalizar(raw.trim());
+      repo.classList.toggle('is-searching', q !== '');
+      var total = 0;
+      repo.querySelectorAll('.dgac-doc-row').forEach(function (row) {
+        var title = row.querySelector('.dgac-doc-row-title');
+        var match = !q || normalizar(row.getAttribute('data-buscar')).indexOf(q) !== -1;
+        row.hidden = !match;
+        if (title) {
+          title.innerHTML = resaltar(title.getAttribute('data-original'), match ? q : '');
+        }
+        if (q && match) {
+          total++;
+        }
+      });
+      // Oculta grupos, años, subsecciones y áreas sin resultados; abre los que sí tienen.
+      repo.querySelectorAll('.dgac-doc-group, .dgac-year-accordion, .dgac-repo-sub, .dgac-repo-panel').forEach(function (box) {
+        var hits = box.querySelectorAll('.dgac-doc-row:not([hidden])').length;
+        var visible = !q || hits > 0;
+        box.classList.toggle('is-filtered-out', !visible);
+        if (box.tagName === 'DETAILS') {
+          var count = box.querySelector('.dgac-year-count');
+          if (count) {
+            count.textContent = q ? plural(hits, 'coincidencia', 'coincidencias') : count.getAttribute('data-total');
+          }
+          if (q && visible) {
+            box.open = true;
+          }
+        }
+      });
+      // Coincidencias por área en sus tarjetas.
+      repoTabs.forEach(function (tab) {
+        var panel = repo.querySelector('#' + CSS.escape(tab.getAttribute('aria-controls')));
+        var meta = tab.querySelector('.dgac-subtab-meta');
+        var hits = panel ? panel.querySelectorAll('.dgac-doc-row:not([hidden])').length : 0;
+        tab.classList.toggle('is-empty', q !== '' && hits === 0);
+        if (meta) {
+          meta.textContent = q ? plural(hits, 'coincidencia', 'coincidencias') : meta.getAttribute('data-total');
+        }
+      });
+      if (counter) {
+        counter.textContent = q ? plural(total, 'resultado', 'resultados') : repo.getAttribute('data-total');
+      }
+      if (noResults) {
+        noResults.hidden = !q || total > 0;
+      }
+      syncToggle();
+    }
+    if (input) {
+      var timer;
+      input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () { filter(input.value); }, 120);
+      });
+    }
+  });
+
+  // Gestión de Procesos: pestañas de subsistemas, buscador de procedimientos y "Expandir todos".
+  // El contenido se edita en Páginas → Gestión de Procesos; aquí solo va el comportamiento.
+  (function () {
+    var subsysTabs = document.querySelectorAll('.dgac-subsistema-tab[data-subsys]');
+    var subsysPanels = document.querySelectorAll('.dgac-subsistema-content');
+    var searchInput = document.getElementById('dgacProcessSearch');
+    var counter = document.getElementById('dgacProcCounter');
+    var toggleBtn = document.getElementById('dgacToggleAllBtn');
+    var toggleText = document.getElementById('dgacToggleAllText');
+    if (!subsysTabs.length) {
+      return;
+    }
+    // Las cifras se calculan de los procedimientos reales: al agregar o quitar uno en el editor, se actualizan solas.
+    document.querySelectorAll('.dgac-macro-card').forEach(function (card) {
+      var count = card.querySelector('.dgac-macro-count');
+      if (count) {
+        count.textContent = plural(card.querySelectorAll('.dgac-proc-row').length, 'procedimiento', 'procedimientos');
+      }
+    });
+    subsysTabs.forEach(function (tab) {
+      var panel = document.getElementById('subsys-' + tab.getAttribute('data-subsys'));
+      var meta = tab.querySelector('.dgac-subtab-meta');
+      if (panel && meta) {
+        meta.textContent = plural(panel.querySelectorAll('.dgac-macro-card').length, 'macroproceso', 'macroprocesos') + ' · ' +
+          plural(panel.querySelectorAll('.dgac-proc-row').length, 'procedimiento', 'procedimientos');
+      }
+    });
+    function activePanel() {
+      return document.querySelector('.dgac-subsistema-content.is-active');
+    }
+    function updateCounter() {
+      var panel = activePanel();
+      if (!panel || !counter) {
+        return;
+      }
+      var total = panel.querySelectorAll('.dgac-proc-row').length;
+      var visibles = panel.querySelectorAll('.dgac-proc-row:not([hidden])').length;
+      counter.textContent = searchInput && searchInput.value.trim()
+        ? plural(visibles, 'procedimiento encontrado', 'procedimientos encontrados')
+        : plural(total, 'procedimiento en este subsistema', 'procedimientos en este subsistema');
+    }
+    function updateToggle() {
+      var panel = activePanel();
+      if (!panel || !toggleBtn || !toggleText) {
+        return;
+      }
+      var cards = Array.prototype.slice.call(panel.querySelectorAll('.dgac-macro-card:not([hidden])'));
+      var allOpen = cards.length > 0 && cards.every(function (c) { return c.open; });
+      toggleText.textContent = allOpen ? 'Contraer todos' : 'Expandir todos';
+      toggleBtn.setAttribute('aria-expanded', allOpen ? 'true' : 'false');
+    }
+    function filtrar() {
+      var panel = activePanel();
+      if (!panel) {
+        return;
+      }
+      var q = normalizar(searchInput ? searchInput.value.trim() : '');
+      panel.querySelectorAll('.dgac-proc-row').forEach(function (row) {
+        // Busca en lo que la persona ve: nombre del procedimiento y de su macroproceso.
+        var nombre = row.querySelector('.dgac-proc-name');
+        var macro = row.closest('.dgac-macro-card');
+        var titulo = macro ? macro.querySelector('.dgac-macro-title') : null;
+        var texto = normalizar((nombre ? nombre.textContent : row.textContent) + ' ' + (titulo ? titulo.textContent : ''));
+        row.hidden = q !== '' && texto.indexOf(q) === -1;
+      });
+      panel.querySelectorAll('.dgac-macro-card').forEach(function (card) {
+        var visible = card.querySelector('.dgac-proc-row:not([hidden])');
+        card.hidden = !visible;
+        if (q && visible) {
+          card.open = true;
+        }
+      });
+      updateCounter();
+      updateToggle();
+    }
+
+    subsysTabs.forEach(function (tab) {
+      tab.addEventListener('click', function () {
+        var target = tab.getAttribute('data-subsys');
+        subsysTabs.forEach(function (t) {
+          t.classList.toggle('is-active', t === tab);
+          t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+        });
+        subsysPanels.forEach(function (p) {
+          p.classList.toggle('is-active', p.id === 'subsys-' + target);
+        });
+        filtrar();
+      });
+    });
+    if (searchInput) {
+      searchInput.addEventListener('input', filtrar);
+    }
+    if (toggleBtn) {
+      toggleBtn.addEventListener('click', function () {
+        var panel = activePanel();
+        if (!panel) {
+          return;
+        }
+        var cards = Array.prototype.slice.call(panel.querySelectorAll('.dgac-macro-card:not([hidden])'));
+        var expandir = !cards.every(function (c) { return c.open; });
+        cards.forEach(function (c) { c.open = expandir; });
+        if (!expandir) {
+          panel.querySelectorAll('.dgac-proc-row').forEach(function (r) { r.open = false; });
+        }
+        updateToggle();
+      });
+    }
+    document.querySelectorAll('.dgac-macro-card').forEach(function (card) {
+      card.addEventListener('toggle', updateToggle);
+    });
+    updateCounter();
+    updateToggle();
+  })();
+
+  // Sugerencias mientras se escribe en los buscadores del sitio (cabecera y página de resultados)
+  if (window.uleamBusqueda && window.fetch) {
+    document.querySelectorAll('form.search, form.dgac-search-hero').forEach(function (form, n) {
+      var input = form.querySelector('input[type="search"]');
+      if (!input) {
+        return;
+      }
+      var box = document.createElement('div');
+      var listId = 'dgac-suggest-' + n;
+      box.className = 'dgac-suggest';
+      box.hidden = true;
+      form.appendChild(box);
+      input.setAttribute('autocomplete', 'off');
+      input.setAttribute('role', 'combobox');
+      input.setAttribute('aria-autocomplete', 'list');
+      input.setAttribute('aria-expanded', 'false');
+      input.setAttribute('aria-controls', listId);
+
+      var timer;
+      var controller;
+      var active = -1;
+      var lastQuery = '';
+
+      function options() {
+        return box.querySelectorAll('.dgac-suggest__item, .dgac-suggest__footer');
+      }
+      function close() {
+        box.hidden = true;
+        active = -1;
+        input.setAttribute('aria-expanded', 'false');
+        input.removeAttribute('aria-activedescendant');
+      }
+      function setActive(i) {
+        var opts = options();
+        if (!opts.length) {
+          return;
+        }
+        active = (i + opts.length) % opts.length;
+        opts.forEach(function (o, k) {
+          o.classList.toggle('is-active', k === active);
+          o.setAttribute('aria-selected', k === active ? 'true' : 'false');
+        });
+        input.setAttribute('aria-activedescendant', opts[active].id);
+        opts[active].scrollIntoView({ block: 'nearest' });
+      }
+      function render(data, q) {
+        var html = '';
+        if (!data.items.length) {
+          html = '<p class="dgac-suggest__empty">Sin coincidencias para «' + escaparHtml(q) + '». Presiona Enter para buscar en todo el sitio.</p>';
+        } else {
+          html = '<ul class="dgac-suggest__list" id="' + listId + '" role="listbox" aria-label="Sugerencias">';
+          data.items.forEach(function (it, k) {
+            var meta = [it.etiqueta + (it.ext ? ' · ' + it.ext : '')].concat(it.datos || []).join(' · ');
+            var nueva = it.archivo ? ' target="_blank" rel="noopener"' : '';
+            html += '<li class="dgac-suggest__item dgac-suggest__item--' + it.tipo + '" id="' + listId + '-' + k + '" role="option" aria-selected="false">' +
+              '<a href="' + escaparHtml(it.url) + '"' + nueva + ' tabindex="-1">' +
+              '<span class="dgac-suggest__icon"><i class="' + escaparHtml(it.icono) + '" aria-hidden="true"></i></span>' +
+              '<span class="dgac-suggest__text"><span class="dgac-suggest__title">' + it.titulo_html + '</span>' +
+              '<span class="dgac-suggest__meta">' + escaparHtml(meta) + '</span></span></a></li>';
+          });
+          html += '</ul>';
+          html += '<a class="dgac-suggest__footer" id="' + listId + '-todos" role="option" aria-selected="false" href="' + escaparHtml(data.todos) + '">' +
+            'Ver ' + (data.total === 1 ? 'el resultado' : 'los ' + data.total + ' resultados') + ' <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>';
+        }
+        box.innerHTML = html;
+        box.hidden = false;
+        active = -1;
+        input.setAttribute('aria-expanded', 'true');
+      }
+      function search() {
+        var q = input.value.trim();
+        if (q.length < 2) {
+          close();
+          return;
+        }
+        if (q === lastQuery && !box.hidden) {
+          return;
+        }
+        lastQuery = q;
+        if (controller) {
+          controller.abort();
+        }
+        controller = 'AbortController' in window ? new AbortController() : null;
+        var url = window.uleamBusqueda.endpoint + (window.uleamBusqueda.endpoint.indexOf('?') === -1 ? '?' : '&') + 'q=' + encodeURIComponent(q);
+        fetch(url, controller ? { signal: controller.signal } : {})
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (input.value.trim() === q) {
+              render(data, q);
+            }
+          })
+          .catch(function () {});
+      }
+
+      input.addEventListener('input', function () {
+        clearTimeout(timer);
+        timer = setTimeout(search, 220);
+      });
+      input.addEventListener('focus', function () {
+        if (input.value.trim().length >= 2 && box.innerHTML) {
+          box.hidden = false;
+          input.setAttribute('aria-expanded', 'true');
+        }
+      });
+      input.addEventListener('keydown', function (e) {
+        if (box.hidden) {
+          return;
+        }
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          setActive(active + 1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          setActive(active - 1);
+        } else if (e.key === 'Escape') {
+          close();
+        } else if (e.key === 'Enter' && active > -1) {
+          e.preventDefault();
+          var opt = options()[active];
+          var link = opt.tagName === 'A' ? opt : opt.querySelector('a');
+          if (link) {
+            link.click();
+          }
+        }
+      });
+      document.addEventListener('click', function (e) {
+        if (!form.contains(e.target)) {
+          close();
+        }
+      });
     });
   }
 })();

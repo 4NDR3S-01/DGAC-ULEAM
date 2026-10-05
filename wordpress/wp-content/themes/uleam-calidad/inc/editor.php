@@ -73,6 +73,7 @@ function uleam_editor_styles() {
 			'css/institutional.css',
 			'css/documents.css',
 			'css/contacts.css',
+			'css/repositorio.css',
 		)
 	);
 }

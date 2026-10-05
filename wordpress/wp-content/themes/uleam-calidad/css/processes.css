@@ -61,7 +61,7 @@
 }
 .dgac-pill-tab .dot--green{background:#10b981}
 .dgac-pill-tab .dot--orange{background:#f97316}
-.dgac-pill-tab .dot--blue{background:#0284c7}
+.dgac-pill-tab .dot--blue{background:#0369a1}
 
 .dgac-overview-panel{
   display:none;
@@ -135,6 +135,7 @@
   font-size:22px;
   color:var(--accent);
 }
+.dgac-catalog-banner__head h2,
 .dgac-catalog-banner__head h3{
   font-size:16px;
   font-weight:700;
@@ -194,7 +195,7 @@
 }
 .dgac-catalog-card__desc{
   font-size:12px;
-  color:#64748b;
+  color:#475569;
   margin:0;
 }
 .dgac-catalog-card__btn{
@@ -239,7 +240,7 @@
   gap:10px;
 }
 .dgac-section-title i{
-  color:#10b981;
+  color:var(--uleam-red-700);
 }
 
 /* Barra de Búsqueda y Filtro de Procedimientos en Vivo */
@@ -292,7 +293,7 @@
 }
 .dgac-count-badge{
   font-size:12.5px;
-  color:#64748b;
+  color:#475569;
   font-weight:600;
   background:#f1f5f9;
   padding:5px 12px;
@@ -353,7 +354,7 @@
   font-weight:800;
   letter-spacing:0.04em;
   text-transform:uppercase;
-  color:#0284c7;
+  color:#0369a1;
   display:flex;
   align-items:center;
   gap:6px;
@@ -366,7 +367,7 @@
 }
 .dgac-subtab-meta{
   font-size:11.5px;
-  color:#64748b;
+  color:#475569;
 }
 
 /* Paneles de Contenido de Subsistemas */
@@ -396,9 +397,9 @@
   border-color:#b9d5f3;
   box-shadow:0 6px 20px rgba(0, 89, 168, 0.06);
 }
-.dgac-macro-card--blue{border-left:5px solid #0284c7}
+.dgac-macro-card--blue{border-left:5px solid #0369a1}
 .dgac-macro-card--green{border-left:5px solid #059669}
-.dgac-macro-card--red{border-left:5px solid #dc2626}
+.dgac-macro-card--red{border-left:5px solid var(--uleam-red-700)}
 .dgac-macro-card--purple{border-left:5px solid #7c3aed}
 .dgac-macro-card--orange{border-left:5px solid #ea580c}
 .dgac-macro-card--dark{border-left:5px solid #334155}
@@ -432,9 +433,9 @@
   font-size:16px;
   flex-shrink:0;
 }
-.dgac-macro-card--blue .dgac-macro-icon{background:#e0f2fe;color:#0284c7}
+.dgac-macro-card--blue .dgac-macro-icon{background:#e0f2fe;color:#0369a1}
 .dgac-macro-card--green .dgac-macro-icon{background:#d1fae5;color:#059669}
-.dgac-macro-card--red .dgac-macro-icon{background:#fee2e2;color:#dc2626}
+.dgac-macro-card--red .dgac-macro-icon{background:var(--uleam-red-50);color:var(--uleam-red-700)}
 .dgac-macro-card--purple .dgac-macro-icon{background:#ede9fe;color:#7c3aed}
 .dgac-macro-card--orange .dgac-macro-icon{background:#ffedd5;color:#ea580c}
 .dgac-macro-card--dark .dgac-macro-icon{background:#f1f5f9;color:#334155}
@@ -452,7 +453,7 @@
 .dgac-macro-count{
   font-size:12px;
   font-weight:600;
-  color:#64748b;
+  color:#475569;
   background:#f1f5f9;
   padding:4px 10px;
   border-radius:20px;
@@ -544,8 +545,8 @@
   width:32px;
   height:32px;
   border-radius:6px;
-  background:#fee2e2;
-  color:#dc2626;
+  background:var(--uleam-red-50);
+  color:var(--uleam-red-700);
   display:grid;
   place-items:center;
   font-size:14px;
@@ -563,7 +564,7 @@
 }
 .dgac-proc-code{
   font-size:11.5px;
-  color:#64748b;
+  color:#475569;
   font-family:monospace;
 }
 .dgac-proc-row-right{
@@ -649,8 +650,8 @@
   font-size:13px;
   flex-shrink:0;
 }
-.dgac-file-card__icon--pdf{background:#fee2e2;color:#dc2626}
-.dgac-file-card__icon--docx{background:#e0f2fe;color:#0284c7}
+.dgac-file-card__icon--pdf{background:var(--uleam-red-50);color:var(--uleam-red-700)}
+.dgac-file-card__icon--docx{background:#e0f2fe;color:#0369a1}
 .dgac-file-card__icon--flow{background:#ede9fe;color:#7c3aed}
 
 .dgac-file-card__info{
@@ -667,7 +668,7 @@
 }
 .dgac-file-card__meta{
   font-size:11px;
-  color:#64748b;
+  color:#475569;
   margin:0;
 }
 .dgac-file-card__actions{
@@ -834,4 +835,15 @@
   .dgac-proc-row-right{width:100%;justify-content:space-between}
   .dgac-toolbar{flex-direction:column;align-items:stretch}
   .dgac-toolbar-actions{justify-content:space-between}
+}
+
+/* Resultados del buscador de procedimientos */
+.dgac-proc-row[hidden],
+.dgac-macro-card[hidden]{
+  display:none !important;
+}
+/* Tarjetas del catálogo: son enlaces a los PDF oficiales */
+a.dgac-catalog-card{
+  text-decoration:none;
+  color:inherit;
 }
