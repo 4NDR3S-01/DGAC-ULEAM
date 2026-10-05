@@ -33,40 +33,13 @@ get_header();
   ?>
 </section>
 
-<section class="two-col" id="procesos">
-  <div class="panel" id="desempeno">
-    <h2>Evaluación de Desempeño</h2>
-    <?php
-    $periodos = get_terms(
-      array(
-        'taxonomy'   => 'periodo',
-        'hide_empty' => false,
-        'orderby'    => 'name',
-        'order'      => 'ASC',
-      )
-    );
-    if ( ! empty( $periodos ) && ! is_wp_error( $periodos ) ) :
-      $primero = true;
-      ?>
-      <div class="tabs">
-        <?php foreach ( $periodos as $periodo ) : ?>
-          <button class="tab<?php echo $primero ? ' active' : ''; ?>" data-text="<?php echo esc_attr( $periodo->description ); ?>"><?php echo esc_html( $periodo->name ); ?></button>
-          <?php $primero = false; ?>
-        <?php endforeach; ?>
-      </div>
-      <p id="periodText"><?php echo esc_html( reset( $periodos )->description ); ?></p>
-      <a class="btn" href="<?php echo esc_url( home_url( '/aseguramiento-de-la-calidad/#evaluacion-del-desempeno' ) ); ?>">Ver resultados</a>
-    <?php else : ?>
-      <div class="tabs">
-        <button class="tab active" data-text="Consulta los resultados de la evaluación de desempeño académico y administrativo del período 2025-1.">2025-1</button>
-      </div>
-      <p id="periodText">Consulta los resultados de la evaluación de desempeño académico y administrativo del período 2025-1.</p>
-      <a class="btn" href="<?php echo esc_url( home_url( '/aseguramiento-de-la-calidad/#evaluacion-del-desempeno' ) ); ?>">Ver resultados</a>
-    <?php endif; ?>
-  </div>
-
+<section class="two-col" id="procesos" aria-labelledby="actualidad-titulo">
+  <header class="two-col__head">
+    <h2 id="actualidad-titulo">Actualidad</h2>
+    <p>Noticias, comunicados y momentos de la Dirección de Gestión y Aseguramiento de la Calidad.</p>
+  </header>
   <div class="panel" id="noticias">
-    <h2>Noticias y comunicados</h2>
+    <h3>Noticias y comunicados</h3>
     <?php
     $noticias = new WP_Query(
       array(
@@ -96,6 +69,48 @@ get_header();
     ?>
     <a class="news-more" href="<?php echo esc_url( get_post_type_archive_link( 'noticia' ) ); ?>">Ver todas las noticias <?php echo uleam_icon( 'arrow' ); ?></a>
   </div>
+
+  <?php $fotos = uleam_carrusel_fotos(); ?>
+  <?php if ( $fotos ) : ?>
+    <div class="panel photo-carousel" id="galeria" role="region" aria-roledescription="carrusel" aria-label="Galería de fotos">
+      <div class="photo-carousel__track" tabindex="0">
+        <?php foreach ( $fotos as $i => $foto ) : ?>
+          <figure class="photo-carousel__slide" role="group" aria-roledescription="diapositiva" aria-label="<?php echo esc_attr( ( $i + 1 ) . ' de ' . count( $fotos ) ); ?>">
+            <?php
+            echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
+              $foto['id'],
+              'large',
+              false,
+              array(
+                'class'   => 'photo-carousel__img',
+                'loading' => $i ? 'lazy' : 'eager',
+                'alt'     => $foto['texto'],
+              )
+            );
+            ?>
+            <?php if ( $foto['texto'] ) : ?>
+              <figcaption class="photo-carousel__caption">
+                <?php if ( $foto['url'] ) : ?>
+                  <a href="<?php echo esc_url( $foto['url'] ); ?>"><?php echo esc_html( $foto['texto'] ); ?></a>
+                <?php else : ?>
+                  <?php echo esc_html( $foto['texto'] ); ?>
+                <?php endif; ?>
+              </figcaption>
+            <?php endif; ?>
+          </figure>
+        <?php endforeach; ?>
+      </div>
+      <?php if ( count( $fotos ) > 1 ) : ?>
+        <button type="button" class="photo-carousel__nav photo-carousel__nav--prev" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+        <button type="button" class="photo-carousel__nav photo-carousel__nav--next" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
+        <div class="photo-carousel__dots">
+          <?php foreach ( $fotos as $i => $foto ) : ?>
+            <button type="button" class="photo-carousel__dot<?php echo $i ? '' : ' is-active'; ?>" aria-label="<?php echo esc_attr( 'Ir a la foto ' . ( $i + 1 ) ); ?>"<?php echo $i ? '' : ' aria-current="true"'; ?>></button>
+          <?php endforeach; ?>
+        </div>
+      <?php endif; ?>
+    </div>
+  <?php endif; ?>
 </section>
 
 <section class="library" id="documentos" aria-labelledby="biblioteca-titulo">

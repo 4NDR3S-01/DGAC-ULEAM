@@ -9,6 +9,9 @@ if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
+// Cantidad de fotos del carrusel de la portada.
+const ULEAM_CARRUSEL_MAX = 6;
+
 /**
  * Valores predeterminados de las opciones institucionales
  *
@@ -137,5 +140,108 @@ function uleam_customize_register( $wp_customize ) {
 			);
 		}
 	}
+
+	// Carrusel de fotos de la portada (junto a las noticias).
+	$wp_customize->add_section(
+		'uleam_carrusel',
+		array(
+			'title'       => 'ULEAM - Carrusel de fotos (inicio)',
+			'description' => 'Fotos del carrusel junto a las noticias. Si no se carga ninguna, se muestran las imágenes de las últimas noticias.',
+			'priority'    => 31,
+		)
+	);
+	for ( $n = 1; $n <= ULEAM_CARRUSEL_MAX; $n++ ) {
+		$wp_customize->add_setting( "uleam_carrusel_{$n}_imagen", array( 'sanitize_callback' => 'absint' ) );
+		$wp_customize->add_control(
+			new WP_Customize_Media_Control(
+				$wp_customize,
+				"uleam_carrusel_{$n}_imagen",
+				array(
+					'label'     => "Foto {$n}",
+					'section'   => 'uleam_carrusel',
+					'mime_type' => 'image',
+				)
+			)
+		);
+		$wp_customize->add_setting( "uleam_carrusel_{$n}_texto", array( 'sanitize_callback' => 'sanitize_text_field' ) );
+		$wp_customize->add_control(
+			"uleam_carrusel_{$n}_texto",
+			array(
+				'label'   => "Foto {$n}: texto (opcional)",
+				'section' => 'uleam_carrusel',
+				'type'    => 'text',
+			)
+		);
+		$wp_customize->add_setting( "uleam_carrusel_{$n}_enlace", array( 'sanitize_callback' => 'esc_url_raw' ) );
+		$wp_customize->add_control(
+			"uleam_carrusel_{$n}_enlace",
+			array(
+				'label'   => "Foto {$n}: enlace (opcional)",
+				'section' => 'uleam_carrusel',
+				'type'    => 'url',
+			)
+		);
+	}
 }
 add_action( 'customize_register', 'uleam_customize_register' );
+
+/**
+ * Fotos del carrusel de la portada: las del Personalizador o, si no hay, las de las últimas noticias.
+ *
+ * @return array Lista de [ id, texto, url ].
+ */
+function uleam_carrusel_fotos() {
+	$fotos = array();
+	for ( $n = 1; $n <= ULEAM_CARRUSEL_MAX; $n++ ) {
+		$id = (int) get_theme_mod( "uleam_carrusel_{$n}_imagen" );
+		if ( $id && wp_attachment_is_image( $id ) ) {
+			$fotos[] = array(
+				'id'    => $id,
+				'texto' => (string) get_theme_mod( "uleam_carrusel_{$n}_texto" ),
+				'url'   => (string) get_theme_mod( "uleam_carrusel_{$n}_enlace" ),
+			);
+		}
+	}
+	if ( $fotos ) {
+		return $fotos;
+	}
+
+	$noticias = get_posts(
+		array(
+			'post_type'      => 'noticia',
+			'posts_per_page' => 20,
+			'meta_key'       => '_thumbnail_id', // phpcs:ignore WordPress.DB.SlowDBQuery
+			'fields'         => 'ids',
+		)
+	);
+	foreach ( $noticias as $post_id ) {
+		$id = get_post_thumbnail_id( $post_id );
+		// Las portadas de PDF no sirven como foto; tampoco las imágenes cuyo archivo no existe.
+		if ( ! wp_attachment_is_image( $id ) || ! file_exists( (string) get_attached_file( $id ) ) ) {
+			continue;
+		}
+		$fotos[] = array(
+			'id'    => $id,
+			'texto' => get_the_title( $post_id ),
+			'url'   => get_permalink( $post_id ),
+		);
+		if ( count( $fotos ) >= ULEAM_CARRUSEL_MAX ) {
+			return $fotos;
+		}
+	}
+
+	// Último recurso: la foto del hero y la imagen predeterminada de noticias.
+	$usados = wp_list_pluck( $fotos, 'id' );
+	foreach ( array( 'uleam_hero_imagen', 'uleam_noticia_imagen' ) as $opcion ) {
+		$id = (int) uleam_opt( $opcion );
+		if ( $id && ! in_array( $id, $usados, true ) && wp_attachment_is_image( $id ) ) {
+			$fotos[] = array(
+				'id'    => $id,
+				'texto' => '',
+				'url'   => '',
+			);
+			$usados[] = $id;
+		}
+	}
+	return $fotos;
+}
