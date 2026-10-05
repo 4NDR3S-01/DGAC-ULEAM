@@ -172,30 +172,6 @@
   margin:0 0 22px;
   font-size:21px;
 }
-.tabs{
-  display:flex;
-  gap:8px;
-  flex-wrap:wrap;
-  margin-bottom:24px;
-}
-.tab{
-  border:1px solid var(--line);
-  background:#fff;
-  border-radius:999px;
-  padding:10px 17px;
-  cursor:pointer;
-  font-family:inherit;
-  color:var(--uleam-blue-800);
-}
-.tab.active{
-  background:var(--uleam-blue-800);
-  color:#fff;
-  border-color:var(--uleam-blue-800);
-}
-.tab:hover:not(.active){
-  border-color:var(--accent);
-  background:#fff;
-}
 .news-item{
   display:grid;
   grid-template-columns:92px 1fr;
@@ -231,6 +207,114 @@
   gap:.4rem;
 }
 .news-more:hover{color:var(--accent)}
+
+.two-col__head{
+  grid-column:1 / -1;
+  text-align:center;
+  margin-bottom:.5rem;
+}
+.two-col__head h2{
+  margin:0 0 .5rem;
+  color:var(--uleam-blue-900);
+  font-size:clamp(1.4rem, 2.4vw, 1.85rem);
+  font-weight:700;
+}
+.two-col__head p{
+  max-width:640px;
+  margin:0 auto;
+  color:var(--muted);
+}
+
+/* Carrusel de fotos (junto a las noticias) */
+.two-col > .panel:only-of-type{grid-column:1 / -1}
+.photo-carousel{
+  position:relative;
+  padding:0;
+  overflow:hidden;
+  min-height:340px;
+  background:#e8eef5;
+}
+.photo-carousel__track{
+  position:absolute;
+  inset:0;
+  display:flex;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  scroll-behavior:smooth;
+  scrollbar-width:none;
+}
+.photo-carousel__track::-webkit-scrollbar{display:none}
+.photo-carousel__track:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.photo-carousel__slide{
+  position:relative;
+  flex:0 0 100%;
+  margin:0;
+  scroll-snap-align:start;
+}
+.photo-carousel__img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.photo-carousel__caption{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  padding:48px 20px 44px;
+  background:linear-gradient(to top, rgba(0,35,70,.82), rgba(0,35,70,0));
+  color:#fff;
+  font-weight:600;
+  font-size:15px;
+  line-height:1.4;
+  overflow-wrap:anywhere;
+}
+.photo-carousel__caption a{color:#fff}
+.photo-carousel__caption a:hover{text-decoration:underline}
+.photo-carousel__nav{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:40px;
+  height:40px;
+  display:grid;
+  place-items:center;
+  border:none;
+  border-radius:50%;
+  background:rgba(255,255,255,.9);
+  color:var(--uleam-blue-900);
+  cursor:pointer;
+  box-shadow:0 4px 12px rgba(0,0,0,.15);
+  transition:background .15s ease;
+}
+.photo-carousel__nav:hover{background:#fff}
+.photo-carousel__nav:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.photo-carousel__nav--prev{left:12px}
+.photo-carousel__nav--next{right:12px}
+.photo-carousel__dots{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:14px;
+  display:flex;
+  justify-content:center;
+  gap:6px;
+}
+.photo-carousel__dot{
+  width:9px;
+  height:9px;
+  padding:0;
+  border:none;
+  border-radius:999px;
+  background:rgba(255,255,255,.55);
+  cursor:pointer;
+  transition:width .2s ease, background .2s ease;
+}
+.photo-carousel__dot.is-active{width:22px;background:#fff}
+@media (prefers-reduced-motion:reduce){
+  .photo-carousel__track{scroll-behavior:auto}
+}
 
 /* Biblioteca Rápida de Documentos */
 .library{
@@ -332,6 +416,7 @@
   .hero-copy{padding:45px 7%}
   .hero-copy h1{font-size:38px}
   .two-col{grid-template-columns:minmax(0,1fr)}
+  .photo-carousel{min-height:0;aspect-ratio:4 / 3}
 }
 @media(max-width:560px){
   .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}

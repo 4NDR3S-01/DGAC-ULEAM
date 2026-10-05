@@ -4,26 +4,87 @@
 (function () {
   'use strict';
 
-  // Tabs de evaluación de desempeño
-  var tabs = document.querySelectorAll('.tabs .tab');
-  if (tabs.length) {
-    tabs.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        tabs.forEach(function (b) {
-          b.classList.remove('active');
-        });
-        btn.classList.add('active');
-        var textEl = document.getElementById('periodText');
-        if (textEl) {
-          textEl.textContent =
-            btn.getAttribute('data-text') ||
-            'Consulta los resultados de la evaluación de desempeño académico y administrativo del período ' +
-              btn.textContent +
-              '.';
+  // Carrusel de fotos de la portada: desliza solo cada 5 s (se detiene al pasar el ratón o enfocar)
+  document.querySelectorAll('.photo-carousel').forEach(function (carousel) {
+    var track = carousel.querySelector('.photo-carousel__track');
+    var slides = carousel.querySelectorAll('.photo-carousel__slide');
+    var dots = carousel.querySelectorAll('.photo-carousel__dot');
+    if (!track || slides.length < 2) {
+      return;
+    }
+    var current = 0;
+    var timer = null;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    function goTo(index) {
+      current = (index + slides.length) % slides.length;
+      track.scrollTo({ left: current * track.clientWidth });
+    }
+
+    function markActive() {
+      var index = Math.round(track.scrollLeft / track.clientWidth);
+      if (index < 0 || index >= slides.length) {
+        return;
+      }
+      current = index;
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle('is-active', i === index);
+        if (i === index) {
+          dot.setAttribute('aria-current', 'true');
+        } else {
+          dot.removeAttribute('aria-current');
         }
       });
+    }
+
+    function play() {
+      if (reduceMotion || timer) {
+        return;
+      }
+      timer = setInterval(function () {
+        goTo(current + 1);
+      }, 5000);
+    }
+
+    function pause() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    carousel.querySelector('.photo-carousel__nav--prev').addEventListener('click', function () {
+      goTo(current - 1);
     });
-  }
+    carousel.querySelector('.photo-carousel__nav--next').addEventListener('click', function () {
+      goTo(current + 1);
+    });
+    dots.forEach(function (dot, i) {
+      dot.addEventListener('click', function () {
+        goTo(i);
+      });
+    });
+    track.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        e.preventDefault();
+        goTo(current + (e.key === 'ArrowRight' ? 1 : -1));
+      }
+    });
+
+    var scrollEnd;
+    track.addEventListener('scroll', function () {
+      clearTimeout(scrollEnd);
+      scrollEnd = setTimeout(markActive, 80);
+    });
+    window.addEventListener('resize', function () {
+      track.scrollTo({ left: current * track.clientWidth, behavior: 'auto' });
+    });
+
+    carousel.addEventListener('mouseenter', pause);
+    carousel.addEventListener('mouseleave', play);
+    carousel.addEventListener('focusin', pause);
+    carousel.addEventListener('focusout', play);
+    carousel.addEventListener('touchstart', pause, { passive: true });
+    play();
+  });
 
   // Pestañas Misión / Objetivo / Productos (DGAC Pill Tabs)
   var pillTabs = document.querySelectorAll('.dgac-pill-tab');
