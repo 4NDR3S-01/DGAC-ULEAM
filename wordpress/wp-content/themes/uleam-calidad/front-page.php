@@ -82,7 +82,7 @@ if ( ! uleam_carrusel_render() ) :
     <div class="panel photo-carousel" id="galeria" role="region" aria-roledescription="carrusel" aria-label="Galería de fotos">
       <div class="photo-carousel__track" tabindex="0">
         <?php foreach ( $fotos as $i => $foto ) : ?>
-          <figure class="photo-carousel__slide" role="group" aria-roledescription="diapositiva" aria-label="<?php echo esc_attr( ( $i + 1 ) . ' de ' . count( $fotos ) ); ?>">
+          <figure class="photo-carousel__slide<?php echo $i ? '' : ' is-active'; ?>"<?php echo $i ? ' aria-hidden="true"' : ''; ?> role="group" aria-roledescription="diapositiva" aria-label="<?php echo esc_attr( ( $i + 1 ) . ' de ' . count( $fotos ) ); ?>">
             <?php
             echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
               $foto['id'],

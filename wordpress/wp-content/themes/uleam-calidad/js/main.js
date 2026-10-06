@@ -4,7 +4,7 @@
 (function () {
   'use strict';
 
-  // Carrusel de fotos de la portada: desliza solo cada 5 s (se detiene al pasar el ratón o enfocar)
+  // Carrusel de fotos de la portada: cambia sola cada 6 s con un fundido (se detiene al pasar el ratón o enfocar)
   document.querySelectorAll('.photo-carousel').forEach(function (carousel) {
     var track = carousel.querySelector('.photo-carousel__track');
     var slides = carousel.querySelectorAll('.photo-carousel__slide');
@@ -18,18 +18,17 @@
 
     function goTo(index) {
       current = (index + slides.length) % slides.length;
-      track.scrollTo({ left: current * track.clientWidth });
-    }
-
-    function markActive() {
-      var index = Math.round(track.scrollLeft / track.clientWidth);
-      if (index < 0 || index >= slides.length) {
-        return;
-      }
-      current = index;
+      slides.forEach(function (slide, i) {
+        slide.classList.toggle('is-active', i === current);
+        if (i === current) {
+          slide.removeAttribute('aria-hidden');
+        } else {
+          slide.setAttribute('aria-hidden', 'true');
+        }
+      });
       dots.forEach(function (dot, i) {
-        dot.classList.toggle('is-active', i === index);
-        if (i === index) {
+        dot.classList.toggle('is-active', i === current);
+        if (i === current) {
           dot.setAttribute('aria-current', 'true');
         } else {
           dot.removeAttribute('aria-current');
@@ -43,7 +42,7 @@
       }
       timer = setInterval(function () {
         goTo(current + 1);
-      }, 5000);
+      }, 6000);
     }
 
     function pause() {
@@ -51,38 +50,55 @@
       timer = null;
     }
 
+    // Cambiar de foto a mano reinicia la cuenta, para que no salte enseguida a la siguiente.
+    function goToManual(index) {
+      goTo(index);
+      if (timer) {
+        pause();
+        play();
+      }
+    }
+
     carousel.querySelector('.photo-carousel__nav--prev').addEventListener('click', function () {
-      goTo(current - 1);
+      goToManual(current - 1);
     });
     carousel.querySelector('.photo-carousel__nav--next').addEventListener('click', function () {
-      goTo(current + 1);
+      goToManual(current + 1);
     });
     dots.forEach(function (dot, i) {
       dot.addEventListener('click', function () {
-        goTo(i);
+        goToManual(i);
       });
     });
     track.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        goTo(current + (e.key === 'ArrowRight' ? 1 : -1));
+        goToManual(current + (e.key === 'ArrowRight' ? 1 : -1));
       }
     });
 
-    var scrollEnd;
-    track.addEventListener('scroll', function () {
-      clearTimeout(scrollEnd);
-      scrollEnd = setTimeout(markActive, 80);
-    });
-    window.addEventListener('resize', function () {
-      track.scrollTo({ left: current * track.clientWidth, behavior: 'auto' });
+    // Deslizar con el dedo en el celular
+    var startX = null;
+    track.addEventListener('touchstart', function (e) {
+      startX = e.touches[0].clientX;
+      pause();
+    }, { passive: true });
+    track.addEventListener('touchend', function (e) {
+      if (startX === null) {
+        return;
+      }
+      var dx = e.changedTouches[0].clientX - startX;
+      startX = null;
+      if (Math.abs(dx) > 40) {
+        goTo(current + (dx < 0 ? 1 : -1));
+      }
+      play();
     });
 
     carousel.addEventListener('mouseenter', pause);
     carousel.addEventListener('mouseleave', play);
     carousel.addEventListener('focusin', pause);
     carousel.addEventListener('focusout', play);
-    carousel.addEventListener('touchstart', pause, { passive: true });
     play();
   });
 
@@ -111,6 +127,31 @@
           activePanel.classList.add('is-active');
         }
       });
+    });
+  }
+
+  // Paneles colapsables interactivos (Catálogos e Información General)
+  var allCollapseCards = document.querySelectorAll('.dgac-proc-collapse-card');
+  if (allCollapseCards.length) {
+    allCollapseCards.forEach(function (card) {
+      var toggleLabel = card.querySelector('.dgac-proc-collapse-toggle-label');
+      var openText = card.getAttribute('data-open-text') || 'Recoger';
+      var closeText = card.getAttribute('data-close-text') || 'Mostrar';
+
+      card.addEventListener('toggle', function () {
+        if (toggleLabel) {
+          toggleLabel.textContent = card.open ? openText : closeText;
+        }
+      });
+
+      var closeBtn = card.querySelector('.dgac-proc-collapse-close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          card.open = false;
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+      }
     });
   }
 
