@@ -18,7 +18,7 @@
   justify-content:center;
   background:#fff;
 }
-.hero-copy h1{
+.hero-copy .hero-titulo{
   font-size:46px;
   line-height:1.05;
   margin:0 0 16px;
@@ -26,7 +26,7 @@
   font-weight:700;
   max-width:none;
 }
-.hero-copy h1 span{color:var(--accent-text)}
+.hero-copy .hero-titulo span{color:var(--accent-text)}
 .hero-copy .hero-kicker{
   margin:0 0 .85rem;
   font-size:.78rem;
@@ -414,7 +414,7 @@
   .hero{grid-template-columns:1fr}
   .hero-image{min-height:220px}
   .hero-copy{padding:45px 7%}
-  .hero-copy h1{font-size:38px}
+  .hero-copy .hero-titulo{font-size:38px}
   .two-col{grid-template-columns:minmax(0,1fr)}
   .photo-carousel{min-height:0;aspect-ratio:4 / 3}
 }

@@ -3,8 +3,8 @@
    ========================================================================== */
 .asistente{
   position:fixed;
-  right:20px;
-  bottom:20px;
+  right:max(20px, calc(env(safe-area-inset-right) + 12px));
+  bottom:max(20px, calc(env(safe-area-inset-bottom) + 12px));
   z-index:900;
   display:flex;
   flex-direction:column;
@@ -40,9 +40,11 @@
 .asistente__panel{
   display:flex;
   flex-direction:column;
-  width:380px;
-  height:min(600px, calc(100vh - 110px));
-  height:min(600px, calc(100dvh - 110px));
+  width:min(400px, calc(100vw - 40px));
+  height:min(640px, calc(100vh - 110px));
+  height:min(640px, calc(100dvh - 110px));
+  transform-origin:bottom right;
+  animation:asistente-abrir .28s var(--ease-out, ease-out);
   background:var(--bg);
   border:1px solid var(--line);
   border-radius:18px;
@@ -76,8 +78,8 @@
   display:grid;
   place-items:center;
   flex:none;
-  width:36px;
-  height:36px;
+  width:44px;
+  height:44px;
   border:0;
   border-radius:50%;
   background:transparent;
@@ -111,7 +113,7 @@
 .asistente__msg p:last-child{ margin-bottom:0; }
 .asistente__msg ul,
 .asistente__msg ol{ margin:6px 0; padding-left:20px; }
-.asistente__msg a{ color:var(--accent-text); }
+.asistente__msg-texto a{ color:var(--accent-text); text-decoration:underline; text-underline-offset:2px; }
 .asistente__msg--bot{
   align-self:flex-start;
   background:#fff;
@@ -193,7 +195,8 @@
 
 .asistente__chips{ display:flex; flex-wrap:wrap; gap:8px; }
 .asistente__chip{
-  padding:7px 12px;
+  min-height:40px;
+  padding:8px 14px;
   border:1px solid var(--primary);
   border-radius:999px;
   background:#fff;
@@ -209,15 +212,15 @@
 .asistente__chip:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
 .asistente__escribiendo{ display:flex; gap:5px; padding:14px 16px; }
-.asistente__escribiendo span{
+.asistente__escribiendo span[aria-hidden]{
   width:7px;
   height:7px;
   border-radius:50%;
   background:var(--muted);
   animation:asistente-punto 1.2s infinite ease-in-out;
 }
-.asistente__escribiendo span:nth-child(2){ animation-delay:.15s; }
-.asistente__escribiendo span:nth-child(3){ animation-delay:.3s; }
+.asistente__escribiendo span:nth-child(3){ animation-delay:.15s; }
+.asistente__escribiendo span:nth-child(4){ animation-delay:.3s; }
 @keyframes asistente-punto{
   0%, 80%, 100%{ opacity:.3; transform:translateY(0); }
   40%{ opacity:1; transform:translateY(-4px); }
@@ -233,7 +236,7 @@
 }
 .asistente__entrada{
   flex:1;
-  min-height:42px;
+  min-height:44px;
   max-height:120px;
   padding:10px 14px;
   border:1px solid var(--line);
@@ -249,8 +252,8 @@
   display:grid;
   place-items:center;
   flex:none;
-  width:42px;
-  height:42px;
+  width:44px;
+  height:44px;
   border:0;
   border-radius:50%;
   background:var(--primary);
@@ -271,21 +274,84 @@
   text-align:center;
 }
 
-@media (max-width:520px){
-  .asistente{ right:16px; bottom:16px; left:16px; }
-  .asistente__panel{
-    width:100%;
-    height:calc(100vh - 96px);
-    height:calc(100dvh - 96px);
+@keyframes asistente-abrir{
+  from{ opacity:0; transform:translateY(12px) scale(.96); }
+  to{ opacity:1; transform:none; }
+}
+
+/* Pantallas grandes: un poco más de espacio para leer. */
+@media (min-width:1600px){
+  .asistente__panel{ width:430px; height:min(720px, calc(100dvh - 120px)); }
+  .asistente__msg{ font-size:15px; }
+}
+
+/* Pantallas táctiles: texto de 16 px en el campo para que iOS no haga zoom al escribir. */
+@media (pointer:coarse){
+  .asistente__entrada{ font-size:16px; }
+}
+
+/* Celulares: solo el ícono en el botón flotante. */
+@media (max-width:600px){
+  .asistente{
+    right:max(16px, calc(env(safe-area-inset-right) + 8px));
+    bottom:max(16px, calc(env(safe-area-inset-bottom) + 8px));
   }
   .asistente__fab-texto{ display:none; }
   .asistente__fab{ padding:0; width:56px; justify-content:center; }
-  .asistente:not(.is-abierto){ left:auto; }
+  .asistente__entrada{ font-size:16px; }
 }
+
+/* Celulares (vertical u horizontal) y ventanas muy bajas: el chat ocupa toda la pantalla,
+   como una app de mensajería. La altura sigue al teclado virtual (js: --asistente-alto). */
+@media (max-width:600px), (max-height:500px){
+  .asistente.is-abierto{ inset:0; }
+  .asistente.is-abierto .asistente__fab{ display:none; }
+  .asistente__panel{
+    position:fixed;
+    top:var(--asistente-arriba, 0px);
+    left:0;
+    width:100%;
+    height:100vh;
+    height:var(--asistente-alto, 100dvh);
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    transform-origin:bottom center;
+    animation-name:asistente-subir;
+  }
+  .asistente__cabecera{
+    padding-top:max(12px, env(safe-area-inset-top));
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(10px, env(safe-area-inset-right));
+  }
+  .asistente__log{
+    padding-left:max(14px, env(safe-area-inset-left));
+    padding-right:max(14px, env(safe-area-inset-right));
+  }
+  .asistente__msg{ max-width:92%; }
+  .asistente__form{
+    padding-left:max(12px, env(safe-area-inset-left));
+    padding-right:max(12px, env(safe-area-inset-right));
+  }
+  .asistente__aviso{ padding-bottom:max(10px, env(safe-area-inset-bottom)); }
+}
+@keyframes asistente-subir{
+  from{ opacity:0; transform:translateY(32px); }
+  to{ opacity:1; transform:none; }
+}
+/* Horizontal en celular: se oculta el aviso para ganar espacio para la conversación. */
+@media (max-height:500px){
+  .asistente__aviso{ display:none; }
+  .asistente__cabecera{ padding-top:max(8px, env(safe-area-inset-top)); padding-bottom:8px; }
+}
+
+/* Mientras el chat ocupa toda la pantalla, la página de fondo no se desplaza. */
+html.asistente-pantalla-completa,
+html.asistente-pantalla-completa body{ overflow:hidden; }
 
 @media (prefers-reduced-motion:reduce){
   .asistente__fab,
-  .asistente__escribiendo span{ transition:none; animation:none; }
+  .asistente__escribiendo span[aria-hidden]{ transition:none; animation:none; }
 }
 
 @media print{

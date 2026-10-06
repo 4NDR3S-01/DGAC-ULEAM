@@ -146,14 +146,21 @@
     bajar();
   }
 
-  function sugerencias() {
-    if (!cfg.sugerencias || !cfg.sugerencias.length) {
+  function quitarChips() {
+    log.querySelectorAll('.asistente__chips').forEach(function (c) {
+      c.remove();
+    });
+  }
+
+  function sugerencias(lista) {
+    lista = lista || cfg.sugerencias;
+    if (!lista || !lista.length) {
       return;
     }
     var caja = el('div', 'asistente__chips');
     caja.setAttribute('role', 'group');
     caja.setAttribute('aria-label', 'Sugerencias');
-    cfg.sugerencias.forEach(function (s) {
+    lista.forEach(function (s) {
       var b = el('button', 'asistente__chip', s);
       b.type = 'button';
       b.addEventListener('click', function () {
@@ -178,8 +185,8 @@
     }
     if (si) {
       var p = el('div', 'asistente__msg asistente__msg--bot asistente__escribiendo');
-      p.setAttribute('aria-label', 'Buscando…');
-      p.innerHTML = '<span></span><span></span><span></span>';
+      // Texto oculto (no aria-label: no está permitido en un div sin rol); los puntos son decorativos.
+      p.innerHTML = '<span class="screen-reader-text">Buscando…</span><span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>';
       log.appendChild(p);
       bajar();
     }
@@ -190,10 +197,7 @@
     if (!texto || ocupado) {
       return;
     }
-    var chips = log.querySelector('.asistente__chips');
-    if (chips) {
-      chips.remove();
-    }
+    quitarChips();
     var historial = conversacion.slice(-6).map(function (m) {
       return { rol: m.rol, texto: m.texto || m.plano || '' };
     });
@@ -206,6 +210,15 @@
     ocupado = true;
     enviar.disabled = true;
     escribiendo(true);
+
+    var inicio = Date.now();
+    function conPausa(fn) {
+      return function (valor) {
+        return new Promise(function (ok) {
+          setTimeout(function () { ok(fn(valor)); }, Math.max(0, 550 - (Date.now() - inicio)));
+        });
+      };
+    }
 
     fetch(cfg.endpoint, {
       method: 'POST',
@@ -220,7 +233,7 @@
           return datos;
         });
       })
-      .then(function (d) {
+      .then(conPausa(function (d) {
         var tmp = document.createElement('div');
         tmp.innerHTML = d.html || '';
         var resp = {
@@ -230,13 +243,16 @@
           fuentes: d.fuentes,
           ver_todos: d.ver_todos,
           contacto: d.contacto,
+          sugerencias: d.sugerencias || [],
           consulta: texto
         };
         escribiendo(false);
         conversacion.push(resp);
         pintar(resp);
-      })
-      .catch(function (e) {
+        sugerencias(resp.sugerencias);
+        bajar();
+      }))
+      .catch(conPausa(function (e) {
         escribiendo(false);
         var msg = e && e.message && e.message !== 'error' && e.message.indexOf('JSON') === -1
           ? e.message
@@ -244,16 +260,74 @@
         var err = { rol: 'bot', texto: msg, contacto: true, consulta: texto };
         conversacion.push(err);
         pintar(err);
-      })
+      }))
       .then(function () {
         ocupado = false;
         enviar.disabled = false;
         guardar();
-        if (!panel.hidden) {
+        if (!panel.hidden && (!pantallaCompleta.matches || document.activeElement === entrada)) {
           entrada.focus();
         }
       });
   }
+
+  // En celulares y ventanas bajas el chat ocupa toda la pantalla (igual que en css/asistente.css):
+  // se comporta como un diálogo modal (fondo bloqueado y foco dentro del chat).
+  var pantallaCompleta = window.matchMedia('(max-width: 600px), (max-height: 500px)');
+  var vv = window.visualViewport;
+
+  // Con el teclado virtual abierto, el chat se ajusta al área visible (iOS no lo hace solo).
+  function ajustarAlTeclado() {
+    if (!vv || panel.hidden || !pantallaCompleta.matches) {
+      panel.style.removeProperty('--asistente-alto');
+      panel.style.removeProperty('--asistente-arriba');
+      return;
+    }
+    panel.style.setProperty('--asistente-alto', Math.round(vv.height) + 'px');
+    panel.style.setProperty('--asistente-arriba', Math.round(vv.offsetTop) + 'px');
+    bajar();
+  }
+  if (vv) {
+    vv.addEventListener('resize', ajustarAlTeclado);
+    vv.addEventListener('scroll', ajustarAlTeclado);
+  }
+
+  function modoPantalla() {
+    var modal = !panel.hidden && pantallaCompleta.matches;
+    document.documentElement.classList.toggle('asistente-pantalla-completa', modal);
+    if (modal) {
+      panel.setAttribute('aria-modal', 'true');
+    } else {
+      panel.removeAttribute('aria-modal');
+    }
+    ajustarAlTeclado();
+  }
+  if (pantallaCompleta.addEventListener) {
+    pantallaCompleta.addEventListener('change', modoPantalla);
+  }
+
+  // Foco atrapado dentro del chat mientras ocupa toda la pantalla.
+  panel.addEventListener('keydown', function (e) {
+    if (e.key !== 'Tab' || !pantallaCompleta.matches) {
+      return;
+    }
+    var focos = Array.prototype.filter.call(
+      panel.querySelectorAll('button, a[href], textarea, input'),
+      function (el) { return !el.disabled && el.offsetParent !== null; }
+    );
+    if (!focos.length) {
+      return;
+    }
+    var primero = focos[0];
+    var ultimo = focos[focos.length - 1];
+    if (e.shiftKey && document.activeElement === primero) {
+      e.preventDefault();
+      ultimo.focus();
+    } else if (!e.shiftKey && document.activeElement === ultimo) {
+      e.preventDefault();
+      primero.focus();
+    }
+  });
 
   function abrir(enfocar) {
     panel.hidden = false;
@@ -262,9 +336,11 @@
     if (!log.children.length) {
       iniciar();
     }
+    modoPantalla();
     bajar();
     if (enfocar) {
-      entrada.focus();
+      // En celulares no se abre el teclado de inmediato: tapaba la bienvenida y las sugerencias.
+      (pantallaCompleta.matches ? panel.querySelector('[data-asistente-cerrar]') : entrada).focus();
     }
     guardar();
   }
@@ -273,6 +349,7 @@
     panel.hidden = true;
     raiz.classList.remove('is-abierto');
     fab.setAttribute('aria-expanded', 'false');
+    modoPantalla();
     fab.focus();
     guardar();
   }
@@ -281,6 +358,22 @@
     entrada.style.height = 'auto';
     entrada.style.height = Math.min(entrada.scrollHeight, 120) + 'px';
   }
+
+  log.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || /^(mailto|tel):/.test(a.getAttribute('href'))) {
+      return;
+    }
+    var mismaPagina = a.pathname === window.location.pathname && a.hash;
+    if (pantallaCompleta.matches || mismaPagina) {
+      // Se guarda "cerrado" antes de navegar: la página nueva no lo vuelve a abrir.
+      panel.hidden = true;
+      raiz.classList.remove('is-abierto');
+      fab.setAttribute('aria-expanded', 'false');
+      modoPantalla();
+      guardar();
+    }
+  });
 
   fab.addEventListener('click', function () {
     if (panel.hidden) {
@@ -319,6 +412,10 @@
     conversacion = previo.mensajes;
     pintar({ rol: 'bot', texto: cfg.bienvenida });
     conversacion.forEach(pintar);
+    var ultima = conversacion[conversacion.length - 1];
+    if (ultima && ultima.rol === 'bot' && ultima.sugerencias) {
+      sugerencias(ultima.sugerencias);
+    }
   }
   if (previo && previo.abierto) {
     abrir(false);

@@ -14,6 +14,7 @@
  * /inc/repositorio.php -> Repositorio documental automático (secciones, bloque y listado por año).
  * /inc/busqueda.php    -> Búsqueda del sitio: filtros por tipo, resaltado y sugerencias en vivo.
  * /inc/noticias.php    -> Imágenes de noticias: relacionada automática, predeterminada y respaldo.
+ * /inc/carrusel.php    -> Carrusel de la portada (diapositivas editables).
  * /inc/asistente.php   -> Asistente virtual (chat): documentos, preguntas frecuentes e IA opcional.
  *
  * @package uleam-calidad
@@ -26,7 +27,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constantes globales del tema
 define( 'ULEAM_THEME_DIR', get_template_directory() );
 define( 'ULEAM_THEME_URI', get_template_directory_uri() );
-define( 'ULEAM_THEME_VERSION', '1.21.0' );
+define( 'ULEAM_THEME_VERSION', '1.28.0' );
 
 // 1. Configuración básica y encolado de estilos/scripts
 require_once ULEAM_THEME_DIR . '/inc/setup.php';
@@ -61,5 +62,8 @@ require_once ULEAM_THEME_DIR . '/inc/busqueda.php';
 // 11. Noticias: imagen relacionada automática e imagen predeterminada
 require_once ULEAM_THEME_DIR . '/inc/noticias.php';
 
-// 12. Asistente virtual: chat para encontrar documentos y resolver dudas frecuentes
+// 12. Carrusel de la portada: diapositivas editables desde el administrador
+require_once ULEAM_THEME_DIR . '/inc/carrusel.php';
+
+// 13. Asistente virtual: chat para encontrar documentos y resolver dudas frecuentes
 require_once ULEAM_THEME_DIR . '/inc/asistente.php';

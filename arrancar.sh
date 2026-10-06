@@ -35,7 +35,7 @@ if fuser 8000/tcp >/dev/null 2>&1; then
   echo "✔ El servidor ya está corriendo (puerto 8000)."
 else
   echo "▶ Arrancando servidor PHP..."
-  nohup php -S 0.0.0.0:8000 -t "$WP" > /tmp/php-server.log 2>&1 &
+  PHP_CLI_SERVER_WORKERS=4 nohup php -S 0.0.0.0:8000 -t "$WP" > /tmp/php-server.log 2>&1 &
   sleep 2
 fi
 
