@@ -3,6 +3,203 @@
  * ---------------------------------------------------------------------- */
 
 /* 1. Encabezado e Introducción de Gestión de Procesos */
+.dgac-proc-combined-section{
+  margin-bottom:32px;
+}
+.dgac-proc-collapse-card{
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  border-radius:16px;
+  box-shadow:0 4px 18px rgba(0, 50, 100, 0.05);
+  overflow:hidden;
+  transition:border-color 0.25s ease, box-shadow 0.25s ease;
+}
+.dgac-proc-collapse-card[open]{
+  border-color:#93c5fd;
+  box-shadow:0 8px 26px rgba(0, 89, 168, 0.09);
+}
+.dgac-proc-collapse-summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  padding:16px 24px;
+  cursor:pointer;
+  list-style:none;
+  user-select:none;
+  background:linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  transition:background 0.2s ease, border-color 0.2s ease;
+}
+.dgac-proc-collapse-summary::-webkit-details-marker{
+  display:none;
+}
+.dgac-proc-collapse-summary:hover{
+  background:linear-gradient(135deg, #f0f7ff 0%, #e8f3fe 100%);
+}
+.dgac-proc-collapse-card[open] > .dgac-proc-collapse-summary{
+  background:#f0f7ff;
+  border-bottom:1px solid #dbeafe;
+}
+.dgac-proc-collapse-summary__left{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+.dgac-proc-collapse-summary__icon{
+  width:42px;
+  height:42px;
+  border-radius:10px;
+  background:linear-gradient(135deg, #0059a8 0%, #003870 100%);
+  color:#ffffff;
+  display:grid;
+  place-items:center;
+  font-size:18px;
+  flex-shrink:0;
+  box-shadow:0 3px 8px rgba(0, 89, 168, 0.25);
+}
+.dgac-proc-collapse-summary__text{
+  display:flex;
+  flex-direction:column;
+  gap:2px;
+}
+.dgac-proc-collapse-summary__title{
+  font-size:16.5px;
+  font-weight:700;
+  color:var(--uleam-blue-900, #002b49);
+  margin:0;
+  line-height:1.3;
+}
+.dgac-proc-collapse-summary__desc{
+  font-size:12.5px;
+  color:#64748b;
+  margin:0;
+  line-height:1.35;
+}
+.dgac-proc-collapse-summary__right{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  flex-shrink:0;
+}
+.dgac-proc-collapse-summary__badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:#e0f2fe;
+  color:#0369a1;
+  padding:4px 10px;
+  border-radius:20px;
+  font-size:12px;
+  font-weight:600;
+  border:1px solid #bae6fd;
+}
+.dgac-proc-collapse-toggle-btn{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  background:#0059a8;
+  color:#ffffff;
+  padding:8px 18px;
+  border-radius:24px;
+  font-size:13px;
+  font-weight:700;
+  box-shadow:0 2px 8px rgba(0, 89, 168, 0.2);
+  transition:all 0.2s ease;
+}
+.dgac-proc-collapse-summary:hover .dgac-proc-collapse-toggle-btn{
+  background:#00407a;
+  box-shadow:0 4px 12px rgba(0, 89, 168, 0.3);
+  transform:translateY(-1px);
+}
+.dgac-proc-collapse-chevron{
+  font-size:12px;
+  transition:transform 0.3s ease;
+}
+.dgac-proc-collapse-card[open] .dgac-proc-collapse-chevron{
+  transform:rotate(180deg);
+}
+.dgac-proc-section--catalogs{
+  margin-bottom:20px;
+}
+
+.dgac-proc-collapse-content{
+  padding:26px 30px;
+  background:#ffffff;
+  animation:dgacFade 0.25s ease;
+}
+
+/* 1. Catálogos dentro de su colapsable (Limpio y fluido) */
+.dgac-proc-collapse-content .dgac-catalog-banner{
+  background:transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  margin-bottom:0;
+  box-shadow:none;
+}
+.dgac-proc-collapse-content .dgac-catalog-banner__head{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-bottom:18px;
+}
+.dgac-proc-collapse-content .dgac-catalog-banner__head i{
+  font-size:20px;
+  color:var(--uleam-blue-700, #0059a8);
+  flex-shrink:0;
+}
+.dgac-proc-collapse-content .dgac-catalog-banner__head h3{
+  font-size:15.5px;
+  font-weight:700;
+  color:var(--uleam-blue-900);
+  margin:0;
+  line-height:1.45;
+}
+
+/* 2. Información General del Área dentro de su colapsable */
+.dgac-proc-collapse-content .dgac-proc-intro{
+  background:transparent;
+  border:none;
+  border-radius:0;
+  padding:0;
+  margin-bottom:0;
+  box-shadow:none;
+}
+.dgac-proc-collapse-content .dgac-proc-intro__lead{
+  font-size:15.5px;
+  line-height:1.75;
+  color:#1e355b;
+  margin:0 0 22px;
+}
+
+.dgac-proc-collapse-footer{
+  display:flex;
+  justify-content:center;
+  margin-top:20px;
+  padding-top:16px;
+  border-top:1px solid #e2e8f0;
+}
+.dgac-proc-collapse-close-btn{
+  appearance:none;
+  background:#ffffff;
+  border:1px solid #cbd5e1;
+  color:#475569;
+  font-size:13px;
+  font-weight:600;
+  padding:7px 18px;
+  border-radius:20px;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  transition:all 0.2s ease;
+}
+.dgac-proc-collapse-close-btn:hover{
+  background:#fee2e2;
+  border-color:#fca5a5;
+  color:#b91c1c;
+}
+
 .dgac-proc-intro{
   background:#ffffff;
   border:1px solid #e2e8f0;
@@ -827,6 +1024,10 @@
   .dgac-catalog-cards{grid-template-columns:1fr}
 }
 @media(max-width:640px){
+  .dgac-proc-collapse-summary{flex-direction:column;align-items:flex-start;padding:14px 16px}
+  .dgac-proc-collapse-summary__right{width:100%;justify-content:space-between;margin-top:10px}
+  .dgac-proc-collapse-content{padding:18px 16px}
+  .dgac-catalog-banner{padding:18px 16px;margin-bottom:20px}
   .dgac-proc-intro{padding:20px 18px}
   .dgac-subsistema-tabs{grid-template-columns:1fr}
   .dgac-catalog-card{flex-direction:column;align-items:flex-start}

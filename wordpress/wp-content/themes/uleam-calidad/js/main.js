@@ -130,6 +130,31 @@
     });
   }
 
+  // Paneles colapsables interactivos (Catálogos e Información General)
+  var allCollapseCards = document.querySelectorAll('.dgac-proc-collapse-card');
+  if (allCollapseCards.length) {
+    allCollapseCards.forEach(function (card) {
+      var toggleLabel = card.querySelector('.dgac-proc-collapse-toggle-label');
+      var openText = card.getAttribute('data-open-text') || 'Recoger';
+      var closeText = card.getAttribute('data-close-text') || 'Mostrar';
+
+      card.addEventListener('toggle', function () {
+        if (toggleLabel) {
+          toggleLabel.textContent = card.open ? openText : closeText;
+        }
+      });
+
+      var closeBtn = card.querySelector('.dgac-proc-collapse-close-btn');
+      if (closeBtn) {
+        closeBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          card.open = false;
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+      }
+    });
+  }
+
   // Menú móvil y submenús interactivos
   var navToggle = document.getElementById('navToggle');
   var primaryMenu = document.getElementById('primaryMenu');
