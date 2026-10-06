@@ -8,10 +8,16 @@
 get_header();
 ?>
 
+<h1 class="screen-reader-text"><?php bloginfo( 'name' ); ?></h1>
+
+<?php
+// Carrusel editable en "Carrusel de portada"; si aún no hay diapositivas, el hero del Personalizador.
+if ( ! uleam_carrusel_render() ) :
+  ?>
 <section class="hero" id="inicio">
   <div class="hero-copy">
     <p class="hero-kicker">ULEAM · Aseguramiento de la Calidad</p>
-    <h1><?php echo wp_kses_post( uleam_opt( 'uleam_hero_titulo' ) ); ?></h1>
+    <h2 class="hero-titulo"><?php echo wp_kses_post( uleam_opt( 'uleam_hero_titulo' ) ); ?></h2>
     <p><?php echo esc_html( uleam_opt( 'uleam_hero_subtitulo' ) ); ?></p>
     <?php if ( uleam_opt( 'uleam_hero_boton' ) ) : ?>
       <a class="btn" href="<?php echo esc_url( uleam_opt( 'uleam_hero_boton_url' ) ); ?>"><?php echo esc_html( uleam_opt( 'uleam_hero_boton' ) ); ?></a>
@@ -20,6 +26,7 @@ get_header();
   <?php $uleam_hero_url = wp_get_attachment_image_url( (int) uleam_opt( 'uleam_hero_imagen' ), 'full' ); ?>
   <div class="hero-image" role="img" aria-label="Campus universitario"<?php echo $uleam_hero_url ? ' style="background-image:url(' . esc_url( $uleam_hero_url ) . ');"' : ''; ?>></div>
 </section>
+<?php endif; ?>
 
 <section class="section" id="direccion">
   <?php

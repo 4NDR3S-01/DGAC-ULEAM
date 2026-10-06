@@ -1,0 +1,587 @@
+/* ==========================================================================
+   Capa de interfaz moderna: tipografía, navegación fija, microinteracciones,
+   animaciones de entrada y transiciones entre páginas.
+
+   Principios:
+   - Mejora progresiva: si el JavaScript o una función CSS no está disponible,
+     el sitio se ve y funciona igual que antes (nada queda oculto).
+   - El movimiento acompaña, no distrae: duraciones cortas, sin bucles ni parpadeos.
+   - Se respeta "reducir movimiento" del sistema operativo (al final del archivo).
+   - Solo se eleva al pasar el cursor lo que es clicable (no se insinúan acciones falsas).
+   ========================================================================== */
+
+/* --- Base ---------------------------------------------------------------- */
+/* "clip" recorta el desborde horizontal sin crear un contenedor de scroll,
+   que impedía que la navegación quede fija (position:sticky). */
+@supports (overflow:clip){
+  html, body{ overflow-x:clip; }
+}
+body{
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  text-rendering:optimizeLegibility;
+}
+::selection{ background:rgba(70,164,255,.28); color:var(--uleam-blue-900); }
+
+/* Títulos equilibrados (sin palabras sueltas en la última línea) y párrafos sin viudas. */
+h1, h2, h3, h4,
+.page-header__title,
+.news-card__title{ text-wrap:balance; }
+p, li{ text-wrap:pretty; }
+
+/* Las anclas (#evaluacion-de-carreras…) no quedan debajo de la navegación fija. */
+[id]{ scroll-margin-top:calc(var(--nav-h) + 16px); }
+
+/* --- Navegación fija ------------------------------------------------------ */
+.nav{
+  position:sticky;
+  top:0;
+  background:rgba(255,255,255,.88);
+  -webkit-backdrop-filter:saturate(180%) blur(14px);
+  backdrop-filter:saturate(180%) blur(14px);
+  transition:box-shadow var(--dur-2) var(--ease-out), background-color var(--dur-2) var(--ease-out);
+}
+.is-scrolled .nav{
+  background:rgba(255,255,255,.94);
+  box-shadow:0 1px 0 var(--line), 0 10px 30px rgba(15,39,68,.08);
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  .nav{ background:#fff; }
+}
+
+/* Menú (computadora): al pasar el cursor aparece una "píldora" celeste suave detrás del texto;
+   la página actual se marca con texto azul intenso y una barra roja institucional abajo. */
+@media (min-width:961px){
+  .nav-inner{ gap:6px; }
+  .nav-inner > li > a{
+    position:relative;
+    isolation:isolate;
+    border-bottom:0;
+    padding:19px 14px;
+    color:#33475e;
+    transition:color var(--dur-1) ease;
+  }
+  .nav-inner > li > a::before{
+    content:"";
+    position:absolute;
+    inset:11px 2px;
+    z-index:-1;
+    border-radius:10px;
+    background:linear-gradient(180deg, #eef5fe, #e3eefb);
+    box-shadow:inset 0 0 0 1px rgba(0,89,168,.10);
+    opacity:0;
+    transform:scale(.88);
+    transition:opacity var(--dur-1) ease, transform var(--dur-2) var(--ease-out);
+  }
+  .nav-inner > li > a:hover,
+  .nav-inner > li > a:focus-visible,
+  .nav-inner > li.menu-item-has-children:hover > a{
+    color:var(--uleam-blue-900);
+  }
+  .nav-inner > li > a:hover::before,
+  .nav-inner > li > a:focus-visible::before,
+  .nav-inner > li.menu-item-has-children:hover > a::before{
+    opacity:1;
+    transform:none;
+  }
+  .nav-inner > li > a:active::before{ transform:scale(.96); }
+  .nav-inner > li > a:focus-visible{ outline:none; }
+  .nav-inner > li > a:focus-visible::before{ box-shadow:inset 0 0 0 2px var(--uleam-blue-700); }
+
+  /* Página actual: azul intenso + barra roja centrada que ocupa el ancho del texto. */
+  .nav-inner > li > a.active,
+  .nav-inner > li.current-menu-item > a,
+  .nav-inner > li.current_page_item > a,
+  .nav-inner > li.current-menu-ancestor > a,
+  .nav-inner > li.current_page_ancestor > a,
+  .nav-inner > li.current-menu-parent > a,
+  .nav-inner > li.current_page_parent > a,
+  .nav-inner > li.active > a{
+    color:var(--uleam-blue-900);
+    font-weight:600;
+    border-bottom:0;
+    background:linear-gradient(var(--uleam-red-700), var(--uleam-red-700)) center bottom / calc(100% - 28px) 3px no-repeat;
+  }
+  .nav-inner .menu-item-has-children > a::after{ transition:transform var(--dur-2) var(--ease-out), color var(--dur-1) ease; }
+
+  /* Submenú: panel blanco (opaco: dentro de la navegación fija el desenfoque no se aplica
+     y el contenido de atrás se transparentaba), esquinas amplias y sombra suave. */
+  .nav-inner .sub-menu{
+    top:calc(100% - 4px);
+    min-width:290px;
+    padding:8px;
+    border:1px solid rgba(0,89,168,.10);
+    border-radius:14px;
+    background:#fff;
+    box-shadow:var(--shadow-lg);
+  }
+  .nav-inner .sub-menu::before{
+    /* Puente invisible: el submenú no se cierra al bajar el cursor desde el enlace. */
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:-10px;
+    height:10px;
+  }
+  .nav-inner .sub-menu > li > a{
+    position:relative;
+    align-items:center;
+    padding:10px 36px 10px 14px;
+    border-left:0;
+    border-radius:10px;
+    color:#33475e;
+  }
+  /* Flecha que entra desde la izquierda al pasar el cursor. */
+  .nav-inner .sub-menu > li > a::after{
+    content:"\f061";
+    font-family:"Font Awesome 6 Free";
+    font-weight:900;
+    font-size:11px;
+    position:absolute;
+    right:14px;
+    top:50%;
+    color:var(--uleam-blue-700);
+    opacity:0;
+    transform:translate(-6px, -50%);
+    transition:opacity var(--dur-1) ease, transform var(--dur-2) var(--ease-out);
+  }
+  .nav-inner .sub-menu > li > a:hover,
+  .nav-inner .sub-menu > li > a:focus-visible{
+    padding-left:14px;
+    background:#eef5fe;
+    color:var(--uleam-blue-900);
+  }
+  .nav-inner .sub-menu > li > a:hover::after,
+  .nav-inner .sub-menu > li > a:focus-visible::after{ opacity:1; transform:translate(0, -50%); }
+  .nav-inner .sub-menu > li.current-menu-item > a,
+  .nav-inner .sub-menu > li.current_page_item > a,
+  .nav-inner .sub-menu > li > a.active{
+    padding-left:14px;
+    background:#e6f0fb;
+    color:var(--uleam-blue-900);
+    font-weight:600;
+    box-shadow:inset 3px 0 0 var(--uleam-red-700);
+  }
+}
+
+/* Menú en celular y tableta: mismas reglas de color, adaptadas a la lista vertical. */
+@media (max-width:960px){
+  .nav-inner > li > a{ border-radius:10px; transition:background-color var(--dur-1) ease, color var(--dur-1) ease; }
+  .nav-inner > li > a:hover,
+  .nav-inner > li > a:focus-visible{ background:#eef5fe; color:var(--uleam-blue-900); }
+  .nav-inner > li.current-menu-item > a,
+  .nav-inner > li.current_page_item > a,
+  .nav-inner > li.current-menu-ancestor > a,
+  .nav-inner > li.current_page_ancestor > a,
+  .nav-inner > li > a.active{
+    background:#e6f0fb;
+    color:var(--uleam-blue-900);
+    box-shadow:inset 3px 0 0 var(--uleam-red-700);
+  }
+  .nav-inner .sub-menu > li > a{ border-radius:8px; }
+  .nav-inner .sub-menu > li > a:hover{ background:#eef5fe; color:var(--uleam-blue-900); }
+}
+
+/* Barra superior: blanco con subrayado al pasar el cursor (el celeste sobre azul tenía poco contraste). */
+.topbar a:hover,
+.topbar a:focus-visible{ color:#fff; opacity:1; }
+.topbar__contact a:hover span,
+.topbar__contact a:hover{ text-decoration:underline; text-underline-offset:3px; }
+.topbar__social a:hover,
+.topbar__social-link:hover{
+  background:#fff;
+  border-color:#fff;
+  color:var(--uleam-blue-900) !important;
+}
+
+/* Menú móvil: se despliega con suavidad. */
+@media (max-width:960px){
+  .nav-inner.is-active{ animation:ui-desplegar var(--dur-2) var(--ease-out); }
+}
+@keyframes ui-desplegar{
+  from{ opacity:0; transform:translateY(-6px); }
+  to{ opacity:1; transform:none; }
+}
+
+/* Buscador de la cabecera: el campo y el botón se sienten como una sola pieza. */
+form.search input{
+  border-radius:var(--radius-sm) 0 0 var(--radius-sm);
+  background:#f7fafd;
+  transition:border-color var(--dur-1) ease, box-shadow var(--dur-1) ease, background-color var(--dur-1) ease;
+}
+form.search input:focus{ background:#fff; }
+form.search button{
+  border-radius:0 var(--radius-sm) var(--radius-sm) 0;
+  transition:background-color var(--dur-1) ease;
+}
+form.search button i{ transition:transform var(--dur-2) var(--ease-out); }
+form.search button:hover i{ transform:scale(1.12) rotate(-8deg); }
+
+/* --- Botones y enlaces con flecha ----------------------------------------- */
+.btn{
+  border-radius:var(--radius-sm);
+  transition:transform var(--dur-1) var(--ease-out), box-shadow var(--dur-2) var(--ease-out), background-color var(--dur-1) ease;
+}
+.btn:hover{ transform:translateY(-2px); box-shadow:var(--shadow-md); }
+.btn:active{ transform:translateY(0) scale(.98); box-shadow:var(--shadow-sm); transition-duration:.06s; }
+
+/* La flecha avanza un poco al pasar el cursor: indica "ir a". */
+.fa-arrow-right,
+.fa-arrow-right-long,
+.fa-chevron-right{ transition:transform var(--dur-2) var(--ease-out); }
+a:hover > .fa-arrow-right,
+a:hover .card__more .fa-arrow-right,
+a:hover > .fa-arrow-right-long,
+a:hover > .fa-chevron-right,
+.card:hover .fa-arrow-right,
+.news-card:hover .news-card__link .fa-arrow-right{ transform:translateX(4px); }
+
+/* --- Portada: hero ----------------------------------------------------------- */
+.hero{ position:relative; }
+.hero-copy{
+  position:relative;
+  /* Izquierda en vw: alinea el texto con el logo (la cabecera usa 5% del ancho de página). */
+  padding:clamp(3rem, 6vw, 5rem) 4vw clamp(3rem, 6vw, 5rem) 5vw;
+  /* Trama de puntos muy sutil: da profundidad sin competir con el texto. */
+  background:
+    radial-gradient(circle at 1px 1px, rgba(0,89,168,.09) 1px, transparent 0) 0 0 / 22px 22px,
+    #fff;
+}
+.hero-copy::after{
+  /* Desvanece la trama hacia la imagen. */
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg, rgba(255,255,255,.2), #fff 85%);
+  pointer-events:none;
+}
+.hero-copy > *{ position:relative; z-index:1; }
+.hero-copy .hero-titulo{
+  font-size:clamp(2rem, 3.3vw, 2.9rem);
+  line-height:1.08;
+  letter-spacing:-.015em;
+}
+.hero-copy .hero-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:.55rem;
+  width:max-content;
+  max-width:100%;
+  padding:.4rem .85rem;
+  border-radius:999px;
+  background:var(--uleam-red-50);
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:.72rem;
+}
+.hero-copy .hero-kicker::before{
+  content:"";
+  flex:none;
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--uleam-red-700);
+  box-shadow:0 0 0 4px rgba(219,29,31,.15);
+}
+.hero-image{ overflow:hidden; }
+
+/* --- Tarjetas clicables ----------------------------------------------------- */
+.card,
+.news-card,
+.dgac-repo-tab,
+.dgac-result{
+  transition:
+    transform var(--dur-2) var(--ease-out),
+    box-shadow var(--dur-2) var(--ease-out),
+    border-color var(--dur-1) ease,
+    background-color var(--dur-1) ease;
+}
+.card{
+  position:relative;
+  border-radius:var(--radius);
+  overflow:hidden;
+}
+/* Línea de acento que se dibuja en la parte superior. */
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:3px;
+  background:linear-gradient(90deg, var(--uleam-blue-700), var(--accent));
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform var(--dur-3) var(--ease-out);
+}
+.card:hover,
+.card:focus-visible{
+  transform:translateY(-6px);
+  box-shadow:var(--shadow-md);
+  border-color:rgba(70,164,255,.55);
+}
+.card:hover::before,
+.card:focus-visible::before{ transform:scaleX(1); }
+.card .icon{ transition:transform var(--dur-2) var(--ease-out), background-color var(--dur-2) ease, color var(--dur-2) ease; }
+.card:hover .icon,
+.card:focus-visible .icon{
+  transform:translateY(-2px) scale(1.06);
+  background:var(--uleam-blue-700);
+  color:#fff;
+}
+.card:active{ transform:translateY(-2px) scale(.99); transition-duration:.08s; }
+
+.news-card{ border-radius:var(--radius); }
+.news-card:hover{
+  transform:translateY(-6px);
+  box-shadow:var(--shadow-md);
+}
+.news-card__image{ transition:transform .8s var(--ease-out); }
+
+.dgac-repo-tab:hover{ transform:translateY(-3px); box-shadow:var(--shadow-sm); }
+.dgac-result:hover{ box-shadow:var(--shadow-sm); }
+
+/* Paneles informativos: profundidad suave, sin moverse (no son botones). */
+.panel{
+  border-radius:var(--radius-lg);
+  box-shadow:var(--shadow-sm);
+}
+.tab{ transition:background-color var(--dur-1) ease, color var(--dur-1) ease, border-color var(--dur-1) ease, transform var(--dur-1) ease; }
+.tab:active{ transform:scale(.96); }
+#periodText.is-cambiando{ animation:ui-aparecer var(--dur-2) var(--ease-out); }
+.news-item img,
+.news-item .news-thumb{ transition:transform var(--dur-2) var(--ease-out); }
+
+/* --- Portada: secciones con ritmo de color --------------------------------------
+   Azul (carrusel) → celeste muy suave (accesos) → blanco (paneles y biblioteca) → azul (pie). */
+.home .section#direccion{
+  background:
+    radial-gradient(50% 80% at 0% 0%, rgba(70,164,255,.10), transparent 70%),
+    radial-gradient(40% 70% at 100% 100%, rgba(0,89,168,.07), transparent 70%),
+    #f2f7fd;
+  border-bottom:1px solid var(--line);
+}
+.home .section#direccion .card{ border-color:#dbe6f2; box-shadow:var(--shadow-sm); }
+.home .two-col{ padding-top:clamp(2.5rem, 4vw, 3.5rem); }
+.section h2,
+.panel h2,
+.library h2{ position:relative; }
+/* Pequeña marca roja bajo los títulos de sección de la portada. */
+.home .section > h2::after{
+  content:"";
+  display:block;
+  width:44px;
+  height:4px;
+  margin:.65rem auto 0;
+  border-radius:4px;
+  background:linear-gradient(90deg, var(--uleam-red-700), var(--uleam-red-500));
+}
+
+/* --- Cabecera de páginas interiores: franja azul institucional ------------------------- */
+.page-header{
+  position:relative;
+  overflow:hidden;
+  padding:clamp(2.25rem, 4.5vw, 3.25rem) 5% clamp(2rem, 3.5vw, 2.6rem);
+  border-bottom:0;
+  color:#fff;
+  background:
+    radial-gradient(55% 140% at 100% 0%, rgba(70,164,255,.38), transparent 65%),
+    radial-gradient(40% 120% at 0% 100%, rgba(0,25,70,.35), transparent 70%),
+    linear-gradient(120deg, var(--uleam-blue-900) 0%, #00509e 60%, var(--uleam-blue-700) 100%);
+}
+.page-header::after{
+  /* Trama institucional discreta en el lado derecho. */
+  content:"";
+  position:absolute;
+  inset:0 0 0 50%;
+  background:radial-gradient(circle at 1px 1px, rgba(255,255,255,.16) 1px, transparent 0) 0 0 / 20px 20px;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 75%);
+  mask-image:linear-gradient(90deg, transparent, #000 75%);
+  pointer-events:none;
+}
+.page-header::before{
+  /* Franja roja inferior, como en el pie de página. */
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:4px;
+  background:linear-gradient(90deg, var(--uleam-red-700), var(--uleam-red-500) 40%, transparent 85%);
+}
+.page-header__wrap{ position:relative; z-index:1; }
+.page-header__badge{
+  color:#fff;
+  background:rgba(255,255,255,.12);
+  border:1px solid rgba(255,255,255,.22);
+}
+.page-header h1,
+.page-header__title{ color:#fff; letter-spacing:-.01em; }
+.page-header__title::after{ background:linear-gradient(90deg, #fff, rgba(255,255,255,.4)); }
+
+/* --- Noticia individual: franja azul como el resto de páginas interiores ------------------
+   Fondo a todo el ancho sin cambiar el HTML: border-image extiende el degradado a los lados. */
+.reading__header{
+  position:relative;
+  padding-top:clamp(2rem, 4vw, 3rem);
+  padding-bottom:clamp(1.75rem, 3.5vw, 2.5rem);
+  margin-bottom:2rem;
+  color:#fff;
+  border-image:linear-gradient(120deg, var(--uleam-blue-900) 0%, #00509e 60%, var(--uleam-blue-700) 100%) fill 0 / / 0 100vmax;
+}
+.reading__header .reading__title{ color:#fff; text-wrap:balance; }
+.reading__header .reading__kicker{
+  display:inline-flex;
+  padding:.3rem .8rem;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  color:#fff;
+  font-size:.72rem;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+}
+.reading__header .reading__meta{ color:rgba(255,255,255,.82); }
+.reading__header .reading__dot{ background:rgba(255,255,255,.6); }
+.reading{ padding-top:0; }
+
+/* --- Paneles de la portada: tarjetas tipo "bento" con un ícono grande de fondo -------------- */
+.home .two-col .panel{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+}
+.home .two-col .panel::after{
+  font-family:"Font Awesome 6 Free";
+  font-weight:900;
+  position:absolute;
+  right:-18px;
+  bottom:-34px;
+  z-index:-1;
+  font-size:170px;
+  line-height:1;
+  color:rgba(0,89,168,.05);
+  pointer-events:none;
+}
+.home .two-col #desempeno{
+  background:
+    radial-gradient(80% 70% at 100% 100%, rgba(70,164,255,.10), transparent 70%),
+    #fff;
+}
+.home .two-col #desempeno::after{ content:"\f201"; }
+.home .two-col #noticias::after{ content:"\f1ea"; }
+
+/* --- Pie de página ------------------------------------------------------------- */
+.footer-links a{
+  background:linear-gradient(currentColor, currentColor) left bottom / 0 1px no-repeat;
+  transition:background-size var(--dur-2) var(--ease-out), color var(--dur-1) ease;
+}
+.footer-links a:hover,
+.footer-links a:focus-visible{ text-decoration:none; background-size:100% 1px; }
+.footer-social a,
+.topbar__social a{ transition:transform var(--dur-2) var(--ease-out), background-color var(--dur-1) ease, border-color var(--dur-1) ease; }
+.footer-social a:hover,
+.topbar__social a:hover{ transform:translateY(-2px); }
+
+/* --- Barra de progreso de lectura (noticias) --------------------------------------
+   Solo CSS (animación ligada al scroll); en navegadores sin soporte no aparece. */
+@supports (animation-timeline:scroll()){
+  body.single-noticia::before{
+    content:"";
+    position:fixed;
+    inset:0 0 auto;
+    height:3px;
+    z-index:1000;
+    background:linear-gradient(90deg, var(--uleam-red-700), var(--accent));
+    transform-origin:left;
+    animation:ui-progreso linear both;
+    animation-timeline:scroll(root);
+  }
+}
+@keyframes ui-progreso{
+  from{ transform:scaleX(0); }
+  to{ transform:scaleX(1); }
+}
+
+/* ==========================================================================
+   Animaciones (solo si la persona no pidió reducir el movimiento)
+   ========================================================================== */
+@media (prefers-reduced-motion:no-preference){
+  html{ scroll-behavior:smooth; }
+
+  /* Transición suave entre páginas (Chrome/Edge/Safari recientes; los demás navegan normal).
+     La cabecera y el botón del chat no "parpadean": solo cambia el contenido. */
+  @view-transition{ navigation:auto; }
+  .topbar{ view-transition-name:ui-topbar; }
+  .header{ view-transition-name:ui-cabecera; }
+  .nav{ view-transition-name:ui-nav; }
+  .asistente__fab{ view-transition-name:ui-asistente; }
+  ::view-transition-old(root){ animation:ui-salir .18s var(--ease-in-out) both; }
+  ::view-transition-new(root){ animation:ui-aparecer .32s var(--ease-out) both; }
+
+  /* Entrada del hero, escalonada. */
+  .hero-copy > *{ animation:ui-subir var(--dur-3) var(--ease-out) both; }
+  .hero-copy > :nth-child(1){ animation-delay:.05s; }
+  .hero-copy > :nth-child(2){ animation-delay:.12s; }
+  .hero-copy > :nth-child(3){ animation-delay:.2s; }
+  .hero-copy > :nth-child(4){ animation-delay:.28s; }
+  .hero-image{ animation:ui-acercar 1.4s var(--ease-out) both; }
+
+  /* Entrada de la cabecera de páginas interiores; la línea roja se dibuja. */
+  .page-header__badge{ animation:ui-subir var(--dur-3) var(--ease-out) both; }
+  .page-header__title{ animation:ui-subir var(--dur-3) var(--ease-out) .08s both; }
+  .page-header__title::after,
+  .news-archive__intro h1::after{
+    transform-origin:left;
+    animation:ui-trazar .9s var(--ease-out) .35s both;
+  }
+
+  /* Aparición al hacer scroll (js/interfaz.js agrega las clases). */
+  .ui-revelar .ui-oculto{
+    opacity:0;
+    transform:translateY(28px);
+  }
+  .ui-revelar .ui-oculto.ui-desde-izq{ transform:translateX(-44px); }
+  .ui-revelar .ui-oculto.ui-desde-der{ transform:translateX(44px); }
+  .ui-revelar .ui-visible{
+    opacity:1;
+    transform:none;
+    transition:
+      opacity .6s ease var(--ui-retraso, 0s),
+      transform .8s cubic-bezier(.33, 1, .68, 1) var(--ui-retraso, 0s);
+  }
+}
+
+@keyframes ui-subir{
+  from{ opacity:0; transform:translateY(18px); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes ui-aparecer{
+  from{ opacity:0; transform:translateY(8px); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes ui-salir{
+  to{ opacity:0; }
+}
+@keyframes ui-acercar{
+  from{ opacity:.4; transform:scale(1.08); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes ui-trazar{
+  from{ transform:scaleX(0); }
+  to{ transform:scaleX(1); }
+}
+
+/* Reducir movimiento: sin desplazamientos, solo cambios de color y sombra. */
+@media (prefers-reduced-motion:reduce){
+  *, *::before, *::after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+@media print{
+  .nav{ position:static; box-shadow:none; }
+  .ui-revelar .ui-oculto{ opacity:1; transform:none; }
+}

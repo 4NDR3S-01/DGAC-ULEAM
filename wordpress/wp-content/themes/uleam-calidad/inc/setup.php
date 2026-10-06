@@ -67,5 +67,12 @@ function uleam_scripts() {
 		ULEAM_THEME_VERSION,
 		true
 	);
+	wp_enqueue_script(
+		'uleam-interfaz',
+		get_template_directory_uri() . '/js/interfaz.js',
+		array(),
+		ULEAM_THEME_VERSION,
+		true
+	);
 }
 add_action( 'wp_enqueue_scripts', 'uleam_scripts' );

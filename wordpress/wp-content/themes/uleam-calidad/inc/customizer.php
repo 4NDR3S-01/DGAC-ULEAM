@@ -32,6 +32,8 @@ function uleam_defaults() {
 		'uleam_instagram'      => 'https://www.instagram.com/uleam_ecuador_oficial/',
 		'uleam_tiktok'         => 'https://www.tiktok.com/@uleamecuador',
 		'uleam_noticia_imagen' => '',
+		'uleam_carrusel_auto'      => 1,
+		'uleam_carrusel_intervalo' => 5,
 	);
 }
 
@@ -81,15 +83,17 @@ function uleam_customize_register( $wp_customize ) {
 	);
 
 	$campos = array(
-		'uleam_hero_titulo'    => array( 'label' => 'Título del hero (admite HTML)', 'type' => 'textarea' ),
-		'uleam_hero_subtitulo' => array( 'label' => 'Subtítulo del hero', 'type' => 'textarea' ),
+		'uleam_carrusel_auto'      => array( 'label' => 'Carrusel de portada: avanzar solo (siempre se puede pausar)', 'type' => 'checkbox' ),
+		'uleam_carrusel_intervalo' => array( 'label' => 'Carrusel de portada: segundos por diapositiva (4 a 20)', 'type' => 'number' ),
+		'uleam_hero_titulo'    => array( 'label' => 'Título del hero (solo si no hay diapositivas en «Carrusel de portada»)', 'type' => 'textarea' ),
+		'uleam_hero_subtitulo' => array( 'label' => 'Subtítulo del hero (solo si no hay diapositivas)', 'type' => 'textarea' ),
 		'uleam_telefono'       => array( 'label' => 'Teléfono', 'type' => 'text' ),
 		'uleam_email'          => array( 'label' => 'Correo', 'type' => 'text' ),
 		'uleam_direccion'      => array( 'label' => 'Dirección', 'type' => 'text' ),
 		'uleam_sobre'          => array( 'label' => 'Texto "Sobre la Dirección" (footer)', 'type' => 'textarea' ),
-		'uleam_hero_imagen'    => array( 'label' => 'Imagen del hero (portada)', 'type' => 'image' ),
-		'uleam_hero_boton'     => array( 'label' => 'Texto del botón del hero', 'type' => 'text' ),
-		'uleam_hero_boton_url' => array( 'label' => 'Enlace del botón del hero', 'type' => 'url' ),
+		'uleam_hero_imagen'    => array( 'label' => 'Imagen del hero (solo si no hay diapositivas)', 'type' => 'image' ),
+		'uleam_hero_boton'     => array( 'label' => 'Texto del botón del hero (solo si no hay diapositivas)', 'type' => 'text' ),
+		'uleam_hero_boton_url' => array( 'label' => 'Enlace del botón del hero (solo si no hay diapositivas)', 'type' => 'url' ),
 		'uleam_facebook'       => array( 'label' => 'Facebook (dejar vacío para ocultar)', 'type' => 'url' ),
 		'uleam_instagram'      => array( 'label' => 'Instagram (dejar vacío para ocultar)', 'type' => 'url' ),
 		'uleam_tiktok'         => array( 'label' => 'TikTok (dejar vacío para ocultar)', 'type' => 'url' ),
@@ -106,6 +110,14 @@ function uleam_customize_register( $wp_customize ) {
 			$sanitize = 'absint';
 		} elseif ( 'url' === $cfg['type'] ) {
 			$sanitize = 'esc_url_raw';
+		} elseif ( 'checkbox' === $cfg['type'] ) {
+			$sanitize = function ( $v ) {
+				return $v ? 1 : 0;
+			};
+		} elseif ( 'number' === $cfg['type'] ) {
+			$sanitize = function ( $v ) {
+				return max( 4, min( 20, absint( $v ) ) );
+			};
 		}
 		$wp_customize->add_setting(
 			$id,
@@ -133,9 +145,10 @@ function uleam_customize_register( $wp_customize ) {
 			$wp_customize->add_control(
 				$id,
 				array(
-					'label'   => $cfg['label'],
-					'section' => 'uleam_contenido',
-					'type'    => $cfg['type'],
+					'label'       => $cfg['label'],
+					'section'     => 'uleam_contenido',
+					'type'        => $cfg['type'],
+					'input_attrs' => 'number' === $cfg['type'] ? array( 'min' => 4, 'max' => 20, 'step' => 1 ) : array(),
 				)
 			);
 		}

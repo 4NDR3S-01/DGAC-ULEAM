@@ -63,8 +63,11 @@ function uleam_asistente_config() {
 			'nombre'      => 'Asistente DGAC',
 			'bienvenida'  => "¡Hola! Soy el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad.\nPuedo ayudarte a encontrar documentos (formatos, informes, manuales, POA…) y resolver dudas frecuentes. ¿Qué necesitas?",
 			'sugerencias' => "POA 2025\nFormatos de autoevaluación de carreras\nHorario de atención\n¿Cómo contacto a la Dirección?",
+			'proveedor'   => '', // '' = automático (Claude si hay clave), 'ninguno', 'claude', 'groq'
 			'modelo'      => 'claude-opus-5-5',
 			'api_key'     => '',
+			'groq_modelo' => 'openai/gpt-oss-120b',
+			'groq_key'    => '',
 		)
 	);
 }
@@ -79,6 +82,50 @@ function uleam_asistente_api_key() {
 		return ULEAM_CLAUDE_API_KEY;
 	}
 	return (string) uleam_asistente_config()['api_key'];
+}
+
+/**
+ * Clave de API de Groq (constante ULEAM_GROQ_API_KEY en wp-config.php o la guardada).
+ *
+ * @return string
+ */
+function uleam_asistente_groq_key() {
+	if ( defined( 'ULEAM_GROQ_API_KEY' ) && ULEAM_GROQ_API_KEY ) {
+		return ULEAM_GROQ_API_KEY;
+	}
+	return (string) uleam_asistente_config()['groq_key'];
+}
+
+/**
+ * Proveedor de IA en uso: 'claude', 'groq' o '' (sin IA: respuestas automáticas).
+ *
+ * @return string
+ */
+function uleam_asistente_proveedor() {
+	$elegido = uleam_asistente_config()['proveedor'];
+	if ( '' === $elegido ) {
+		$elegido = 'claude'; // configuraciones anteriores: solo existía Claude
+	}
+	if ( 'claude' === $elegido && uleam_asistente_api_key() ) {
+		return 'claude';
+	}
+	if ( 'groq' === $elegido && uleam_asistente_groq_key() ) {
+		return 'groq';
+	}
+	return '';
+}
+
+/**
+ * Modelos de Groq (id => etiqueta). Ver https://console.groq.com/docs/models
+ *
+ * @return array
+ */
+function uleam_asistente_groq_modelos() {
+	return array(
+		'openai/gpt-oss-120b'     => 'GPT-OSS 120B — mejores respuestas (recomendado)',
+		'openai/gpt-oss-20b'      => 'GPT-OSS 20B — más rápido y económico',
+		'llama-3.3-70b-versatile' => 'Llama 3.3 70B Versatile',
+	);
 }
 
 /**
@@ -155,17 +202,38 @@ function uleam_asistente_guardar() {
 		$cfg['nombre']      = sanitize_text_field( wp_unslash( $_POST['nombre'] ?? '' ) );
 		$cfg['bienvenida']  = sanitize_textarea_field( wp_unslash( $_POST['bienvenida'] ?? '' ) );
 		$cfg['sugerencias'] = sanitize_textarea_field( wp_unslash( $_POST['sugerencias'] ?? '' ) );
+		$proveedor          = sanitize_key( wp_unslash( $_POST['proveedor'] ?? 'ninguno' ) );
+		$cfg['proveedor']   = in_array( $proveedor, array( 'ninguno', 'claude', 'groq' ), true ) ? $proveedor : 'ninguno';
 		$modelo             = sanitize_text_field( wp_unslash( $_POST['modelo'] ?? '' ) );
 		$cfg['modelo']      = isset( uleam_asistente_modelos()[ $modelo ] ) ? $modelo : 'claude-opus-5-5';
-		$clave              = trim( sanitize_text_field( wp_unslash( $_POST['api_key'] ?? '' ) ) );
-		if ( ! empty( $_POST['borrar_clave'] ) ) {
-			$cfg['api_key'] = '';
-		} elseif ( '' !== $clave ) {
-			$cfg['api_key'] = $clave;
+		$groq_modelo        = sanitize_text_field( wp_unslash( $_POST['groq_modelo'] ?? '' ) );
+		$cfg['groq_modelo'] = isset( uleam_asistente_groq_modelos()[ $groq_modelo ] ) ? $groq_modelo : 'openai/gpt-oss-120b';
+		// Claves: vacías = conservar la actual; la casilla "Quitar" la borra.
+		foreach ( array( 'api_key' => 'borrar_clave', 'groq_key' => 'borrar_groq' ) as $campo => $borrar ) {
+			$clave = trim( sanitize_text_field( wp_unslash( $_POST[ $campo ] ?? '' ) ) );
+			if ( ! empty( $_POST[ $borrar ] ) ) {
+				$cfg[ $campo ] = '';
+			} elseif ( '' !== $clave ) {
+				$cfg[ $campo ] = $clave;
+			}
 		}
 	}
 	// Sin autoload: la clave no se carga en cada visita.
 	update_option( 'uleam_asistente', $cfg, false );
+	if ( ! empty( $_POST['probar'] ) ) {
+		delete_transient( 'uleam_asistente_error' );
+		$r = uleam_asistente_responder( '¿Dónde encuentro el POA 2025?', array() );
+		set_transient(
+			'uleam_asistente_prueba',
+			array(
+				'ok'    => ! empty( $r['ia'] ),
+				'texto' => ! empty( $r['ia'] )
+					? 'Respuesta de prueba: «' . wp_strip_all_tags( $r['html'] ) . '»'
+					: 'Error: ' . ( get_transient( 'uleam_asistente_error' ) ?: 'el proveedor no respondió.' ),
+			),
+			MINUTE_IN_SECONDS
+		);
+	}
 	wp_safe_redirect( admin_url( 'edit.php?post_type=pregunta_frecuente&page=uleam-asistente&guardado=1' ) );
 	exit;
 }
@@ -211,34 +279,66 @@ function uleam_asistente_pagina() {
 			</table>
 
 			<h2>Respuestas con inteligencia artificial (opcional)</h2>
-			<p>Sin clave, el asistente responde con las preguntas frecuentes y muestra los documentos encontrados. Con una clave de <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Claude (Anthropic)</a>, además redacta la respuesta en lenguaje natural usando <strong>solo</strong> el contenido de este sitio. Cada consulta tiene un costo según el uso, y el texto de la consulta se envía a Anthropic para procesarlo.</p>
+			<p>Sin IA, el asistente responde con las preguntas frecuentes y muestra los documentos encontrados. Con IA, además conversa de forma natural y redacta la respuesta usando <strong>solo</strong> el contenido de este sitio. El texto de cada consulta se envía al proveedor elegido para procesarlo, y el uso puede tener costo según su plan.</p>
+			<?php
+			$ultimo_error = get_transient( 'uleam_asistente_error' );
+			$prueba       = get_transient( 'uleam_asistente_prueba' );
+			if ( $prueba ) :
+				delete_transient( 'uleam_asistente_prueba' );
+				?>
+				<div class="notice notice-<?php echo $prueba['ok'] ? 'success' : 'error'; ?>"><p><strong><?php echo $prueba['ok'] ? 'Conexión correcta.' : 'La prueba falló.'; ?></strong> <?php echo esc_html( $prueba['texto'] ); ?></p></div>
+			<?php elseif ( $ultimo_error && uleam_asistente_proveedor() ) : ?>
+				<div class="notice notice-warning"><p><strong>Último error de la IA:</strong> <?php echo esc_html( $ultimo_error ); ?> (mientras tanto, el asistente responde sin IA).</p></div>
+			<?php endif; ?>
 			<table class="form-table" role="presentation">
 				<tr>
-					<th scope="row"><label for="ua-clave">Clave de API</label></th>
+					<th scope="row">Proveedor</th>
 					<td>
-						<?php if ( $constante ) : ?>
-							<p><span class="dashicons dashicons-lock"></span> Definida en <code>wp-config.php</code> (<code>ULEAM_CLAUDE_API_KEY</code>).</p>
-						<?php else : ?>
-							<input type="password" id="ua-clave" name="api_key" class="regular-text" autocomplete="off" placeholder="<?php echo $cfg['api_key'] ? esc_attr( 'Guardada (termina en …' . substr( $cfg['api_key'], -4 ) . ')' ) : 'sk-ant-…'; ?>" />
-							<p class="description">Déjala vacía para conservar la actual. Más seguro: definir <code>define( 'ULEAM_CLAUDE_API_KEY', '…' );</code> en <code>wp-config.php</code>.</p>
-							<?php if ( $cfg['api_key'] ) : ?>
-								<label><input type="checkbox" name="borrar_clave" value="1" /> Quitar la clave (volver a respuestas sin IA)</label>
+						<?php $prov = '' === $cfg['proveedor'] ? ( $cfg['api_key'] ? 'claude' : 'ninguno' ) : $cfg['proveedor']; ?>
+						<fieldset>
+							<label><input type="radio" name="proveedor" value="ninguno" <?php checked( $prov, 'ninguno' ); ?> /> Sin IA (respuestas automáticas, sin costo)</label><br />
+							<label><input type="radio" name="proveedor" value="groq" <?php checked( $prov, 'groq' ); ?> /> Groq — muy rápido; tiene plan gratuito con límites (<a href="https://console.groq.com/keys" target="_blank" rel="noopener">obtener clave</a>)</label><br />
+							<label><input type="radio" name="proveedor" value="claude" <?php checked( $prov, 'claude' ); ?> /> Claude (Anthropic) — respuestas de mayor calidad (<a href="https://console.anthropic.com/" target="_blank" rel="noopener">obtener clave</a>)</label>
+						</fieldset>
+					</td>
+				</tr>
+				<?php
+				$bloques = array(
+					'groq'   => array( 'Groq', 'groq_key', 'borrar_groq', 'ULEAM_GROQ_API_KEY', 'gsk_…', 'groq_modelo', uleam_asistente_groq_modelos() ),
+					'claude' => array( 'Claude', 'api_key', 'borrar_clave', 'ULEAM_CLAUDE_API_KEY', 'sk-ant-…', 'modelo', uleam_asistente_modelos() ),
+				);
+				foreach ( $bloques as $id => $b ) :
+					?>
+					<tr>
+						<th scope="row"><label for="ua-<?php echo esc_attr( $b[1] ); ?>">Clave de API de <?php echo esc_html( $b[0] ); ?></label></th>
+						<td>
+							<?php if ( defined( $b[3] ) && constant( $b[3] ) ) : ?>
+								<p><span class="dashicons dashicons-lock"></span> Definida en <code>wp-config.php</code> (<code><?php echo esc_html( $b[3] ); ?></code>).</p>
+							<?php else : ?>
+								<input type="password" id="ua-<?php echo esc_attr( $b[1] ); ?>" name="<?php echo esc_attr( $b[1] ); ?>" class="regular-text" autocomplete="off" placeholder="<?php echo $cfg[ $b[1] ] ? esc_attr( 'Guardada (termina en …' . substr( $cfg[ $b[1] ], -4 ) . ')' ) : esc_attr( $b[4] ); ?>" />
+								<p class="description">Déjala vacía para conservar la actual. Más seguro: <code>define( '<?php echo esc_html( $b[3] ); ?>', '…' );</code> en <code>wp-config.php</code>.</p>
+								<?php if ( $cfg[ $b[1] ] ) : ?>
+									<label><input type="checkbox" name="<?php echo esc_attr( $b[2] ); ?>" value="1" /> Quitar la clave</label>
+								<?php endif; ?>
 							<?php endif; ?>
-						<?php endif; ?>
-					</td>
-				</tr>
-				<tr>
-					<th scope="row"><label for="ua-modelo">Modelo</label></th>
-					<td>
-						<select id="ua-modelo" name="modelo">
-							<?php foreach ( uleam_asistente_modelos() as $id => $etiqueta ) : ?>
-								<option value="<?php echo esc_attr( $id ); ?>" <?php selected( $cfg['modelo'], $id ); ?>><?php echo esc_html( $etiqueta ); ?></option>
-							<?php endforeach; ?>
-						</select>
-					</td>
-				</tr>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="ua-<?php echo esc_attr( $b[5] ); ?>">Modelo de <?php echo esc_html( $b[0] ); ?></label></th>
+						<td>
+							<select id="ua-<?php echo esc_attr( $b[5] ); ?>" name="<?php echo esc_attr( $b[5] ); ?>">
+								<?php foreach ( $b[6] as $mid => $etiqueta ) : ?>
+									<option value="<?php echo esc_attr( $mid ); ?>" <?php selected( $cfg[ $b[5] ], $mid ); ?>><?php echo esc_html( $etiqueta ); ?></option>
+								<?php endforeach; ?>
+							</select>
+						</td>
+					</tr>
+				<?php endforeach; ?>
 			</table>
-			<?php submit_button( 'Guardar cambios' ); ?>
+			<?php submit_button( 'Guardar cambios', 'primary', 'submit', false ); ?>
+			<?php if ( uleam_asistente_proveedor() ) : ?>
+				<button type="submit" name="probar" value="1" class="button" style="margin-left:8px">Guardar y probar la IA</button>
+			<?php endif; ?>
 		</form>
 
 		<h2>Preguntas que el asistente no supo responder</h2>
@@ -288,6 +388,16 @@ function uleam_asistente_vacias() {
 			'necesito', 'busco', 'buscar', 'buscando', 'encuentro', 'encontrar', 'hallar', 'ver', 'descargar', 'bajar', 'obtener', 'conseguir',
 			'tienen', 'tiene', 'hay', 'existe', 'sobre', 'acerca', 'informacion', 'info', 'ayuda', 'ayudar', 'ayudame', 'dame', 'muestrame',
 			'documento', 'documentos', 'archivo', 'archivos', 'pdf', 'saber', 'conocer', 'algun', 'alguna', 'todo', 'todos', 'mas',
+			// Verbos y fórmulas de petición: "¿me podrías brindar…?", "pásame", "¿tienes…?".
+			'brindar', 'brindas', 'brindes', 'brindame', 'dar', 'das', 'darme', 'dame', 'des', 'enviar', 'envia', 'enviame', 'envies',
+			'mandar', 'manda', 'mandame', 'pasar', 'pasa', 'pasame', 'facilitar', 'facilita', 'facilitame', 'proporcionar',
+			'proporciona', 'compartir', 'comparte', 'compartes', 'tienes', 'tiene', 'tienen', 'tengo', 'tener', 'tendras',
+			'mostrar', 'muestra', 'muestras', 'ensenar', 'ensename', 'ubicar', 'ubico', 'localizar', 'acceder', 'abrir',
+			'revisar', 'solicitar', 'pedir', 'gustaria', 'quiere', 'necesitaria', 'requiero', 'busca', 'buscas', 'encuentra',
+			'existen', 'habra', 'sabes', 'oye', 'disculpa', 'perdon', 'xfa', 'pls', 'please', 'tambien', 'ahora', 'aqui',
+			'ese', 'esa', 'eso', 'estos', 'estas', 'esos', 'esas', 'solo', 'algo', 'cosa', 'cosas', 'link', 'enlace', 'enlaces',
+			'descarga', 'descargas', 'material', 'materiales', 'copia', 'lista', 'listado', 'favorcito', 'gracia',
+			'pasas', 'mandas', 'envias', 'facilitas', 'regalas', 'consigues', 'ayudas', 'brinda', 'darias', 'pasarias', 'mandarias',
 		)
 	);
 }
@@ -311,7 +421,8 @@ function uleam_asistente_palabras( $texto ) {
  * @return string
  */
 function uleam_asistente_raiz( $p ) {
-	if ( mb_strlen( $p ) > 4 && 's' === substr( $p, -1 ) ) {
+	// Desde 4 letras: "POAs" → "poa", "informes" → "inform", "carreras" → "carrera".
+	if ( mb_strlen( $p ) > 3 && 's' === substr( $p, -1 ) ) {
 		$antes = substr( $p, -3, 1 );
 		return ( 'e' === substr( $p, -2, 1 ) && ! in_array( $antes, array( 'a', 'e', 'i', 'o', 'u' ), true ) ) ? substr( $p, 0, -2 ) : substr( $p, 0, -1 );
 	}
@@ -466,10 +577,10 @@ function uleam_asistente_buscar( $tipo, $claves, $tax, $max ) {
 	if ( ! $claves ) {
 		// Solo año/tipo ("formatos 2023"): los más recientes de ese filtro.
 		if ( ! $tax ) {
-			return array( 'total' => 0, 'posts' => array() );
+			return array( 'total' => 0, 'posts' => array(), 'ids' => array() );
 		}
 		$ids = get_posts( $base );
-		return array( 'total' => count( $ids ), 'posts' => array_map( 'get_post', array_slice( $ids, 0, $max ) ) );
+		return array( 'total' => count( $ids ), 'posts' => array_map( 'get_post', array_slice( $ids, 0, $max ) ), 'ids' => array_slice( $ids, 0, 60 ) );
 	}
 
 	$sinonimos = uleam_asistente_sinonimos();
@@ -498,7 +609,7 @@ function uleam_asistente_buscar( $tipo, $claves, $tax, $max ) {
 		}
 	}
 	if ( ! $puntos ) {
-		return array( 'total' => 0, 'posts' => array() );
+		return array( 'total' => 0, 'posts' => array(), 'ids' => array() );
 	}
 
 	// Si algún resultado tiene todas las palabras, solo esos; si no, los que tengan al menos la mitad.
@@ -521,16 +632,32 @@ function uleam_asistente_buscar( $tipo, $claves, $tax, $max ) {
 			}
 		}
 	}
+	// Desempate final: el año más reciente primero (la gente casi siempre busca lo vigente).
+	foreach ( $candidatos as $id ) {
+		$puntos[ $id ][2] = uleam_asistente_anio( $id );
+	}
 	uasort(
 		$puntos,
 		function ( $a, $b ) {
-			return array( $b[0], $b[1] ) <=> array( $a[0], $a[1] );
+			return array( $b[0], $b[1], $b[2] ?? 0 ) <=> array( $a[0], $a[1], $a[2] ?? 0 );
 		}
 	);
 	return array(
 		'total' => count( $puntos ),
 		'posts' => array_map( 'get_post', array_slice( array_keys( $puntos ), 0, $max ) ),
+		'ids'   => array_slice( array_keys( $puntos ), 0, 60 ),
 	);
+}
+
+/**
+ * Año de un documento (taxonomía "anio": "2023", "2013 (1)", "2024-1"…), o 0.
+ *
+ * @param int $id Documento.
+ * @return int
+ */
+function uleam_asistente_anio( $id ) {
+	$t = get_the_terms( $id, 'anio' );
+	return ( $t && ! is_wp_error( $t ) && preg_match( '/(19|20)\d{2}/', $t[0]->name, $m ) ) ? (int) $m[0] : 0;
 }
 
 /**
@@ -589,17 +716,172 @@ function uleam_asistente_texto_html( $texto ) {
 }
 
 /**
- * Pide a Claude que redacte la respuesta con el contenido encontrado.
+ * Instrucciones para la IA: tono humano y cercano, sin inventar nada fuera del contexto.
+ *
+ * @return string
+ */
+function uleam_asistente_instrucciones() {
+	$nombre = uleam_asistente_config()['nombre'];
+	return "Eres «{$nombre}», el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad (DGAC) de la Universidad Laica Eloy Alfaro de Manabí (ULEAM). "
+		. 'Conversas como una persona amable y servicial del equipo de la Dirección: español natural y cercano (tuteas con respeto), vas directo al punto y no repites la pregunta. '
+		. 'Ayudas a encontrar documentos institucionales (formatos, informes, manuales, normativa, POA, autoevaluación de carreras y posgrados…) y resuelves dudas sobre la Dirección.' . "\n"
+		. "Reglas:\n"
+		. "- Usa solo la información de <contexto>. No inventes documentos, códigos, fechas, nombres, enlaces ni trámites.\n"
+		. "- Si piden documentos y hay fuentes útiles, confirma en una frase qué encontraste (por ejemplo, qué años hay) y elige esas fuentes: se mostrarán como tarjetas con su enlace, así que no escribas URL.\n"
+		. "- Si hay muchas opciones, indica cómo acotar (año, área o tipo de documento).\n"
+		. "- Si el mensaje continúa la conversación (por ejemplo «¿y el de 2023?»), interprétalo con los mensajes anteriores.\n"
+		. "- Si el contexto no responde la consulta, dilo con honestidad en una frase y ofrece el contacto de <contacto>.\n"
+		. "- Entre 1 y 4 frases cortas. Viñetas con «- » solo para enumerar. Sin saludos largos ni despedidas.\n"
+		. "- «fuentes»: números de las fuentes útiles, en orden de utilidad (lista vacía si ninguna sirve).\n"
+		. "- «sugerencias»: hasta 3 preguntas cortas (máximo 6 palabras) que la persona podría hacer después, escritas como ella las escribiría. Puede ir vacía.\n"
+		. 'Responde únicamente con un objeto JSON con las claves "respuesta", "fuentes" y "sugerencias".';
+}
+
+/**
+ * Esquema de la respuesta de la IA (salida estructurada).
+ *
+ * @return array
+ */
+function uleam_asistente_esquema() {
+	return array(
+		'type'                 => 'object',
+		'properties'           => array(
+			'respuesta'   => array( 'type' => 'string' ),
+			'fuentes'     => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
+			'sugerencias' => array( 'type' => 'array', 'items' => array( 'type' => 'string' ) ),
+		),
+		'required'             => array( 'respuesta', 'fuentes', 'sugerencias' ),
+		'additionalProperties' => false,
+	);
+}
+
+/**
+ * POST JSON a una API y devuelve la respuesta decodificada o un WP_Error legible.
+ *
+ * @param string $url       URL.
+ * @param array  $cabeceras Cabeceras.
+ * @param array  $cuerpo    Cuerpo.
+ * @return array|WP_Error
+ */
+function uleam_asistente_post( $url, $cabeceras, $cuerpo ) {
+	$resp = wp_remote_post(
+		$url,
+		array(
+			'timeout' => 40,
+			'headers' => $cabeceras + array( 'content-type' => 'application/json' ),
+			'body'    => wp_json_encode( $cuerpo ),
+		)
+	);
+	if ( is_wp_error( $resp ) ) {
+		return $resp;
+	}
+	$codigo = (int) wp_remote_retrieve_response_code( $resp );
+	$datos  = json_decode( wp_remote_retrieve_body( $resp ), true );
+	if ( 200 !== $codigo || ! is_array( $datos ) ) {
+		$detalle = is_array( $datos ) && isset( $datos['error']['message'] ) ? $datos['error']['message'] : substr( wp_remote_retrieve_body( $resp ), 0, 200 );
+		return new WP_Error( 'asistente_http', 'HTTP ' . $codigo . ': ' . $detalle );
+	}
+	return $datos;
+}
+
+/**
+ * Llamada a Claude (Anthropic). Devuelve el JSON de la respuesta como array.
+ *
+ * @param string $sistema Instrucciones.
+ * @param array  $turnos  Mensajes [ {role, content} ].
+ * @return array|WP_Error
+ */
+function uleam_asistente_llamar_claude( $sistema, $turnos ) {
+	$modelo = uleam_asistente_config()['modelo'];
+	$cuerpo = array(
+		'model'         => $modelo,
+		'max_tokens'    => 4000,
+		'system'        => array( array( 'type' => 'text', 'text' => $sistema, 'cache_control' => array( 'type' => 'ephemeral' ) ) ),
+		'messages'      => $turnos,
+		'output_config' => array( 'format' => array( 'type' => 'json_schema', 'schema' => uleam_asistente_esquema() ) ),
+	);
+	$cabeceras = array(
+		'x-api-key'         => uleam_asistente_api_key(),
+		'anthropic-version' => '2023-06-01',
+	);
+	if ( 'claude-haiku-4-5' !== $modelo ) {
+		// Chat sencillo: poco razonamiento = respuesta rápida y económica (Haiku 4.5 no admite "effort").
+		$cuerpo['output_config']['effort'] = 'low';
+	}
+	if ( in_array( $modelo, array( 'claude-opus-5-5', 'claude-sonnet-5-5' ), true ) ) {
+		// Si un filtro de seguridad rechaza la consulta, la API la reintenta con otro modelo.
+		$cuerpo['fallbacks']         = 'default';
+		$cabeceras['anthropic-beta'] = 'server-side-fallback-2026-07-01';
+	}
+	$datos = uleam_asistente_post( 'https://api.anthropic.com/v1/messages', $cabeceras, $cuerpo );
+	if ( is_wp_error( $datos ) ) {
+		return $datos;
+	}
+	if ( in_array( $datos['stop_reason'] ?? '', array( 'refusal', 'max_tokens' ), true ) ) {
+		return new WP_Error( 'asistente_corte', 'La respuesta se interrumpió (' . $datos['stop_reason'] . ').' );
+	}
+	foreach ( $datos['content'] ?? array() as $bloque ) {
+		if ( 'text' === ( $bloque['type'] ?? '' ) ) {
+			return (array) json_decode( $bloque['text'], true );
+		}
+	}
+	return new WP_Error( 'asistente_vacio', 'Claude no devolvió texto.' );
+}
+
+/**
+ * Llamada a Groq (API compatible con OpenAI). Devuelve el JSON de la respuesta como array.
+ *
+ * @param string $sistema Instrucciones.
+ * @param array  $turnos  Mensajes [ {role, content} ].
+ * @return array|WP_Error
+ */
+function uleam_asistente_llamar_groq( $sistema, $turnos ) {
+	$modelo = uleam_asistente_config()['groq_modelo'];
+	$cuerpo = array(
+		'model'                 => $modelo,
+		'messages'              => array_merge( array( array( 'role' => 'system', 'content' => $sistema ) ), $turnos ),
+		'temperature'           => 0.4,
+		'max_completion_tokens' => 1500,
+	);
+	if ( 0 === strpos( $modelo, 'openai/gpt-oss' ) ) {
+		// GPT-OSS: salida con esquema estricto y razonamiento breve (respuesta más rápida).
+		$cuerpo['response_format']   = array(
+			'type'        => 'json_schema',
+			'json_schema' => array( 'name' => 'respuesta_asistente', 'strict' => true, 'schema' => uleam_asistente_esquema() ),
+		);
+		$cuerpo['reasoning_effort']  = 'low';
+		$cuerpo['include_reasoning'] = false;
+	} else {
+		$cuerpo['response_format'] = array( 'type' => 'json_object' );
+	}
+	$datos = uleam_asistente_post(
+		'https://api.groq.com/openai/v1/chat/completions',
+		array( 'Authorization' => 'Bearer ' . uleam_asistente_groq_key() ),
+		$cuerpo
+	);
+	if ( is_wp_error( $datos ) ) {
+		return $datos;
+	}
+	$opcion = $datos['choices'][0] ?? array();
+	if ( 'length' === ( $opcion['finish_reason'] ?? '' ) ) {
+		return new WP_Error( 'asistente_corte', 'La respuesta se cortó por longitud.' );
+	}
+	$json = json_decode( (string) ( $opcion['message']['content'] ?? '' ), true );
+	return is_array( $json ) ? $json : new WP_Error( 'asistente_json', 'Groq no devolvió un JSON válido.' );
+}
+
+/**
+ * Pide a la IA (Claude o Groq) que redacte la respuesta con el contenido encontrado.
  *
  * @param string $mensaje   Consulta.
  * @param array  $historial Turnos anteriores [ {rol, texto} ].
  * @param array  $faqs      Preguntas frecuentes candidatas.
  * @param array  $fuentes   Documentos y páginas candidatos (uleam_busqueda_item + extracto).
- * @return array|null { texto, fuentes: [índices] } o null si falla (se usa la respuesta sin IA).
+ * @return array|null { texto, fuentes: [índices], sugerencias } o null (se usa la respuesta sin IA).
  */
 function uleam_asistente_ia( $mensaje, $historial, $faqs, $fuentes ) {
-	$clave = uleam_asistente_api_key();
-	if ( ! $clave ) {
+	$proveedor = uleam_asistente_proveedor();
+	if ( ! $proveedor ) {
 		return null;
 	}
 	// Tope diario de consultas con IA para controlar el costo; después se responde sin IA.
@@ -610,125 +892,108 @@ function uleam_asistente_ia( $mensaje, $historial, $faqs, $fuentes ) {
 		return null;
 	}
 	set_transient( $dia, $hoy + 1, DAY_IN_SECONDS );
-	$modelo   = uleam_asistente_config()['modelo'];
+
 	$contacto = uleam_asistente_contacto();
-
-	// Instrucciones fijas (se cachean); el contenido variable va en el mensaje del usuario.
-	$sistema = 'Eres el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad (DGAC) de la Universidad Laica Eloy Alfaro de Manabí (ULEAM). '
-		. 'Atiendes a estudiantes, docentes, personal y público que buscan documentos institucionales (formatos, informes, manuales, normativa, POA, autoevaluación de carreras y posgrados, etc.) o tienen dudas sobre la Dirección. '
-		. 'Responde en español, con tono cordial y profesional, en 1 a 4 frases cortas; usa viñetas con "- " solo si enumeras varias cosas. '
-		. 'Usa EXCLUSIVAMENTE la información de <contexto>. No inventes documentos, códigos, fechas, nombres, enlaces ni trámites. No escribas URL: los documentos que elijas se mostrarán como tarjetas con su enlace debajo de tu respuesta. '
-		. 'Si el contexto no responde la consulta, dilo con honestidad y sugiere escribir al correo o llamar a la Dirección (datos en <contacto>). '
-		. 'En "fuentes" incluye solo los números de los documentos o páginas del contexto que realmente sirven para la consulta (ninguno si no aplica), en orden de utilidad.';
-
-	$ctx = "<contacto>\nCorreo: {$contacto['email']}\nTeléfono: {$contacto['telefono']}\nDirección: {$contacto['direccion']}\n</contacto>\n<contexto>\n";
+	$ctx      = "<contacto>\nCorreo: {$contacto['email']}\nTeléfono: {$contacto['telefono']}\nDirección: {$contacto['direccion']}\n</contacto>\n<contexto>\n";
 	foreach ( $faqs as $f ) {
 		$ctx .= "<pregunta_frecuente>\nPregunta: " . $f[1]->post_title . "\nRespuesta: " . uleam_extracto_limpio( $f[1]->post_content, 250 ) . "\n</pregunta_frecuente>\n";
 	}
-	foreach ( $fuentes as $i => $s ) {
-		$ctx .= '<fuente numero="' . ( $i + 1 ) . '" tipo="' . $s['etiqueta'] . '">' . $s['titulo'];
-		if ( $s['datos'] ) {
-			$ctx .= ' (' . implode( ' · ', $s['datos'] ) . ')';
+	foreach ( $fuentes as $i => $f ) {
+		$ctx .= '<fuente numero="' . ( $i + 1 ) . '" tipo="' . $f['etiqueta'] . '">' . $f['titulo'];
+		if ( $f['datos'] ) {
+			$ctx .= ' (' . implode( ' · ', $f['datos'] ) . ')';
 		}
-		if ( ! empty( $s['extracto'] ) ) {
-			$ctx .= "\n" . $s['extracto'];
+		if ( ! empty( $f['extracto'] ) ) {
+			$ctx .= "\n" . $f['extracto'];
 		}
 		$ctx .= "</fuente>\n";
 	}
 	$ctx .= '</contexto>';
 
-	$mensajes = array();
+	// Historial: debe empezar con "user" y alternar roles.
+	$turnos = array();
 	foreach ( $historial as $turno ) {
-		$mensajes[] = array( 'role' => 'bot' === $turno['rol'] ? 'assistant' : 'user', 'content' => $turno['texto'] );
-	}
-	// La API exige empezar con "user" y alternar roles.
-	while ( $mensajes && 'user' !== $mensajes[0]['role'] ) {
-		array_shift( $mensajes );
-	}
-	$limpio = array();
-	foreach ( $mensajes as $m ) {
-		if ( $limpio && end( $limpio )['role'] === $m['role'] ) {
-			$limpio[ count( $limpio ) - 1 ]['content'] .= "\n" . $m['content'];
+		$rol = 'bot' === $turno['rol'] ? 'assistant' : 'user';
+		if ( ! $turnos && 'user' !== $rol ) {
+			continue;
+		}
+		if ( $turnos && end( $turnos )['role'] === $rol ) {
+			$turnos[ count( $turnos ) - 1 ]['content'] .= "\n" . $turno['texto'];
 		} else {
-			$limpio[] = $m;
+			$turnos[] = array( 'role' => $rol, 'content' => $turno['texto'] );
 		}
 	}
-	$consulta = $ctx . "\n\nConsulta: " . $mensaje;
-	if ( $limpio && 'user' === end( $limpio )['role'] ) {
+	$consulta = $ctx . "\n\nMensaje de la persona: " . $mensaje;
+	if ( $turnos && 'user' === end( $turnos )['role'] ) {
 		// Una consulta anterior quedó sin respuesta (p. ej. error de red): se envían juntas.
-		$limpio[ count( $limpio ) - 1 ]['content'] .= "\n\n" . $consulta;
+		$turnos[ count( $turnos ) - 1 ]['content'] .= "\n\n" . $consulta;
 	} else {
-		$limpio[] = array( 'role' => 'user', 'content' => $consulta );
+		$turnos[] = array( 'role' => 'user', 'content' => $consulta );
 	}
 
-	$cuerpo = array(
-		'model'         => $modelo,
-		'max_tokens'    => 4000,
-		'system'        => array( array( 'type' => 'text', 'text' => $sistema, 'cache_control' => array( 'type' => 'ephemeral' ) ) ),
-		'messages'      => $limpio,
-		'output_config' => array(
-			'format' => array(
-				'type'   => 'json_schema',
-				'schema' => array(
-					'type'                 => 'object',
-					'properties'           => array(
-						'respuesta' => array( 'type' => 'string' ),
-						'fuentes'   => array( 'type' => 'array', 'items' => array( 'type' => 'integer' ) ),
-					),
-					'required'             => array( 'respuesta', 'fuentes' ),
-					'additionalProperties' => false,
-				),
-			),
+	$sistema = uleam_asistente_instrucciones();
+	$json    = 'groq' === $proveedor ? uleam_asistente_llamar_groq( $sistema, $turnos ) : uleam_asistente_llamar_claude( $sistema, $turnos );
+	if ( is_wp_error( $json ) || empty( $json['respuesta'] ) ) {
+		$error = is_wp_error( $json ) ? $json->get_error_message() : 'Respuesta sin texto.';
+		set_transient( 'uleam_asistente_error', ucfirst( $proveedor ) . ' — ' . $error, DAY_IN_SECONDS );
+		error_log( 'Asistente ULEAM (' . $proveedor . '): ' . $error ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
+		return null;
+	}
+	delete_transient( 'uleam_asistente_error' );
+	$sugerencias = array_slice(
+		array_values(
+			array_filter(
+				array_map(
+					function ( $t ) {
+						return mb_substr( trim( sanitize_text_field( (string) $t ) ), 0, 60 );
+					},
+					(array) ( $json['sugerencias'] ?? array() )
+				)
+			)
 		),
+		0,
+		3
 	);
-	$cabeceras = array(
-		'x-api-key'         => $clave,
-		'anthropic-version' => '2023-06-01',
-		'content-type'      => 'application/json',
+	return array(
+		'texto'       => (string) $json['respuesta'],
+		'fuentes'     => array_map( 'intval', (array) ( $json['fuentes'] ?? array() ) ),
+		'sugerencias' => $sugerencias,
 	);
-	if ( 'claude-haiku-4-5' !== $modelo ) {
-		// Chat sencillo: poco razonamiento = respuesta rápida y económica (Haiku 4.5 no admite "effort").
-		$cuerpo['output_config']['effort'] = 'low';
-	}
-	if ( in_array( $modelo, array( 'claude-opus-5-5', 'claude-sonnet-5-5' ), true ) ) {
-		// Si un filtro de seguridad rechaza la consulta, la API la reintenta con otro modelo.
-		$cuerpo['fallbacks']           = 'default';
-		$cabeceras['anthropic-beta']   = 'server-side-fallback-2026-07-01';
-	}
+}
 
-	$resp = wp_remote_post(
-		'https://api.anthropic.com/v1/messages',
-		array(
-			'timeout' => 45,
-			'headers' => $cabeceras,
-			'body'    => wp_json_encode( $cuerpo ),
-		)
-	);
-	if ( is_wp_error( $resp ) ) {
-		error_log( 'Asistente ULEAM: ' . $resp->get_error_message() ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		return null;
-	}
-	$codigo = wp_remote_retrieve_response_code( $resp );
-	$datos  = json_decode( wp_remote_retrieve_body( $resp ), true );
-	if ( 200 !== $codigo || ! is_array( $datos ) ) {
-		error_log( 'Asistente ULEAM: HTTP ' . $codigo . ' ' . substr( wp_remote_retrieve_body( $resp ), 0, 300 ) ); // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log
-		return null;
-	}
-	if ( in_array( $datos['stop_reason'] ?? '', array( 'refusal', 'max_tokens' ), true ) ) {
-		return null;
-	}
-	foreach ( $datos['content'] ?? array() as $bloque ) {
-		if ( 'text' === ( $bloque['type'] ?? '' ) ) {
-			$json = json_decode( $bloque['text'], true );
-			if ( is_array( $json ) && isset( $json['respuesta'] ) ) {
-				return array(
-					'texto'   => (string) $json['respuesta'],
-					'fuentes' => array_map( 'intval', (array) ( $json['fuentes'] ?? array() ) ),
-				);
+/**
+ * Tema de la consulta con las palabras de la persona ("POA", "informes de carreras"), sin
+ * fórmulas de petición. Sirve para que las respuestas suenen naturales.
+ *
+ * @param string $texto Mensaje.
+ * @return string
+ */
+function uleam_asistente_tema( $texto ) {
+	$vacias = uleam_asistente_vacias();
+	$texto  = preg_replace( '/\b(plan(es)? operativos? anual(es)?)\b/iu', 'POA', $texto );
+	$utiles = array();
+	foreach ( preg_split( '/[^\p{L}\p{N}-]+/u', wp_strip_all_tags( $texto ), -1, PREG_SPLIT_NO_EMPTY ) as $w ) {
+		$n = remove_accents( mb_strtolower( $w ) );
+		if ( ( mb_strlen( $n ) >= 3 || ctype_digit( $n ) ) && ! isset( $vacias[ $n ] ) ) {
+			// Siglas en mayúsculas (POA, SGC; "POAs" → "POA"); el resto en minúsculas.
+			if ( preg_match( '/^(\p{Lu}{2,5})s$/u', $w, $m ) ) {
+				$w = $m[1];
 			}
+			$utiles[] = ( mb_strtoupper( $w ) === $w && mb_strlen( $w ) <= 5 ) ? $w : mb_strtolower( $w );
 		}
 	}
-	return null;
+	return implode( ' ', array_slice( $utiles, 0, 6 ) );
+}
+
+/**
+ * Elige una frase de forma estable (la misma consulta, la misma frase), para variar el tono.
+ *
+ * @param array  $frases Opciones.
+ * @param string $semilla Texto base.
+ * @return string
+ */
+function uleam_asistente_variar( $frases, $semilla ) {
+	return $frases[ abs( crc32( $semilla ) ) % count( $frases ) ];
 }
 
 /**
@@ -736,28 +1001,93 @@ function uleam_asistente_ia( $mensaje, $historial, $faqs, $fuentes ) {
  *
  * @param string $mensaje   Consulta.
  * @param array  $historial Turnos anteriores.
- * @return array { html, fuentes, ver_todos, contacto, ia }
+ * @return array { html, fuentes, ver_todos, contacto, sugerencias, ia }
  */
 function uleam_asistente_responder( $mensaje, $historial ) {
-	$contacto = uleam_asistente_contacto();
 	$claves   = uleam_asistente_claves( $mensaje );
 	$palabras = uleam_asistente_palabras( $mensaje );
+	$tiene    = function ( $lista ) use ( $palabras ) {
+		return (bool) array_intersect( $palabras, $lista );
+	};
+	$corta    = count( $palabras ) <= 7;
 
-	// Saludos y agradecimientos sin consulta.
-	if ( ! $claves ) {
-		$gracias = array_intersect( $palabras, array( 'gracias', 'agradezco', 'genial', 'perfecto', 'excelente' ) );
+	// --- Intenciones conversacionales -------------------------------------------------
+	$de_contacto = array( 'persona', 'humano', 'asesor', 'asesora', 'agente', 'operador', 'alguien', 'funcionario', 'hablar', 'comunicar', 'comunicarme', 'contactar', 'llamar', 'atienda', 'atender', 'real' );
+	if ( $corta && $tiene( array_slice( $de_contacto, 0, 8 ) ) && ! array_diff( $claves, $de_contacto ) ) {
 		return array(
-			'html'     => $gracias
-				? '<p>¡Con gusto! Si necesitas algo más, aquí estoy.</p>'
-				: '<p>¡Hola! Cuéntame qué documento o información buscas. Por ejemplo: <em>«informes de autoevaluación 2023»</em> o <em>«horario de atención»</em>.</p>',
+			'html'     => '<p>¡Claro! Puedes comunicarte directamente con el personal de la Dirección. Te atienden de lunes a viernes, de 08:00 a 17:00:</p>',
 			'fuentes'  => array(),
-			'contacto' => false,
+			'contacto' => true,
+		);
+	}
+	if ( $corta && ( ( $tiene( array( 'quien' ) ) && $tiene( array( 'eres', 'eras' ) ) ) || ( $tiene( array( 'que', 'como' ) ) && $tiene( array( 'puedes', 'haces', 'funciona', 'funcionas', 'ayudarme', 'ayudar' ) ) ) ) ) {
+		return array(
+			'html'        => '<p>Soy el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad. Puedo buscarte documentos (formatos, informes, manuales, POA…) y responder dudas frecuentes, a cualquier hora.</p><p>Escríbeme lo que necesitas con tus palabras, por ejemplo: <em>«¿me pasas el POA 2025?»</em>.</p>',
+			'fuentes'     => array(),
+			'contacto'    => false,
+			'sugerencias' => array( 'POA 2025', 'Formatos de planes de mejora', 'Horario de atención' ),
+		);
+	}
+	if ( ! $claves ) {
+		if ( $tiene( array( 'gracias', 'agradezco', 'genial', 'perfecto', 'excelente', 'listo', 'chevere', 'bacan' ) ) ) {
+			$html = uleam_asistente_variar( array( '<p>¡Con gusto! Si necesitas algo más, aquí estoy.</p>', '<p>¡Para eso estoy! ¿Te ayudo con algo más?</p>', '<p>¡Qué bueno que te sirvió! Escríbeme cuando quieras.</p>' ), $mensaje );
+		} elseif ( $tiene( array( 'adios', 'chao', 'hasta', 'luego', 'nos', 'vemos' ) ) ) {
+			$html = '<p>¡Hasta pronto! Que tengas un buen día.</p>';
+		} else {
+			$html = '<p>¡Hola! ¿Qué documento o información estás buscando? Puedes escribírmelo con tus palabras, por ejemplo: <em>«¿me pasas los informes de autoevaluación de 2023?»</em>.</p>';
+		}
+		return array(
+			'html'        => $html,
+			'fuentes'     => array(),
+			'contacto'    => false,
+			'sugerencias' => array( 'POA 2025', 'Horario de atención', 'Formatos de autoevaluación' ),
 		);
 	}
 
-	$faqs     = uleam_asistente_faq( $mensaje );
-	$interp   = uleam_asistente_interpretar( $mensaje );
-	$docs     = uleam_asistente_buscar( 'documento', $interp['claves'], $interp['tax_query'], 6 );
+	// --- Continuación de la conversación: "¿y el de 2023?", "¿y los formatos?" ----------
+	// Si el mensaje no trae tema propio, se toma el del último mensaje que sí lo tenía.
+	$interp = uleam_asistente_interpretar( $mensaje );
+	$texto  = $mensaje;
+	$tema   = uleam_asistente_tema( $mensaje );
+	if ( ! $interp['claves'] && ( $interp['tax_query'] || ( $corta && 'y' === ( $palabras[0] ?? '' ) ) ) ) {
+		for ( $i = count( $historial ) - 1; $i >= 0; $i-- ) {
+			if ( 'usuario' !== $historial[ $i ]['rol'] ) {
+				continue;
+			}
+			$anterior = preg_replace( '/\b(19|20)\d{2}\b/', '', $historial[ $i ]['texto'] );
+			$previa   = uleam_asistente_interpretar( $anterior );
+			if ( ! $previa['claves'] ) {
+				continue;
+			}
+			$interp['claves']   = $previa['claves'];
+			$interp['sin_tipo'] = array( $previa['claves'], $interp['sin_tipo'][1] );
+			// El tipo anterior se mantiene si el mensaje nuevo no pide otro ("¿y los de 2021?").
+			if ( empty( $interp['filtros']['tipo_documento'] ) && ! empty( $previa['filtros']['tipo_documento'] ) ) {
+				foreach ( $previa['tax_query'] as $t ) {
+					if ( 'tipo_documento' === $t['taxonomy'] ) {
+						$interp['tax_query'][] = $t;
+					}
+				}
+				$interp['filtros']['tipo_documento'] = $previa['filtros']['tipo_documento'];
+			}
+			$claves = $previa['claves'];
+			$texto  = $anterior . ' ' . $mensaje;
+			// Tema: lo anterior sin el tipo si ahora se pidió otro ("autoevaluación carreras" + "formatos").
+			$tema_previo = uleam_asistente_tema( $anterior );
+			if ( ! empty( uleam_asistente_interpretar( $mensaje )['filtros']['tipo_documento'] ) ) {
+				$tema_previo = uleam_asistente_tema( implode( ' ', array_diff( preg_split( '/\s+/u', $anterior ), array() ) ) );
+				$tema_previo = trim( preg_replace( '/\b(informes?|formatos?|manual(es)?|instrumentos?|matri(z|ces)|normativas?|cronogramas?|planificaci[oó]n)\b/iu', '', $tema_previo ) );
+			}
+			$nuevo = trim( preg_replace( '/^y\s+/iu', '', uleam_asistente_tema( $mensaje ) ) );
+			// Un año va al final ("POA 2023"); un tipo nuevo, al inicio ("formatos autoevaluación").
+			$tema = preg_match( '/^\d{4}$/', $nuevo ) ? $tema_previo . ' ' . $nuevo : $nuevo . ' ' . $tema_previo;
+			$tema = trim( preg_replace( '/\s+/u', ' ', $tema ) );
+			break;
+		}
+	}
+
+	$faqs = uleam_asistente_faq( $texto );
+	$docs = uleam_asistente_buscar( 'documento', $interp['claves'], $interp['tax_query'], 6 );
 	if ( ! $docs['posts'] && isset( $interp['filtros']['tipo_documento'] ) ) {
 		// "manual de posgrado": quizá está clasificado con otro tipo; buscar la palabra en el título.
 		$docs = uleam_asistente_buscar( 'documento', $interp['sin_tipo'][0], $interp['sin_tipo'][1], 6 );
@@ -784,8 +1114,20 @@ function uleam_asistente_responder( $mensaje, $historial ) {
 			$paginas['posts'] = array_values( $con_titulo );
 		}
 	}
-	$ver_mas  = add_query_arg( array_merge( array( 's' => rawurlencode( implode( ' ', $interp['claves'] ) ) ), $interp['filtros'], $interp['tax_query'] ? array( 'en' => 'documento' ) : array() ), home_url( '/' ) );
-	$fuentes  = array();
+
+	// "Ver todos en el buscador": solo con las palabras que de verdad aparecen en los resultados.
+	$titulos = implode( ' ', array_map( 'uleam_asistente_raiz', uleam_asistente_palabras( implode( ' ', array_map( 'get_the_title', $docs['ids'] ?? array() ) ) ) ) );
+	$utiles  = array_values(
+		array_filter(
+			$interp['claves'],
+			function ( $c ) use ( $titulos ) {
+				return false !== strpos( $titulos, $c );
+			}
+		)
+	);
+	$ver_mas = add_query_arg( array_merge( array( 's' => rawurlencode( implode( ' ', $utiles ) ) ), $interp['filtros'], $interp['tax_query'] ? array( 'en' => 'documento' ) : array() ), home_url( '/' ) );
+
+	$fuentes = array();
 	foreach ( array_merge( $docs['posts'], $paginas['posts'] ) as $p ) {
 		$item = uleam_busqueda_item( $p );
 		if ( 'page' === $item['tipo'] ) {
@@ -799,6 +1141,28 @@ function uleam_asistente_responder( $mensaje, $historial ) {
 		$fuentes[] = $item;
 	}
 	$hay_faq = $faqs && $faqs[0][0] >= 0.5;
+	if ( $hay_faq && $historial ) {
+		$ultimo_bot = '';
+		foreach ( $historial as $turno ) {
+			if ( 'bot' === $turno['rol'] ) {
+				$ultimo_bot = $turno['texto'];
+			}
+		}
+		$inicio_faq = mb_substr( uleam_extracto_limpio( $faqs[0][1]->post_content, 12 ), 0, 40 );
+		if ( $inicio_faq && false !== mb_strpos( $ultimo_bot, rtrim( $inicio_faq, '…' ) ) ) {
+			$hay_faq = false; // ya se dijo: ahora solo los documentos
+		}
+	}
+
+	// Sugerencias para seguir: otros años disponibles de lo que se buscó ("POA 2024", "POA 2023"…).
+	$sugerencias = array();
+	if ( $docs['total'] > 1 && empty( $interp['filtros']['anio'] ) && $tema ) {
+		$anios = array_unique( array_filter( array_map( 'uleam_asistente_anio', $docs['ids'] ?? array() ) ) );
+		rsort( $anios );
+		foreach ( array_slice( $anios, 0, 3 ) as $a ) {
+			$sugerencias[] = $tema . ' ' . $a;
+		}
+	}
 
 	// 1) Con IA: redacta y elige las fuentes.
 	$ia = uleam_asistente_ia( $mensaje, $historial, array_filter( $faqs, function ( $f ) { return $f[0] >= 0.25; } ), $fuentes );
@@ -813,44 +1177,56 @@ function uleam_asistente_responder( $mensaje, $historial ) {
 			uleam_asistente_registrar_sin_respuesta( $mensaje );
 		}
 		return array(
-			'html'      => uleam_asistente_texto_html( $ia['texto'] ),
-			'fuentes'   => uleam_asistente_publicas( $elegidas ),
-			'ver_todos' => $docs['total'] > count( $elegidas ) ? array( 'url' => $ver_mas, 'total' => $docs['total'] ) : null,
-			'contacto'  => ! $elegidas && ! $hay_faq,
-			'ia'        => true,
+			'html'        => uleam_asistente_texto_html( $ia['texto'] ),
+			'fuentes'     => uleam_asistente_publicas( $elegidas ),
+			'ver_todos'   => $docs['total'] > count( $elegidas ) && $elegidas ? array( 'url' => $ver_mas, 'total' => $docs['total'] ) : null,
+			'contacto'    => ! $elegidas && ! $hay_faq,
+			'sugerencias' => $ia['sugerencias'] ? $ia['sugerencias'] : $sugerencias,
+			'ia'          => true,
 		);
 	}
 
 	// 2) Sin IA: pregunta frecuente, documentos encontrados o derivación a la Dirección.
+	$tema_html = esc_html( $tema );
 	if ( $hay_faq ) {
 		// La respuesta escrita por el personal y, debajo, los documentos que coinciden ("POA 2024").
 		$faq      = $faqs[0][1];
-		$con_docs  = array_slice( $fuentes, 0, count( $docs['posts'] ) );
+		$con_docs = array_slice( $fuentes, 0, count( $docs['posts'] ) );
+		$puente   = $con_docs ? '<p>' . ( 1 === count( $con_docs ) ? 'Y aquí tienes el documento:' : 'Y aquí tienes los documentos, del más reciente al más antiguo:' ) . '</p>' : '';
 		return array(
-			'html'      => wp_kses_post( wpautop( do_shortcode( $faq->post_content ) ) ) . ( $con_docs ? '<p><strong>Documentos relacionados:</strong></p>' : '' ),
-			'fuentes'   => uleam_asistente_publicas( $con_docs ),
-			'ver_todos' => $docs['total'] > count( $con_docs ) ? array( 'url' => $ver_mas, 'total' => $docs['total'] ) : null,
-			'contacto'  => false,
+			'html'        => wp_kses_post( wpautop( do_shortcode( $faq->post_content ) ) ) . $puente,
+			'fuentes'     => uleam_asistente_publicas( $con_docs ),
+			'ver_todos'   => $docs['total'] > count( $con_docs ) ? array( 'url' => $ver_mas, 'total' => $docs['total'] ) : null,
+			'contacto'    => false,
+			'sugerencias' => $sugerencias,
 		);
 	}
 	if ( $fuentes ) {
-		$n     = $docs['total'];
-		$texto = $n
-			? sprintf( '<p>Encontré %s relacionado%s con tu consulta%s:</p>', 1 === $n ? 'un documento' : $n . ' documentos', 1 === $n ? '' : 's', $n > count( $docs['posts'] ) ? '. Estos son los más relevantes' : '' )
-			: '<p>No encontré documentos con esas palabras, pero esta información del sitio puede ayudarte:</p>';
+		$n = $docs['total'];
+		if ( 1 === $n ) {
+			$texto = uleam_asistente_variar( array( '¡Listo! Encontré este documento sobre «%s»:', '¡Aquí está! Esto es lo que tengo sobre «%s»:' ), $mensaje );
+		} elseif ( $n > 1 && $n <= 6 ) {
+			$texto = uleam_asistente_variar( array( '¡Claro! Tengo %2$d documentos sobre «%1$s», del más reciente al más antiguo:', '¡Por supuesto! Estos son los %2$d documentos sobre «%1$s» que encontré:' ), $mensaje );
+		} elseif ( $n > 6 ) {
+			$texto = 'Encontré %2$d documentos sobre «%1$s». Te muestro los más relevantes; si buscas uno en particular, dime el año, el área o el tipo de documento.';
+		} else {
+			$texto = 'No tengo un documento con ese nombre, pero esta sección del sitio trata sobre «%1$s»:';
+		}
 		return array(
-			'html'      => $texto,
-			'fuentes'   => uleam_asistente_publicas( $fuentes ),
-			'ver_todos' => $n > count( $docs['posts'] ) ? array( 'url' => $ver_mas, 'total' => $n ) : null,
-			'contacto'  => false,
+			'html'        => '<p>' . sprintf( $texto, $tema_html, $n ) . '</p>',
+			'fuentes'     => uleam_asistente_publicas( $fuentes ),
+			'ver_todos'   => $n > count( $docs['posts'] ) ? array( 'url' => $ver_mas, 'total' => $n ) : null,
+			'contacto'    => false,
+			'sugerencias' => $sugerencias,
 		);
 	}
 
 	uleam_asistente_registrar_sin_respuesta( $mensaje );
 	return array(
-		'html'     => '<p>No encontré información sobre eso en el sitio. Prueba con otras palabras (por ejemplo, el nombre del formato, la carrera o el año) o comunícate con la Dirección y te ayudarán personalmente.</p>',
-		'fuentes'  => array(),
-		'contacto' => true,
+		'html'        => '<p>Mmm, no encontré nada sobre «' . $tema_html . '» en el sitio. ¿Me lo dices con otras palabras? Por ejemplo, el nombre del formato, la carrera o el año.</p><p>Si prefieres, también puedes escribirle directamente al personal de la Dirección:</p>',
+		'fuentes'     => array(),
+		'contacto'    => true,
+		'sugerencias' => array( 'Formatos de autoevaluación', 'POA 2025', 'Hablar con una persona' ),
 	);
 }
 
@@ -945,7 +1321,7 @@ function uleam_asistente_scripts() {
 			'sugerencias' => array_values( array_filter( array_map( 'trim', explode( "\n", $cfg['sugerencias'] ) ) ) ),
 			'email'       => $contacto['email'],
 			'telefono'    => $contacto['telefono'],
-			'ia'          => (bool) uleam_asistente_api_key(),
+			'ia'          => (bool) uleam_asistente_proveedor(),
 		)
 	);
 }
@@ -978,7 +1354,7 @@ function uleam_asistente_html() {
 				<button type="submit" class="asistente__enviar" aria-label="Enviar"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></button>
 			</form>
 			<p class="asistente__aviso">
-				<?php echo uleam_asistente_api_key() ? 'Respuestas generadas con IA a partir del contenido de este sitio; confirma en el documento oficial.' : 'Respuestas automáticas a partir del contenido de este sitio.'; ?>
+				<?php echo uleam_asistente_proveedor() ? 'Respuestas generadas con IA a partir del contenido de este sitio; confirma en el documento oficial.' : 'Respuestas automáticas a partir del contenido de este sitio.'; ?>
 			</p>
 		</section>
 		<button type="button" class="asistente__fab" aria-expanded="false" aria-controls="asistente-panel" aria-label="<?php echo esc_attr( $cfg['nombre'] . ': chat de ayuda' ); ?>">
