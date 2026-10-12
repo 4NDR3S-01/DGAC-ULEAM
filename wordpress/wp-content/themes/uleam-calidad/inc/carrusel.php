@@ -48,6 +48,8 @@ function uleam_carrusel_register() {
 	);
 	// Tamaño para pantallas grandes (se recorta al centro si la imagen original es mayor).
 	add_image_size( 'uleam-carrusel', 1920, 900, true );
+	// Tamaño compacto para las imágenes verticales de Actualidad (768 × 960).
+	add_image_size( 'uleam-actualidad', 768, 960, true );
 }
 add_action( 'init', 'uleam_carrusel_register' );
 

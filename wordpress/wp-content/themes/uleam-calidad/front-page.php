@@ -86,7 +86,7 @@ if ( ! uleam_carrusel_render() ) :
             <?php
             echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
               $foto['id'],
-              'large',
+              'uleam-actualidad',
               false,
               array(
                 'class'   => 'photo-carousel__img',

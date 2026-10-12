@@ -157,6 +157,7 @@
   gap:24px;
   padding:8px 5% 3rem;
   background:#fff;
+  align-items:stretch;
 }
 .panel{
   min-width:0;
@@ -231,7 +232,10 @@
   position:relative;
   padding:0;
   overflow:hidden;
-  min-height:340px;
+  /* Marco compacto para mostrar completa la imagen vertical sin agrandar la sección. */
+  aspect-ratio:4 / 3;
+  min-height:0;
+  align-self:start;
   background:#e8eef5;
 }
 .photo-carousel__track{
@@ -259,12 +263,9 @@
   width:100%;
   height:100%;
   object-fit:cover;
+  background:#e8eef5;
   display:block;
-  transform:scale(1.06);
-  transition:transform 6s ease-out;
 }
-/* Acercamiento suave mientras la foto está visible */
-.photo-carousel__slide.is-active .photo-carousel__img{transform:scale(1)}
 .photo-carousel__nav,.photo-carousel__dots{z-index:2}
 .photo-carousel__caption{
   position:absolute;
@@ -323,7 +324,6 @@
 .photo-carousel__dot.is-active{width:22px;background:#fff}
 @media (prefers-reduced-motion:reduce){
   .photo-carousel__slide,.photo-carousel__slide.is-active{transition:none}
-  .photo-carousel__img{transform:none;transition:none}
 }
 
 /* Biblioteca Rápida de Documentos */
@@ -426,7 +426,7 @@
   .hero-copy{padding:45px 7%}
   .hero-copy .hero-titulo{font-size:38px}
   .two-col{grid-template-columns:minmax(0,1fr)}
-  .photo-carousel{min-height:0;aspect-ratio:4 / 3}
+  .photo-carousel{align-self:stretch}
 }
 @media(max-width:560px){
   .quick-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
