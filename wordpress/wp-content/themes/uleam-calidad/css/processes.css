@@ -819,7 +819,7 @@
 }
 .dgac-files-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns:1fr;
   gap:10px;
 }
 .dgac-file-card{
@@ -859,9 +859,9 @@
   font-weight:600;
   color:#1e293b;
   margin:0;
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
+  white-space:normal;
+  overflow-wrap:anywhere;
+  line-height:1.35;
 }
 .dgac-file-card__meta{
   font-size:11px;
@@ -1048,3 +1048,17 @@ a.dgac-catalog-card{
   text-decoration:none;
   color:inherit;
 }
+
+/* Página de un procedimiento (Manual / Flujo / Formatos / Versiones anteriores) */
+.dgac-proc-page{max-width:980px;margin:0 auto;padding:0 16px 40px}
+.dgac-proc-page__ruta{font-size:13px;color:#475569;margin:0 0 14px}
+.dgac-proc-page__ruta a{color:var(--uleam-blue-700);font-weight:600;text-decoration:none}
+.dgac-proc-page__tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;border-bottom:2px solid #e2e8f0;padding-bottom:10px}
+.dgac-proc-page__tab{background:#fff;border:1px solid #cbd5e1;border-radius:8px;padding:8px 14px;font-weight:600;font-size:14px;cursor:pointer;color:#1e293b;display:inline-flex;align-items:center;gap:8px}
+.dgac-proc-page__tab.is-active{background:var(--uleam-red-700);border-color:var(--uleam-red-700);color:#fff}
+.dgac-proc-page__count{background:rgba(0,0,0,.08);border-radius:999px;padding:0 8px;font-size:12px}
+.dgac-proc-page__panel{display:none}
+.dgac-proc-page__panel.is-active{display:block}
+.dgac-proc-page__sub{font-size:15px;margin:18px 0 8px;color:#991b1b;display:flex;gap:8px;align-items:center}
+.dgac-proc-empty{color:#64748b;font-size:14px;margin:8px 0}
+.dgac-proc-pagelink{margin:12px 0 0}

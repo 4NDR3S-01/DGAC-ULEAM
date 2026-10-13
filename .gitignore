@@ -25,3 +25,7 @@
 # Importador de WordPress (solo se usó para la migración)
 /wordpress/wp-content/plugins/wordpress-importer/
 /wordpress/wp-content/languages/plugins/wordpress-importer-*
+
+# Caché del rastreo del sitio oficial (12 MB, solo para regenerar datos)
+/.migracion-oficial/
+/archivos-faltantes.txt
