@@ -383,6 +383,11 @@
   }
 
   document.querySelectorAll('.dgac-repo').forEach(function (repo) {
+    // Asegurar que todos los acordeones de año comiencen recogidos / cerrados
+    repo.querySelectorAll('.dgac-year-accordion').forEach(function (d) {
+      d.open = false;
+    });
+
     var repoTabs = repo.querySelectorAll('.dgac-repo-tab');
     var panels = repo.querySelectorAll('.dgac-repo-panel');
     var input = repo.querySelector('.dgac-repo-search__input');

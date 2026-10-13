@@ -495,17 +495,15 @@ function uleam_repositorio_seccion( $seccion ) {
 	$html = $sin_anio ? uleam_repositorio_grupos( $sin_anio ) : '';
 	if ( $por_anio ) {
 		$html .= '<div class="dgac-archive-section">';
-		$first = ! $sin_anio;
 		foreach ( $por_anio as $anio => $lista ) {
 			$pill  = preg_match( '/^\d{4}/', $anio ) ? 'green' : 'gray';
 			$icon  = 'green' === $pill ? 'fa-calendar-days' : 'fa-box-archive';
-			$html .= '<details class="dgac-year-accordion"' . ( $first ? ' open' : '' ) . '>'
+			$html .= '<details class="dgac-year-accordion">'
 				. '<summary class="dgac-year-summary"><div class="dgac-year-summary-left">'
 				. '<span class="dgac-year-pill dgac-year-pill--' . $pill . '"><i class="fa-solid ' . $icon . '" aria-hidden="true"></i> ' . esc_html( $anio ) . '</span>'
 				. '<span class="dgac-year-count" data-total="' . esc_attr( uleam_n_documentos( count( $lista ) ) ) . '">' . esc_html( uleam_n_documentos( count( $lista ) ) ) . '</span>'
 				. '</div><span class="dgac-year-chevron"><i class="fa-solid fa-chevron-down" aria-hidden="true"></i></span></summary>'
 				. '<div class="dgac-year-content">' . uleam_repositorio_grupos( $lista ) . '</div></details>';
-			$first = false;
 		}
 		$html .= '</div>';
 	}
