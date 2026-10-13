@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constantes globales del tema
 define( 'ULEAM_THEME_DIR', get_template_directory() );
 define( 'ULEAM_THEME_URI', get_template_directory_uri() );
-define( 'ULEAM_THEME_VERSION', '1.31.0' );
+define( 'ULEAM_THEME_VERSION', '1.34.0' );
 
 // 1. Configuración básica y encolado de estilos/scripts
 require_once ULEAM_THEME_DIR . '/inc/setup.php';
