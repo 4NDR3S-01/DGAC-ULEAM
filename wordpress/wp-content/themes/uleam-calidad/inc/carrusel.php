@@ -527,7 +527,7 @@ function uleam_carrusel_render() {
 								<p class="carrusel__texto"><?php echo esc_html( $s['texto'] ); ?></p>
 							<?php endif; ?>
 							<?php if ( $s['boton'] && $s['enlace'] ) : ?>
-								<a class="btn carrusel__boton" href="<?php echo esc_url( $s['enlace'] ); ?>"><?php echo esc_html( $s['boton'] ); ?> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+								<a class="btn carrusel__boton" href="<?php echo esc_url( uleam_url( $s['enlace'] ) ); ?>"><?php echo esc_html( $s['boton'] ); ?> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
 							<?php endif; ?>
 						</div>
 					</div>

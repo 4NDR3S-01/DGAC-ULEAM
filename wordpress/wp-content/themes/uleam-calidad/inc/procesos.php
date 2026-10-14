@@ -190,9 +190,44 @@ function uleam_procesos_norm( $a ) {
 	return array(
 		't' => (string) ( $a['t'] ?? '' ),
 		's' => $sec,
-		'u' => (string) ( $a['u'] ?? '' ),
+		'u' => uleam_procesos_url( (string) ( $a['u'] ?? '' ) ),
 		'd' => (string) ( $a['d'] ?? '' ),
 	);
+}
+
+/**
+ * Enlace de un archivo: las rutas "/wp-content/uploads/…" se resuelven con la
+ * carpeta de subidas real, así funcionan aunque el sitio viva en una subcarpeta.
+ *
+ * @param string $u Enlace guardado.
+ * @return string
+ */
+function uleam_procesos_url( $u ) {
+	if ( 0 === strpos( $u, '/wp-content/uploads/' ) ) {
+		return uleam_url( $u );
+	}
+	return $u;
+}
+
+/**
+ * Elemento sin archivo que solo informa (p. ej. "Procedimiento sin versiones anteriores").
+ * Los formatos sin archivo llevan código (PAT-05-IT-001-F-003…) y sí cuentan como documento.
+ *
+ * @param array $a Archivo normalizado.
+ * @return bool
+ */
+function uleam_procesos_es_nota( $a ) {
+	return '' === $a['u'] && ! preg_match( '/\b[A-Z]{2,4}-\d{2}/', $a['t'] );
+}
+
+/**
+ * Cuántos documentos hay en una lista (sin contar las notas).
+ *
+ * @param array $lista Archivos normalizados.
+ * @return int
+ */
+function uleam_procesos_contar( $lista ) {
+	return count( array_filter( $lista, fn( $a ) => ! uleam_procesos_es_nota( $a ) ) );
 }
 
 /**
@@ -249,7 +284,7 @@ function uleam_procesos_metabox_html( $post ) {
 	echo '</div>';
 	echo '<p><button type="button" class="button button-primary" id="uleam-arch-elegir"><span class="dashicons dashicons-upload" style="vertical-align:text-bottom"></span> Elegir o subir archivos</button> ';
 	echo '<button type="button" class="button" id="uleam-arch-vacio">Añadir enlace manual</button></p>';
-	echo '<p class="description">Puedes elegir varios archivos a la vez de la Biblioteca de medios. Ordénalos moviéndolos con arrastrar y soltar.</p>';
+	echo '<p class="description">Puedes elegir varios archivos a la vez de la Biblioteca de medios. Ordénalos moviéndolos con arrastrar y soltar. Si un formato no tiene archivo (por ejemplo, se genera en el sistema) o quieres dejar una aclaración ("Procedimiento sin versiones anteriores"), escribe solo el nombre y deja el enlace vacío: se mostrará como información, sin botón de descarga.</p>';
 	echo '<template id="uleam-arch-plantilla">' . uleam_procesos_fila( array() ) . '</template>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	echo '<p><strong>Ubicación:</strong> marca a la derecha, en <em>Estructura de procesos</em>, el proceso (o macroproceso) donde aparece. Puedes marcar más de uno.</p>';
 }
@@ -319,13 +354,14 @@ function uleam_procesos_guardar( $post_id ) {
 	$u   = (array) ( $_POST['proc_arch_u'] ?? array() );
 	$out = array();
 	foreach ( $u as $i => $url ) {
-		$url = esc_url_raw( trim( wp_unslash( $url ) ) );
-		if ( '' === $url ) {
+		$url    = esc_url_raw( trim( wp_unslash( $url ) ) );
+		$titulo = sanitize_text_field( wp_unslash( $t[ $i ] ?? '' ) );
+		if ( '' === $url && '' === $titulo ) { // Sin enlace se guarda igual: formato "generado en el sistema" o nota.
 			continue;
 		}
 		$sec   = sanitize_key( wp_unslash( $k[ $i ] ?? 'manual' ) );
 		$out[] = array(
-			't' => sanitize_text_field( wp_unslash( $t[ $i ] ?? '' ) ),
+			't' => $titulo,
 			's' => isset( uleam_procesos_secciones()[ $sec ] ) ? $sec : 'manual',
 			'd' => sanitize_text_field( wp_unslash( $d[ $i ] ?? '' ) ),
 			'u' => $url,
@@ -365,6 +401,9 @@ function uleam_procesos_ordenar( $terms ) {
  * @return string
  */
 function uleam_procesos_tarjeta( $a ) {
+	if ( '' === $a['u'] ) {
+		return uleam_procesos_tarjeta_info( $a );
+	}
 	$ext  = strtolower( pathinfo( wp_parse_url( $a['u'], PHP_URL_PATH ) ?: '', PATHINFO_EXTENSION ) );
 	$cls  = 'pdf' === $ext ? 'pdf' : 'docx';
 	$icon = 'pdf' === $ext ? 'fa-file-pdf' : ( 0 === strpos( $ext, 'xls' ) ? 'fa-file-excel' : 'fa-file-word' );
@@ -390,25 +429,55 @@ function uleam_procesos_tarjeta( $a ) {
 }
 
 /**
+ * Tarjeta sin archivo: formato que se genera en un sistema o nota aclaratoria.
+ *
+ * @param array $a Archivo normalizado (t, s, u, d).
+ * @return string
+ */
+function uleam_procesos_tarjeta_info( $a ) {
+	$nota = uleam_procesos_es_nota( $a );
+	$meta = '' !== $a['d'] ? $a['d'] : ( $nota ? '' : 'Sin archivo descargable' );
+	ob_start();
+	?>
+<div class="dgac-file-card dgac-file-card--info">
+<div class="dgac-file-card__left">
+<div class="dgac-file-card__icon dgac-file-card__icon--info"><i class="fa-solid <?php echo $nota ? 'fa-circle-info' : 'fa-file-circle-exclamation'; ?>" aria-hidden="true"></i></div>
+<div class="dgac-file-card__info">
+<div class="dgac-file-card__name"><?php echo esc_html( $a['t'] ); ?></div>
+	<?php if ( '' !== $meta ) : ?>
+<div class="dgac-file-card__meta"><?php echo esc_html( $meta ); ?></div>
+	<?php endif; ?>
+</div>
+</div>
+</div>
+	<?php
+	return ob_get_clean();
+}
+
+/**
  * Pestañas Manual / Flujo / Formatos / Versiones anteriores de un procedimiento.
  *
  * @param array $g Archivos agrupados por sección (uleam_procesos_archivos).
  * @return string
  */
 function uleam_procesos_tabs_html( $g ) {
-	$ant  = count( $g['ant_manual'] ) + count( $g['ant_flujo'] ) + count( $g['ant_formato'] );
+	$ant  = uleam_procesos_contar( $g['ant_manual'] ) + uleam_procesos_contar( $g['ant_flujo'] ) + uleam_procesos_contar( $g['ant_formato'] );
 	$tabs = array(
-		'manual'  => array( 'Manual vigente', 'fa-book', count( $g['manual'] ) ),
-		'flujo'   => array( 'Flujo vigente', 'fa-diagram-project', count( $g['flujo'] ) ),
-		'formato' => array( 'Formatos vigentes', 'fa-file-lines', count( $g['formato'] ) ),
+		'manual'  => array( 'Manual vigente', 'fa-book', uleam_procesos_contar( $g['manual'] ) ),
+		'flujo'   => array( 'Flujo vigente', 'fa-diagram-project', uleam_procesos_contar( $g['flujo'] ) ),
+		'formato' => array( 'Formatos vigentes', 'fa-file-lines', uleam_procesos_contar( $g['formato'] ) ),
 		'ant'     => array( 'Versiones Anteriores', 'fa-clock-rotate-left', $ant ),
 	);
-	$activa = 'manual';
+	$activa = '';
 	foreach ( $tabs as $k => $t ) {
 		if ( $t[2] ) {
 			$activa = $k;
 			break;
 		}
+	}
+	if ( ! $activa ) { // Solo hay notas: se abre la primera pestaña que tenga alguna.
+		$con    = array_filter( array( 'manual' => $g['manual'], 'flujo' => $g['flujo'], 'formato' => $g['formato'] ) );
+		$activa = $con ? array_key_first( $con ) : ( $g['ant_manual'] || $g['ant_flujo'] || $g['ant_formato'] ? 'ant' : 'manual' );
 	}
 	$grid = function ( $lista ) {
 		$h = '<div class="dgac-files-grid">';
@@ -428,12 +497,13 @@ function uleam_procesos_tabs_html( $g ) {
 	}
 	$h .= '<div class="dgac-proc-page__panel' . ( 'ant' === $activa ? ' is-active' : '' ) . '" data-panel="ant" role="tabpanel">';
 	foreach ( array( 'ant_manual', 'ant_flujo', 'ant_formato' ) as $sec ) {
-		if ( $g[ $sec ] ) {
+		if ( $g[ $sec ] && uleam_procesos_contar( $g[ $sec ] ) ) {
 			$h .= '<h3 class="dgac-proc-page__sub"><i class="fa-solid fa-ban" aria-hidden="true"></i> ' . esc_html( uleam_procesos_secciones()[ $sec ] ) . '</h3>' . $grid( $g[ $sec ] );
 		}
 	}
 	if ( ! $ant ) {
-		$h .= '<p class="dgac-proc-empty">No hay versiones anteriores publicadas.</p>';
+		$notas = array_merge( $g['ant_manual'], $g['ant_flujo'], $g['ant_formato'] );
+		$h    .= $notas ? $grid( $notas ) : '<p class="dgac-proc-empty">No hay versiones anteriores publicadas.</p>';
 	}
 	return $h . '</div></div>';
 }
@@ -458,8 +528,9 @@ function uleam_procesos_render_proc( $p, $ctx ) {
 	$g     = uleam_procesos_archivos( $p->ID );
 	$vig   = array_merge( $g['manual'], $g['flujo'], $g['formato'] );
 	$total = count( $vig ) + count( $g['ant_manual'] ) + count( $g['ant_flujo'] ) + count( $g['ant_formato'] );
+	$docs  = uleam_procesos_contar( $vig ) + uleam_procesos_contar( $g['ant_manual'] ) + uleam_procesos_contar( $g['ant_flujo'] ) + uleam_procesos_contar( $g['ant_formato'] );
 	$term  = remove_accents( mb_strtolower( $p->post_title . ' ' . $ctx ) );
-	$btn   = $total ? sprintf( _n( '%d archivo', '%d archivos', $total ), $total ) : 'Ver Archivos';
+	$btn   = $docs ? sprintf( _n( '%d archivo', '%d archivos', $docs ), $docs ) : 'Ver Archivos';
 	ob_start();
 	?>
 <details class="dgac-proc-row" data-search-term="<?php echo esc_attr( $term ); ?>">
@@ -628,7 +699,7 @@ add_shortcode( 'procesos_universitarios', 'uleam_procesos_shortcode' );
  * Sincronización con los datos iniciales (una vez por versión de datos)
  * ------------------------------------------------------------------ */
 
-const ULEAM_PROC_DATOS_VERSION = '12';
+const ULEAM_PROC_DATOS_VERSION = '13';
 
 /**
  * Crea o actualiza la estructura y los procedimientos desde inc/data/procesos-iniciales.json
@@ -879,12 +950,12 @@ function uleam_procesos_info_shortcode() {
 <div class="dgac-catalog-banner__head"><i class="fa-solid fa-thumbtack" aria-hidden="true"></i>
 <h3>Consulte los Manuales de Procedimientos, Guías, Instructivos y Formatos vigentes en los siguientes Catálogos:</h3></div>
 <div class="dgac-catalog-cards">
-<a href="<?php echo esc_url( $i['cat_proc'] ); ?>" class="dgac-catalog-card dgac-catalog-card--procedimientos" target="_blank" rel="noopener">
+<a href="<?php echo esc_url( uleam_url( $i['cat_proc'] ) ); ?>" class="dgac-catalog-card dgac-catalog-card--procedimientos" target="_blank" rel="noopener">
 <div class="dgac-catalog-card__info"><div class="dgac-catalog-card__icon"><i class="fa-solid fa-book-bookmark" aria-hidden="true"></i></div>
 <div><h4 class="dgac-catalog-card__title">Catálogo de Procedimientos Institucionales</h4><p class="dgac-catalog-card__desc">Compendio unificado de manuales, instructivos y guías vigentes</p></div></div>
 <span class="dgac-catalog-card__btn"><i class="fa-solid fa-file-pdf" aria-hidden="true"></i> Consultar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
 </a>
-<a href="<?php echo esc_url( $i['cat_form'] ); ?>" class="dgac-catalog-card dgac-catalog-card--formatos" target="_blank" rel="noopener">
+<a href="<?php echo esc_url( uleam_url( $i['cat_form'] ) ); ?>" class="dgac-catalog-card dgac-catalog-card--formatos" target="_blank" rel="noopener">
 <div class="dgac-catalog-card__info"><div class="dgac-catalog-card__icon"><i class="fa-solid fa-folder-tree" aria-hidden="true"></i></div>
 <div><h4 class="dgac-catalog-card__title">Catálogo de Formatos Institucionales</h4><p class="dgac-catalog-card__desc">Plantillas y formatos oficiales aprobados por la DGAC</p></div></div>
 <span class="dgac-catalog-card__btn"><i class="fa-solid fa-file-lines" aria-hidden="true"></i> Consultar <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
@@ -931,7 +1002,7 @@ function uleam_procesos_info_shortcode() {
 		$partes = array_map( 'trim', explode( '|', $linea, 2 ) );
 		$texto  = esc_html( $partes[0] );
 		if ( ! empty( $partes[1] ) ) {
-			$texto = '<a href="' . esc_url( $partes[1] ) . '" target="_blank" rel="noopener">' . $texto . '</a>';
+			$texto = '<a href="' . esc_url( uleam_url( $partes[1] ) ) . '" target="_blank" rel="noopener">' . $texto . '</a>';
 		}
 		echo '<div class="dgac-product-item"><i class="fa-solid fa-circle-check" aria-hidden="true"></i> <span>' . $texto . '</span></div>'; // phpcs:ignore WordPress.Security.EscapeOutput
 	}

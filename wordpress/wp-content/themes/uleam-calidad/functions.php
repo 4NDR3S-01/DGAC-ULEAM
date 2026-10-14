@@ -28,7 +28,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constantes globales del tema
 define( 'ULEAM_THEME_DIR', get_template_directory() );
 define( 'ULEAM_THEME_URI', get_template_directory_uri() );
-define( 'ULEAM_THEME_VERSION', '1.34.0' );
+define( 'ULEAM_THEME_VERSION', '1.41.1' );
 
 // 1. Configuración básica y encolado de estilos/scripts
 require_once ULEAM_THEME_DIR . '/inc/setup.php';
@@ -71,3 +71,6 @@ require_once ULEAM_THEME_DIR . '/inc/asistente.php';
 
 // 14. Gestión de Procesos: procedimientos, estructura y archivos editables sin código
 require_once ULEAM_THEME_DIR . '/inc/procesos.php';
+
+// Redirecciones de las direcciones del sitio anterior (Herramientas → Redirecciones).
+require_once ULEAM_THEME_DIR . '/inc/redirecciones.php';

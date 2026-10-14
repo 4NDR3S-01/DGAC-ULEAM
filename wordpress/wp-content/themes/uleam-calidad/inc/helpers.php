@@ -38,3 +38,55 @@ function uleam_icon( $name ) {
 
 	return '<i class="' . esc_attr( $map[ $name ] ) . '" aria-hidden="true"></i>';
 }
+
+/**
+ * Convierte un enlace que empieza con "/" (p. ej. "/poa/" o "/wp-content/uploads/…") en la dirección
+ * completa del sitio. Así los enlaces siguen funcionando aunque el sitio viva en una subcarpeta
+ * (departamentos.uleam.edu.ec/gestion-aseguramiento-calidad/).
+ *
+ * @param string $u Enlace.
+ * @return string
+ */
+function uleam_url( $u ) {
+	if ( ! is_string( $u ) || ! preg_match( '#^/(?!/)#', $u ) ) {
+		return $u;
+	}
+	if ( 0 === strpos( $u, '/wp-content/uploads/' ) ) {
+		return wp_upload_dir()['baseurl'] . substr( $u, strlen( '/wp-content/uploads' ) );
+	}
+	return home_url( $u );
+}
+
+/**
+ * Aplica uleam_url() a los enlaces del contenido escrito en el editor.
+ *
+ * @param string $html Contenido.
+ * @return string
+ */
+function uleam_url_contenido( $html ) {
+	if ( false === strpos( $html, '="/' ) ) {
+		return $html;
+	}
+	return preg_replace_callback(
+		'#\b(href|src)=(["\'])(/(?!/)[^"\']*)\2#',
+		function ( $m ) {
+			return $m[1] . '=' . $m[2] . esc_url( uleam_url( html_entity_decode( $m[3] ) ) ) . $m[2];
+		},
+		$html
+	);
+}
+add_filter( 'the_content', 'uleam_url_contenido', 20 );
+
+/**
+ * Enlaces personalizados de los menús escritos como "/ruta/".
+ *
+ * @param array $atts Atributos del enlace.
+ * @return array
+ */
+function uleam_url_menu( $atts ) {
+	if ( isset( $atts['href'] ) ) {
+		$atts['href'] = uleam_url( $atts['href'] );
+	}
+	return $atts;
+}
+add_filter( 'nav_menu_link_attributes', 'uleam_url_menu', 5 );

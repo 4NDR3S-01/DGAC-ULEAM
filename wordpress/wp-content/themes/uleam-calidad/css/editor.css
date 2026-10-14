@@ -1,0 +1,18 @@
+/* Solo en el editor de WordPress: muestra las ventanas de opciones de "Inicio" (que en el sitio
+   quedan ocultas hasta pulsar su tarjeta) para que se puedan editar. */
+.quick-modal{
+  display:block !important;
+  margin:24px 0;
+  padding:16px;
+  border:2px dashed #46a4ff;
+  border-radius:12px;
+}
+.quick-modal::before{
+  content:"Ventana emergente (se abre al pulsar la tarjeta que enlaza a #" attr(id) ")";
+  display:block;
+  margin-bottom:8px;
+  font:600 12px/1.4 sans-serif;
+  color:#0059a8;
+}
+.quick-modal__opcion{display:block;margin:8px 0;padding:10px 12px;border:1px solid #d6e2ef;border-radius:8px}
+.quick-modal__opcion strong,.quick-modal__desc{display:block}

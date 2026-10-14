@@ -74,6 +74,7 @@ function uleam_editor_styles() {
 			'css/documents.css',
 			'css/contacts.css',
 			'css/repositorio.css',
+			'css/editor.css',
 		)
 	);
 }

@@ -549,6 +549,31 @@ a:hover > .fa-chevron-right,
       opacity .6s ease var(--ui-retraso, 0s),
       transform .8s cubic-bezier(.33, 1, .68, 1) var(--ui-retraso, 0s);
   }
+  /* Actualidad: los dos paneles suben poco y despacio, la galería un instante después,
+     y las noticias aparecen en cascada dentro del panel. */
+  .ui-revelar .two-col > .ui-oculto{ transform:translateY(16px); }
+  .ui-revelar .two-col > .ui-oculto + .ui-oculto{ --ui-retraso:.12s !important; }
+  .ui-revelar .two-col > .ui-visible{
+    opacity:1;
+    transform:none;   /* misma especificidad que el estado oculto de arriba: sin esto no se movía y saltaba al final */
+    transition:
+      opacity .7s ease var(--ui-retraso, 0s),
+      transform 1s var(--ease-out) var(--ui-retraso, 0s);
+  }
+  .ui-revelar .ui-oculto .news-item,
+  .ui-revelar .ui-oculto .news-more{ opacity:0; transform:translateY(8px); }
+  .ui-revelar .ui-visible .news-item,
+  .ui-revelar .ui-visible .news-more{
+    opacity:1;
+    transform:none;
+    transition:opacity .45s ease, transform .6s var(--ease-out);
+  }
+  .ui-revelar .ui-visible .news-item:nth-child(1){ transition-delay:.15s; }
+  .ui-revelar .ui-visible .news-item:nth-child(2){ transition-delay:.22s; }
+  .ui-revelar .ui-visible .news-item:nth-child(3){ transition-delay:.29s; }
+  .ui-revelar .ui-visible .news-item:nth-child(4){ transition-delay:.36s; }
+  .ui-revelar .ui-visible .news-item:nth-child(n+5){ transition-delay:.4s; }
+  .ui-revelar .ui-visible .news-more{ transition-delay:.43s; }
 }
 
 @keyframes ui-subir{

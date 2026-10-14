@@ -21,7 +21,7 @@ function uleam_defaults() {
 	return array(
 		'uleam_hero_titulo'    => 'Trabajamos por una<br>cultura de <span>calidad</span>',
 		'uleam_hero_subtitulo' => 'Promovemos la gestión, evaluación y mejora continua de los procesos académicos y administrativos de la Universidad.',
-		'uleam_telefono'       => '05 2623 740 ext. 181 / 182',
+		'uleam_telefono'       => '05-2623-740 ext. 224-188',
 		'uleam_email'          => 'calidad@uleam.edu.ec',
 		'uleam_direccion'      => 'Av. Circunvalación - Vía a San Mateo, Manta - Manabí - Ecuador',
 		'uleam_sobre'          => 'Somos responsables de promover y asegurar la calidad institucional a través de la gestión, evaluación y mejora continua de los procesos.',
@@ -34,6 +34,12 @@ function uleam_defaults() {
 		'uleam_noticia_imagen' => '',
 		'uleam_carrusel_auto'      => 1,
 		'uleam_carrusel_intervalo' => 5,
+		'uleam_pie_sobre'      => 'Sobre la Dirección',
+		'uleam_pie_enlaces'    => 'Enlaces rápidos',
+		'uleam_pie_contacto'   => 'Contacto',
+		'uleam_pie_redes'      => 'Síguenos',
+		'uleam_copyright'      => '© {año} Universidad Laica Eloy Alfaro de Manabí - Todos los derechos reservados.',
+		'uleam_analytics'      => '',
 	);
 }
 
@@ -98,6 +104,12 @@ function uleam_customize_register( $wp_customize ) {
 		'uleam_instagram'      => array( 'label' => 'Instagram (dejar vacío para ocultar)', 'type' => 'url' ),
 		'uleam_tiktok'         => array( 'label' => 'TikTok (dejar vacío para ocultar)', 'type' => 'url' ),
 		'uleam_noticia_imagen' => array( 'label' => 'Imagen predeterminada de noticias (para las que no tienen imagen)', 'type' => 'image' ),
+		'uleam_pie_sobre'      => array( 'label' => 'Pie de página: título de la primera columna', 'type' => 'text' ),
+		'uleam_pie_enlaces'    => array( 'label' => 'Pie de página: título de los enlaces rápidos', 'type' => 'text' ),
+		'uleam_pie_contacto'   => array( 'label' => 'Pie de página: título de contacto', 'type' => 'text' ),
+		'uleam_pie_redes'      => array( 'label' => 'Pie de página: título de redes sociales', 'type' => 'text' ),
+		'uleam_copyright'      => array( 'label' => 'Pie de página: línea de derechos ({año} se cambia solo por el año actual)', 'type' => 'text' ),
+		'uleam_analytics'      => array( 'label' => 'Google Analytics: ID de medición (G-XXXXXXX). Vacío = desactivado. El sitio anterior usaba G-G31S309ZPB.', 'type' => 'text' ),
 	);
 
 	$defaults = uleam_defaults();
@@ -113,6 +125,11 @@ function uleam_customize_register( $wp_customize ) {
 		} elseif ( 'checkbox' === $cfg['type'] ) {
 			$sanitize = function ( $v ) {
 				return $v ? 1 : 0;
+			};
+		} elseif ( 'uleam_analytics' === $id ) {
+			$sanitize = function ( $v ) {
+				$v = strtoupper( trim( (string) $v ) );
+				return preg_match( '/^G-[A-Z0-9]{4,20}$/', $v ) ? $v : '';
 			};
 		} elseif ( 'number' === $cfg['type'] ) {
 			$sanitize = function ( $v ) {
@@ -258,3 +275,18 @@ function uleam_carrusel_fotos() {
 	}
 	return $fotos;
 }
+
+/**
+ * Google Analytics (solo si se configuró un ID en el Personalizador).
+ */
+function uleam_analytics() {
+	$id = uleam_opt( 'uleam_analytics' );
+	if ( ! $id || is_user_logged_in() ) { // El personal que edita no cuenta como visita.
+		return;
+	}
+	?>
+<script async src="https://www.googletagmanager.com/gtag/js?id=<?php echo esc_attr( $id ); ?>"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config',<?php echo wp_json_encode( $id ); ?>);</script>
+	<?php
+}
+add_action( 'wp_head', 'uleam_analytics', 1 );

@@ -73,6 +73,10 @@
   // izquierda entra desde la izquierda y el de la derecha desde la derecha; el resto, desde abajo.
   orden.forEach(function (total, padre) {
     var hijos = elementos.filter(function (el) { return el.parentElement === padre; });
+    // En "Actualidad" no: dos paneles grandes que chocan en el centro se sienten bruscos; ahí suben juntos.
+    if (padre.classList.contains('two-col')) {
+      return;
+    }
     if (hijos.length === 2 && Math.abs(hijos[0].getBoundingClientRect().top - hijos[1].getBoundingClientRect().top) < 4) {
       hijos[0].classList.add('ui-desde-izq');
       hijos[1].classList.add('ui-desde-der');

@@ -4,23 +4,55 @@
 (function () {
   'use strict';
 
-  // Carrusel de fotos de la portada: cambia sola cada 6 s con un fundido (se detiene al pasar el ratón o enfocar)
-  document.querySelectorAll('.photo-carousel').forEach(function (carousel) {
-    var track = carousel.querySelector('.photo-carousel__track');
-    var slides = carousel.querySelectorAll('.photo-carousel__slide');
-    var dots = carousel.querySelectorAll('.photo-carousel__dot');
+  // Galería de fotos de "Actualidad": fundido cruzado con la foto ya cargada (sin saltos), cambio
+  // automático con botón de pausa (WCAG 2.2.2) y pausa sola al pasar el ratón, enfocar, salir de
+  // pantalla u ocultar la pestaña. Con "reducir movimiento" no avanza sola.
+  document.querySelectorAll('.gallery').forEach(function (gallery) {
+    var track = gallery.querySelector('.gallery__track');
+    var slides = Array.prototype.slice.call(gallery.querySelectorAll('.gallery__slide'));
+    var dots = Array.prototype.slice.call(gallery.querySelectorAll('.gallery__dot'));
+    var toggle = gallery.querySelector('.gallery__btn--toggle');
     if (!track || slides.length < 2) {
       return;
     }
+    var INTERVALO = 3500;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     var current = 0;
     var timer = null;
-    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var userPaused = reduceMotion; // la pausa elegida por la persona manda sobre todo lo demás
+    var holds = {};                // motivos de pausa temporal: hover, focus, offscreen, hidden
+    var pendiente = 0;
+    var restante = INTERVALO;      // lo que falta para la siguiente foto (se conserva al pausar)
+    var inicio = 0;
 
-    function goTo(index) {
+    gallery.style.setProperty('--gallery-intervalo', INTERVALO / 1000 + 's');
+
+    function imagenesDe(slide) {
+      return Array.prototype.slice.call(slide.querySelectorAll('img'));
+    }
+
+    // Carga y decodifica las fotos de una diapositiva antes de mostrarla (evita que "aparezca de golpe").
+    function preparar(slide) {
+      return Promise.all(imagenesDe(slide).map(function (img) {
+        img.loading = 'eager';
+        if (img.complete && img.naturalWidth) {
+          return img.decode ? img.decode().catch(function () {}) : Promise.resolve();
+        }
+        return new Promise(function (ok) {
+          img.addEventListener('load', ok, { once: true });
+          img.addEventListener('error', ok, { once: true });
+        }).then(function () {
+          return img.decode ? img.decode().catch(function () {}) : null;
+        });
+      }));
+    }
+
+    function mostrar(index) {
       current = (index + slides.length) % slides.length;
       slides.forEach(function (slide, i) {
-        slide.classList.toggle('is-active', i === current);
-        if (i === current) {
+        var activa = i === current;
+        slide.classList.toggle('is-active', activa);
+        if (activa) {
           slide.removeAttribute('aria-hidden');
         } else {
           slide.setAttribute('aria-hidden', 'true');
@@ -33,74 +65,434 @@
         } else {
           dot.removeAttribute('aria-current');
         }
+        // Reinicia la barra de tiempo del punto activo.
+        var fill = dot.querySelector('.gallery__dot-fill');
+        if (fill && i === current) {
+          fill.style.animation = 'none';
+          void fill.offsetWidth; // eslint-disable-line no-void
+          fill.style.animation = '';
+        }
+      });
+      restante = INTERVALO;
+      preparar(slides[(current + 1) % slides.length]); // deja lista la siguiente
+    }
+
+    function goTo(index, manual) {
+      var destino = (index + slides.length) % slides.length;
+      var turno = ++pendiente;
+      // En cambios manuales se anuncia la foto; en los automáticos no se interrumpe al lector de pantalla.
+      track.setAttribute('aria-live', manual ? 'polite' : 'off');
+      preparar(slides[destino]).then(function () {
+        if (turno === pendiente) {
+          clearTimeout(timer);
+          timer = null;
+          mostrar(destino);
+          programar();
+        }
       });
     }
 
-    function play() {
-      if (reduceMotion || timer) {
+    function corriendo() {
+      return !userPaused && !Object.keys(holds).some(function (k) { return holds[k]; });
+    }
+
+    function programar() {
+      if (timer) { // se interrumpe una cuenta en curso: guardar cuánto faltaba
+        clearTimeout(timer);
+        timer = null;
+        restante = Math.max(0, restante - (Date.now() - inicio));
+      }
+      gallery.classList.toggle('is-playing', !userPaused);
+      gallery.classList.toggle('is-paused', !corriendo());
+      if (corriendo()) {
+        inicio = Date.now();
+        timer = setTimeout(function () {
+          timer = null;
+          goTo(current + 1, false);
+        }, restante);
+      }
+    }
+
+    function retener(motivo, valor) {
+      holds[motivo] = valor;
+      programar();
+    }
+
+    function actualizarBoton() {
+      if (!toggle) {
         return;
       }
-      timer = setInterval(function () {
-        goTo(current + 1);
-      }, 6000);
+      toggle.setAttribute('aria-label', toggle.getAttribute(userPaused ? 'data-label-play' : 'data-label-pause'));
+      toggle.setAttribute('aria-pressed', userPaused ? 'true' : 'false');
+      toggle.querySelector('i').className = 'fa-solid ' + (userPaused ? 'fa-play' : 'fa-pause');
     }
 
-    function pause() {
-      clearInterval(timer);
-      timer = null;
+    if (toggle) {
+      toggle.addEventListener('click', function () {
+        userPaused = !userPaused;
+        actualizarBoton();
+        programar();
+      });
     }
-
-    // Cambiar de foto a mano reinicia la cuenta, para que no salte enseguida a la siguiente.
-    function goToManual(index) {
-      goTo(index);
-      if (timer) {
-        pause();
-        play();
-      }
-    }
-
-    carousel.querySelector('.photo-carousel__nav--prev').addEventListener('click', function () {
-      goToManual(current - 1);
+    gallery.querySelector('.gallery__btn--prev').addEventListener('click', function () {
+      goTo(current - 1, true);
     });
-    carousel.querySelector('.photo-carousel__nav--next').addEventListener('click', function () {
-      goToManual(current + 1);
+    gallery.querySelector('.gallery__btn--next').addEventListener('click', function () {
+      goTo(current + 1, true);
     });
     dots.forEach(function (dot, i) {
       dot.addEventListener('click', function () {
-        goToManual(i);
+        if (i !== current) {
+          goTo(i, true);
+        }
       });
     });
     track.addEventListener('keydown', function (e) {
       if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         e.preventDefault();
-        goToManual(current + (e.key === 'ArrowRight' ? 1 : -1));
+        goTo(current + (e.key === 'ArrowRight' ? 1 : -1), true);
       }
     });
 
-    // Deslizar con el dedo en el celular
+    // Deslizar con el dedo (solo gestos claramente horizontales, para no estorbar el desplazamiento).
     var startX = null;
+    var startY = null;
     track.addEventListener('touchstart', function (e) {
       startX = e.touches[0].clientX;
-      pause();
+      startY = e.touches[0].clientY;
+      retener('touch', true);
     }, { passive: true });
     track.addEventListener('touchend', function (e) {
-      if (startX === null) {
-        return;
+      if (startX !== null) {
+        var dx = e.changedTouches[0].clientX - startX;
+        var dy = e.changedTouches[0].clientY - startY;
+        if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+          gallery.dataset.deslizo = Date.now(); // para que el visor no se abra con este gesto
+          goTo(current + (dx < 0 ? 1 : -1), true);
+        }
       }
-      var dx = e.changedTouches[0].clientX - startX;
       startX = null;
-      if (Math.abs(dx) > 40) {
-        goTo(current + (dx < 0 ? 1 : -1));
-      }
-      play();
+      retener('touch', false);
     });
 
-    carousel.addEventListener('mouseenter', pause);
-    carousel.addEventListener('mouseleave', play);
-    carousel.addEventListener('focusin', pause);
-    carousel.addEventListener('focusout', play);
-    play();
+    gallery.addEventListener('mouseenter', function () { retener('hover', true); });
+    gallery.addEventListener('mouseleave', function () { retener('hover', false); });
+    gallery.addEventListener('focusin', function () { retener('focus', true); });
+    gallery.addEventListener('focusout', function (e) {
+      if (!gallery.contains(e.relatedTarget)) {
+        retener('focus', false);
+      }
+    });
+    document.addEventListener('visibilitychange', function () {
+      retener('hidden', document.hidden);
+    });
+    // Con una foto ampliada en el visor, el carrusel no avanza por detrás.
+    document.addEventListener('uleam:visor', function (e) {
+      retener('visor', e.detail.abierto);
+    });
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (entradas) {
+        var visible = entradas[0].isIntersecting;
+        retener('offscreen', !visible);
+        if (visible) {
+          preparar(slides[(current + 1) % slides.length]);
+        }
+      }, { threshold: 0.25 }).observe(gallery);
+    }
+
+    actualizarBoton();
+    programar();
   });
+
+  // Noticias de "Actualidad": junto a la galería se muestran tantas noticias como quepan en su
+  // altura (de 4 a 8), para no dejar un hueco en blanco en pantallas grandes.
+  (function () {
+    var panel = document.getElementById('noticias');
+    var galeria = document.getElementById('galeria');
+    var items = panel ? Array.prototype.slice.call(panel.querySelectorAll('.news-item')) : [];
+    if (!galeria || items.length <= 4) {
+      return;
+    }
+    var MINIMO = 4;
+    function ajustar() {
+      items.forEach(function (it, i) {
+        it.classList.toggle('is-cabe', i < MINIMO);
+      });
+      // Una sola columna (celular/tableta): con 4 basta.
+      if (Math.abs(panel.getBoundingClientRect().top - galeria.getBoundingClientRect().top) > 4) {
+        return;
+      }
+      var lista = panel.querySelector('.news-list');
+      lista.classList.add('is-midiendo'); // medir con las noticias juntas, sin el reparto de espacio
+      var paso = items[1].getBoundingClientRect().top - items[0].getBoundingClientRect().top; // alto de una fila + separación
+      // El hueco queda entre la 4.ª noticia y "Ver todas las noticias" (que va pegado al fondo).
+      var margenLista = parseFloat(getComputedStyle(lista).marginBottom) || 0;
+      var hueco = panel.querySelector('.news-more').getBoundingClientRect().top
+        - items[MINIMO - 1].getBoundingClientRect().bottom - margenLista;
+      var extra = Math.max(0, Math.floor(hueco / paso));
+      for (var i = MINIMO; i < items.length && i < MINIMO + extra; i++) {
+        items[i].classList.add('is-cabe');
+      }
+      lista.classList.remove('is-midiendo');
+      lista.dataset.mostradas = Math.min(items.length, MINIMO + extra);
+    }
+    var espera = null;
+    function programar() {
+      clearTimeout(espera);
+      espera = setTimeout(ajustar, 120);
+    }
+    ajustar();
+    window.addEventListener('resize', programar);
+    window.addEventListener('load', ajustar);
+    if ('ResizeObserver' in window) {
+      new ResizeObserver(programar).observe(galeria);
+    }
+  })();
+
+  // Ventanas de opciones de los accesos directos: un bloque <div class="quick-modal" id="x"> del
+  // contenido se abre como ventana modal al pulsar cualquier enlace a "#x" (p. ej. la tarjeta
+  // "Sistemas Informáticos"). Todo se edita en la página "Inicio". Sin <dialog>, el bloque se
+  // muestra debajo de las tarjetas (ver :target en home.css).
+  if (window.HTMLDialogElement) {
+    document.querySelectorAll('.quick-modal[id]').forEach(function (bloque) {
+      var titulo = bloque.querySelector('h2, h3');
+      var dialogo = document.createElement('dialog');
+      dialogo.className = 'quick-dialog';
+      if (titulo) {
+        titulo.id = titulo.id || bloque.id + '-titulo';
+        dialogo.setAttribute('aria-labelledby', titulo.id);
+      }
+      var cerrar = document.createElement('button');
+      cerrar.type = 'button';
+      cerrar.className = 'quick-dialog__cerrar';
+      cerrar.setAttribute('aria-label', 'Cerrar');
+      cerrar.innerHTML = '<i class="fa-solid fa-xmark" aria-hidden="true"></i>';
+      bloque.parentNode.insertBefore(dialogo, bloque);
+      dialogo.appendChild(cerrar);
+      dialogo.appendChild(bloque);
+      bloque.classList.add('is-en-dialogo');
+      var origen = null;
+
+      function abrir(e) {
+        e.preventDefault();
+        origen = e.currentTarget;
+        dialogo.showModal();
+        document.documentElement.classList.add('quick-dialog-abierto');
+      }
+      function cerrarDialogo() {
+        if (!dialogo.open || dialogo.classList.contains('is-cerrando')) {
+          return;
+        }
+        var reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        dialogo.classList.add('is-cerrando');
+        setTimeout(function () {
+          dialogo.classList.remove('is-cerrando');
+          dialogo.close();
+        }, reducir ? 0 : 180);
+      }
+      document.querySelectorAll('a[href="#' + bloque.id + '"]').forEach(function (enlace) {
+        enlace.setAttribute('aria-haspopup', 'dialog');
+        enlace.addEventListener('click', abrir);
+      });
+      cerrar.addEventListener('click', cerrarDialogo);
+      // Esc: animación de salida en lugar del cierre seco.
+      dialogo.addEventListener('cancel', function (e) {
+        e.preventDefault();
+        cerrarDialogo();
+      });
+      // Clic en el fondo oscuro (fuera de la caja) cierra.
+      dialogo.addEventListener('click', function (e) {
+        if (e.target === dialogo) {
+          cerrarDialogo();
+        }
+      });
+      // Al elegir una opción (se abre en otra pestaña) se cierra la ventana.
+      bloque.querySelectorAll('a[href]').forEach(function (a) {
+        a.addEventListener('click', function () {
+          setTimeout(cerrarDialogo, 50);
+        });
+      });
+      dialogo.addEventListener('close', function () {
+        document.documentElement.classList.remove('quick-dialog-abierto');
+        if (origen) {
+          origen.focus();
+        }
+      });
+    });
+  }
+
+  // Visor de imágenes: las imágenes del contenido (páginas y noticias) se pueden ampliar en una
+  // ventana. Sirve sin hacer nada en el editor: organigramas, fotos del equipo, afiches…
+  // "Ajustar" la muestra completa en toda la pantalla; "Ampliar" la duplica para recorrerla (organigramas).
+  (function () {
+    if (!window.HTMLDialogElement) {
+      return;
+    }
+    var ES_IMAGEN = /\.(jpe?g|png|gif|webp|avif)(\?.*)?$/i;
+    var candidatas = Array.prototype.slice.call(document.querySelectorAll('.entry-content img'));
+    var imagenes = candidatas.filter(function (img) {
+      if (img.closest('.gallery, .carrusel, .dgac-doc-row, .news-thumb, .quick-modal, button')) {
+        return false;
+      }
+      var enlace = img.closest('a');
+      // Imágenes que enlazan a otra página (no a la propia imagen) se dejan como están.
+      if (enlace && !ES_IMAGEN.test(enlace.getAttribute('href') || '')) {
+        return false;
+      }
+      var ancho = parseInt(img.getAttribute('width'), 10) || img.naturalWidth || 0;
+      return ancho === 0 || ancho >= 240; // nada de iconos ni miniaturas
+    });
+    var botonesGaleria = Array.prototype.slice.call(document.querySelectorAll('.gallery__ampliar'));
+    if (!imagenes.length && !botonesGaleria.length) {
+      return;
+    }
+
+    var dialogo = document.createElement('dialog');
+    dialogo.className = 'visor';
+    dialogo.setAttribute('aria-label', 'Imagen ampliada');
+    dialogo.innerHTML =
+      '<div class="visor__barra">' +
+        '<p class="visor__titulo"></p>' +
+        '<button type="button" class="visor__btn visor__zoom" aria-pressed="false"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i> <span>Ampliar</span></button>' +
+        '<a class="visor__btn visor__original" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> <span>Abrir original</span></a>' +
+        '<button type="button" class="visor__btn visor__cerrar" aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
+      '</div>' +
+      '<div class="visor__lienzo"><img class="visor__img" alt="" decoding="async" /></div>';
+    document.body.appendChild(dialogo);
+    var lienzo = dialogo.querySelector('.visor__lienzo');
+    var foto = dialogo.querySelector('.visor__img');
+    var titulo = dialogo.querySelector('.visor__titulo');
+    var zoom = dialogo.querySelector('.visor__zoom');
+    var original = dialogo.querySelector('.visor__original');
+    var origen = null;
+
+    // La versión más grande disponible: el enlace a la imagen, o la mayor del srcset.
+    function fuenteGrande(img) {
+      var enlace = img.closest('a');
+      if (enlace && ES_IMAGEN.test(enlace.getAttribute('href') || '')) {
+        return enlace.href;
+      }
+      var mejor = img.currentSrc || img.src;
+      var mayor = 0;
+      (img.getAttribute('srcset') || '').split(',').forEach(function (c) {
+        var p = c.trim().split(/\s+/);
+        var w = parseInt(p[1], 10) || 0;
+        if (p[0] && w > mayor) {
+          mayor = w;
+          mejor = p[0];
+        }
+      });
+      return mejor;
+    }
+
+    function ponerZoom(real) {
+      dialogo.classList.toggle('is-real', real);
+      zoom.setAttribute('aria-pressed', real ? 'true' : 'false');
+      zoom.querySelector('i').className = 'fa-solid ' + (real ? 'fa-magnifying-glass-minus' : 'fa-magnifying-glass-plus');
+      zoom.querySelector('span').textContent = real ? 'Ajustar a la pantalla' : 'Ampliar';
+      zoom.setAttribute('aria-label', real ? 'Ajustar la imagen a la pantalla' : 'Ampliar la imagen al doble');
+      if (real) { // empezar mirando el centro de la imagen
+        lienzo.scrollLeft = (lienzo.scrollWidth - lienzo.clientWidth) / 2;
+        lienzo.scrollTop = (lienzo.scrollHeight - lienzo.clientHeight) / 2;
+      }
+    }
+
+    function abrir(img, disparador) {
+      origen = disparador;
+      var src = fuenteGrande(img);
+      var texto = img.getAttribute('alt') || '';
+      var leyenda = img.closest('figure') && img.closest('figure').querySelector('figcaption');
+      if (leyenda && leyenda.textContent.trim() && !leyenda.querySelector('.screen-reader-text:only-child')) {
+        texto = leyenda.textContent.trim();
+      }
+      titulo.textContent = texto;
+      foto.alt = img.getAttribute('alt') || texto;
+      foto.src = img.currentSrc || img.src; // se ve al instante…
+      if (src !== foto.src) {
+        var grande = new Image();       // …y se cambia por la grande cuando termina de cargar
+        grande.onload = function () { foto.src = src; };
+        grande.src = src;
+      }
+      original.href = src;
+      ponerZoom(false);
+      dialogo.showModal();
+      document.documentElement.classList.add('visor-abierto');
+      document.dispatchEvent(new CustomEvent('uleam:visor', { detail: { abierto: true } }));
+    }
+
+    function cerrar() {
+      if (!dialogo.open || dialogo.classList.contains('is-cerrando')) {
+        return;
+      }
+      var reducir = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      dialogo.classList.add('is-cerrando');
+      setTimeout(function () {
+        dialogo.classList.remove('is-cerrando');
+        dialogo.close();
+      }, reducir ? 0 : 180);
+    }
+
+    zoom.addEventListener('click', function () {
+      ponerZoom(!dialogo.classList.contains('is-real'));
+    });
+    // Clic sobre la imagen: alterna ajustar / ampliar (como en los visores habituales).
+    foto.addEventListener('click', function () {
+      ponerZoom(!dialogo.classList.contains('is-real'));
+    });
+    dialogo.querySelector('.visor__cerrar').addEventListener('click', cerrar);
+    dialogo.addEventListener('cancel', function (e) {
+      e.preventDefault();
+      cerrar();
+    });
+    lienzo.addEventListener('click', function (e) {
+      if (e.target === lienzo) {
+        cerrar();
+      }
+    });
+    dialogo.addEventListener('close', function () {
+      document.documentElement.classList.remove('visor-abierto');
+      document.dispatchEvent(new CustomEvent('uleam:visor', { detail: { abierto: false } }));
+      foto.removeAttribute('src');
+      if (origen) {
+        origen.focus();
+      }
+    });
+
+    // Fotos de la galería de "Actualidad": el botón cubre toda la foto.
+    botonesGaleria.forEach(function (boton) {
+      var img = boton.parentNode.querySelector('.gallery__img');
+      var galeria = boton.closest('.gallery');
+      if (!img) {
+        return;
+      }
+      boton.setAttribute('aria-haspopup', 'dialog');
+      boton.addEventListener('click', function () {
+        if (galeria && Date.now() - (+galeria.dataset.deslizo || 0) < 500) {
+          return; // fue un deslizamiento para cambiar de foto, no un toque
+        }
+        abrir(img, boton);
+      });
+    });
+
+    imagenes.forEach(function (img) {
+      var enlace = img.closest('a');
+      var disparador = enlace;
+      if (!enlace) {
+        // Sin enlace: se envuelve en un botón para que también funcione con teclado.
+        disparador = document.createElement('button');
+        disparador.type = 'button';
+        img.parentNode.insertBefore(disparador, img);
+        disparador.appendChild(img);
+      }
+      disparador.classList.add('visor-disparador');
+      disparador.setAttribute('aria-haspopup', 'dialog');
+      disparador.setAttribute('aria-label', 'Ampliar imagen' + (img.alt ? ': ' + img.alt : ''));
+      disparador.addEventListener('click', function (e) {
+        e.preventDefault();
+        abrir(img, disparador);
+      });
+    });
+  })();
 
   // Pestañas Misión / Objetivo / Productos (DGAC Pill Tabs)
   var pillTabs = document.querySelectorAll('.dgac-pill-tab');

@@ -850,6 +850,7 @@
 .dgac-file-card__icon--pdf{background:var(--uleam-red-50);color:var(--uleam-red-700)}
 .dgac-file-card__icon--docx{background:#e0f2fe;color:#0369a1}
 .dgac-file-card__icon--flow{background:#ede9fe;color:#7c3aed}
+.dgac-file-card__icon--info{background:#f1f5f9;color:#475569}
 
 .dgac-file-card__info{
   min-width:0;

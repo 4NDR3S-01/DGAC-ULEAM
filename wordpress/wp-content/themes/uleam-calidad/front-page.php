@@ -20,7 +20,7 @@ if ( ! uleam_carrusel_render() ) :
     <h2 class="hero-titulo"><?php echo wp_kses_post( uleam_opt( 'uleam_hero_titulo' ) ); ?></h2>
     <p><?php echo esc_html( uleam_opt( 'uleam_hero_subtitulo' ) ); ?></p>
     <?php if ( uleam_opt( 'uleam_hero_boton' ) ) : ?>
-      <a class="btn" href="<?php echo esc_url( uleam_opt( 'uleam_hero_boton_url' ) ); ?>"><?php echo esc_html( uleam_opt( 'uleam_hero_boton' ) ); ?></a>
+      <a class="btn" href="<?php echo esc_url( uleam_url( uleam_opt( 'uleam_hero_boton_url' ) ) ); ?>"><?php echo esc_html( uleam_opt( 'uleam_hero_boton' ) ); ?></a>
     <?php endif; ?>
   </div>
   <?php $uleam_hero_url = wp_get_attachment_image_url( (int) uleam_opt( 'uleam_hero_imagen' ), 'full' ); ?>
@@ -45,30 +45,34 @@ if ( ! uleam_carrusel_render() ) :
     <h2 id="actualidad-titulo">Actualidad</h2>
     <p>Noticias, comunicados y momentos de la Dirección de Gestión y Aseguramiento de la Calidad.</p>
   </header>
-  <div class="panel" id="noticias">
+  <div class="panel news-panel" id="noticias">
     <h3>Noticias y comunicados</h3>
     <?php
     $noticias = new WP_Query(
       array(
-        'post_type'      => 'noticia',
-        'posts_per_page' => 3,
+        'post_type'           => 'noticia',
+        'posts_per_page'      => 8, // se muestran las que quepan junto a la galería (main.js); 4 como mínimo
+        'ignore_sticky_posts' => true,
+        'no_found_rows'       => true,
       )
     );
     if ( $noticias->have_posts() ) :
+      echo '<ul class="news-list">';
       while ( $noticias->have_posts() ) :
         $noticias->the_post();
         ?>
-        <div class="news-item">
+        <li class="news-item">
           <div class="news-thumb">
             <?php echo uleam_noticia_media( get_the_ID(), 'medium', 'news-thumb__img' ); // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image. ?>
           </div>
-          <div>
-            <strong><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></strong>
-            <small><?php echo esc_html( get_the_date() ); ?></small>
+          <div class="news-item__text">
+            <a class="news-item__link" href="<?php the_permalink(); ?>"><?php the_title(); ?></a>
+            <time datetime="<?php echo esc_attr( get_the_date( 'c' ) ); ?>"><i class="fa-regular fa-calendar" aria-hidden="true"></i> <?php echo esc_html( get_the_date() ); ?></time>
           </div>
-        </div>
+        </li>
         <?php
       endwhile;
+      echo '</ul>';
       wp_reset_postdata();
     else :
       echo '<p>No hay noticias publicadas todavía.</p>';
@@ -77,43 +81,62 @@ if ( ! uleam_carrusel_render() ) :
     <a class="news-more" href="<?php echo esc_url( get_post_type_archive_link( 'noticia' ) ); ?>">Ver todas las noticias <?php echo uleam_icon( 'arrow' ); ?></a>
   </div>
 
-  <?php $fotos = uleam_carrusel_fotos(); ?>
+  <?php
+  $fotos = uleam_carrusel_fotos();
+  $total = count( $fotos );
+  ?>
   <?php if ( $fotos ) : ?>
-    <div class="panel photo-carousel" id="galeria" role="region" aria-roledescription="carrusel" aria-label="Galería de fotos">
-      <div class="photo-carousel__track" tabindex="0">
+    <div class="panel gallery" id="galeria" role="region" aria-roledescription="carrusel" aria-label="Galería de fotos de la Dirección">
+      <div class="gallery__track" tabindex="0" aria-live="off">
         <?php foreach ( $fotos as $i => $foto ) : ?>
-          <figure class="photo-carousel__slide<?php echo $i ? '' : ' is-active'; ?>"<?php echo $i ? ' aria-hidden="true"' : ''; ?> role="group" aria-roledescription="diapositiva" aria-label="<?php echo esc_attr( ( $i + 1 ) . ' de ' . count( $fotos ) ); ?>">
-            <?php
-            echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
-              $foto['id'],
-              'uleam-actualidad',
-              false,
-              array(
-                'class'   => 'photo-carousel__img',
-                'loading' => $i ? 'lazy' : 'eager',
-                'alt'     => $foto['texto'],
-              )
-            );
-            ?>
-            <?php if ( $foto['texto'] ) : ?>
-              <figcaption class="photo-carousel__caption">
-                <?php if ( $foto['url'] ) : ?>
-                  <a href="<?php echo esc_url( $foto['url'] ); ?>"><?php echo esc_html( $foto['texto'] ); ?></a>
-                <?php else : ?>
-                  <?php echo esc_html( $foto['texto'] ); ?>
-                <?php endif; ?>
-              </figcaption>
-            <?php endif; ?>
+          <?php
+          $alt   = '' !== $foto['texto'] ? $foto['texto'] : trim( (string) get_post_meta( $foto['id'], '_wp_attachment_image_alt', true ) );
+          $alt   = '' !== $alt ? $alt : get_the_title( $foto['id'] );
+          $fondo = uleam_carrusel_desenfocada( $foto['id'] );
+          ?>
+          <figure class="gallery__slide<?php echo $i ? '' : ' is-active'; ?>"<?php echo $i ? ' aria-hidden="true"' : ''; ?> role="group" aria-roledescription="diapositiva" aria-label="<?php echo esc_attr( ( $i + 1 ) . ' de ' . $total ); ?>">
+            <div class="gallery__media">
+              <?php if ( $fondo ) : ?>
+                <img class="gallery__backdrop" src="<?php echo esc_url( $fondo ); ?>" alt="" aria-hidden="true" loading="<?php echo $i ? 'lazy' : 'eager'; ?>" decoding="async" />
+              <?php endif; ?>
+              <?php
+              echo wp_get_attachment_image( // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
+                $foto['id'],
+                'large',
+                false,
+                array(
+                  'class'    => 'gallery__img',
+                  'loading'  => $i ? 'lazy' : 'eager',
+                  'decoding' => 'async',
+                  'alt'      => $alt,
+                  'sizes'    => '(max-width: 960px) 92vw, 44vw',
+                )
+              );
+              ?>
+              <button type="button" class="gallery__ampliar" aria-label="<?php echo esc_attr( 'Ampliar foto: ' . $alt ); ?>"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i></button>
+            </div>
+            <figcaption class="gallery__caption">
+              <?php if ( '' === $foto['texto'] ) : ?>
+                <span class="screen-reader-text"><?php echo esc_html( $alt ); ?></span>
+              <?php elseif ( $foto['url'] ) : ?>
+                <a href="<?php echo esc_url( uleam_url( $foto['url'] ) ); ?>"><?php echo esc_html( $foto['texto'] ); ?> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+              <?php else : ?>
+                <?php echo esc_html( $foto['texto'] ); ?>
+              <?php endif; ?>
+            </figcaption>
           </figure>
         <?php endforeach; ?>
       </div>
-      <?php if ( count( $fotos ) > 1 ) : ?>
-        <button type="button" class="photo-carousel__nav photo-carousel__nav--prev" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
-        <button type="button" class="photo-carousel__nav photo-carousel__nav--next" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
-        <div class="photo-carousel__dots">
-          <?php foreach ( $fotos as $i => $foto ) : ?>
-            <button type="button" class="photo-carousel__dot<?php echo $i ? '' : ' is-active'; ?>" aria-label="<?php echo esc_attr( 'Ir a la foto ' . ( $i + 1 ) ); ?>"<?php echo $i ? '' : ' aria-current="true"'; ?>></button>
-          <?php endforeach; ?>
+      <?php if ( $total > 1 ) : ?>
+        <div class="gallery__controls">
+          <div class="gallery__dots">
+            <?php foreach ( $fotos as $i => $foto ) : ?>
+              <button type="button" class="gallery__dot<?php echo $i ? '' : ' is-active'; ?>" aria-label="<?php echo esc_attr( 'Ver foto ' . ( $i + 1 ) . ' de ' . $total ); ?>"<?php echo $i ? '' : ' aria-current="true"'; ?>><span class="gallery__dot-fill"></span></button>
+            <?php endforeach; ?>
+          </div>
+          <button type="button" class="gallery__btn gallery__btn--prev" aria-label="Foto anterior"><i class="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
+          <button type="button" class="gallery__btn gallery__btn--toggle" aria-label="Pausar el cambio automático de fotos" data-label-play="Reanudar el cambio automático de fotos" data-label-pause="Pausar el cambio automático de fotos"><i class="fa-solid fa-pause" aria-hidden="true"></i></button>
+          <button type="button" class="gallery__btn gallery__btn--next" aria-label="Foto siguiente"><i class="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
         </div>
       <?php endif; ?>
     </div>

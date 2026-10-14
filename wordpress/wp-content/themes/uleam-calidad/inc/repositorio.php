@@ -294,7 +294,14 @@ function uleam_periodo_cmp( $a, $b ) {
  * @return string Clase del icono.
  */
 function uleam_doc_icono( $url ) {
-	$ext = strtolower( pathinfo( wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	$ext = strtolower( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	if ( ! uleam_doc_es_archivo( $url ) && ! in_array( $ext, array( 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx' ), true ) ) {
+		$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+		if ( preg_match( '/youtube\.com|youtu\.be|vimeo\.com/', $host ) || false !== strpos( $url, 'stream.aspx' ) || false !== strpos( $url, '/:v:/' ) ) {
+			return 'fa-solid fa-circle-play';
+		}
+		return false !== strpos( $host, 'heyzine' ) ? 'fa-solid fa-book-open' : 'fa-solid fa-link';
+	}
 	$map = array(
 		'pdf'  => 'fa-file-pdf',
 		'doc'  => 'fa-file-word',
@@ -305,6 +312,27 @@ function uleam_doc_icono( $url ) {
 		'pptx' => 'fa-file-powerpoint',
 	);
 	return 'fa-solid ' . ( isset( $map[ $ext ] ) ? $map[ $ext ] : 'fa-file-lines' );
+}
+
+/**
+ * ¿El enlace es un archivo de este sitio que se puede descargar? Un video, un libro digital o un
+ * archivo alojado en otro dominio (SharePoint, YouTube…) se abre, no se descarga.
+ *
+ * @param string $url Enlace del documento.
+ * @return bool
+ */
+function uleam_doc_es_archivo( $url ) {
+	$host = (string) wp_parse_url( $url, PHP_URL_HOST );
+	$path = rawurldecode( (string) wp_parse_url( $url, PHP_URL_PATH ) );
+	// Es de este sitio si el dominio coincide o si el archivo está en uploads (el dominio guardado
+	// puede ser otro: localhost:8000 visto desde un túnel, o el de antes de mudar el sitio).
+	$propio = '' === $host || wp_parse_url( home_url(), PHP_URL_HOST ) === $host
+		|| ( preg_match( '#/wp-content/uploads/(.+)$#', $path, $m ) && is_file( wp_upload_dir()['basedir'] . '/' . $m[1] ) );
+	if ( ! $propio ) {
+		return false;
+	}
+	$ext = strtolower( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	return in_array( $ext, array( 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'xlsm', 'ppt', 'pptx', 'pps', 'ppsx', 'odt', 'ods', 'odp', 'csv', 'txt', 'rtf', 'zip', 'rar', '7z', 'vsdx', 'jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'mp3' ), true );
 }
 
 /* -------------------------------------------------------------------------
@@ -322,8 +350,12 @@ function uleam_repositorio_fila( $doc ) {
 	if ( ! $url ) {
 		return '';
 	}
-	$ext  = strtoupper( pathinfo( wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
-	$file = wp_basename( wp_parse_url( $url, PHP_URL_PATH ) );
+	$es_archivo = uleam_doc_es_archivo( $url );
+	$ext        = strtoupper( pathinfo( (string) wp_parse_url( $url, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
+	if ( ! $es_archivo ) {
+		$ext = 'fa-solid fa-circle-play' === uleam_doc_icono( $url ) ? 'Video' : ( $ext && strlen( $ext ) <= 4 && 'HTML' !== $ext ? $ext . ' · sitio externo' : 'Enlace externo' );
+	}
+	$file       = wp_basename( wp_parse_url( $url, PHP_URL_PATH ) );
 	$edit = current_user_can( 'edit_post', $doc->ID ) ? get_edit_post_link( $doc->ID ) : '';
 
 	ob_start();
@@ -339,8 +371,12 @@ function uleam_repositorio_fila( $doc ) {
 			</div>
 		</div>
 		<div class="dgac-doc-row-btns">
+			<?php if ( $es_archivo ) : ?>
 			<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener" class="dgac-doc-mini-btn dgac-doc-mini-btn--view"><i class="fa-regular fa-eye" aria-hidden="true"></i> Ver</a>
 			<a href="<?php echo esc_url( $url ); ?>" download="<?php echo esc_attr( $file ); ?>" class="dgac-doc-mini-btn dgac-doc-mini-btn--download"><i class="fa-solid fa-download" aria-hidden="true"></i> Descargar</a>
+			<?php else : ?>
+			<a href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener" class="dgac-doc-mini-btn dgac-doc-mini-btn--view"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> Abrir<span class="screen-reader-text"> (se abre en otra pestaña)</span></a>
+			<?php endif; ?>
 			<?php if ( $edit ) : ?>
 				<a href="<?php echo esc_url( $edit ); ?>" class="dgac-repo-edit" title="Editar este documento"><i class="fa-solid fa-pen" aria-hidden="true"></i><span class="screen-reader-text">Editar</span></a>
 			<?php endif; ?>

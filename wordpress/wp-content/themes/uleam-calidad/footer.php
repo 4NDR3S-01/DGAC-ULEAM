@@ -13,11 +13,11 @@
 <footer class="footer" id="contacto">
   <div class="footer-grid">
     <div>
-      <h2 class="footer-title">Sobre la Dirección</h2>
+      <h2 class="footer-title"><?php echo esc_html( uleam_opt( 'uleam_pie_sobre' ) ); ?></h2>
       <p><?php echo wp_kses_post( uleam_opt( 'uleam_sobre' ) ); ?></p>
     </div>
     <nav aria-label="Enlaces rápidos">
-      <h2 class="footer-title">Enlaces rápidos</h2>
+      <h2 class="footer-title"><?php echo esc_html( uleam_opt( 'uleam_pie_enlaces' ) ); ?></h2>
       <?php
       wp_nav_menu(
         array(
@@ -31,7 +31,7 @@
       ?>
     </nav>
     <div>
-      <h2 class="footer-title">Contacto</h2>
+      <h2 class="footer-title"><?php echo esc_html( uleam_opt( 'uleam_pie_contacto' ) ); ?></h2>
       <ul class="footer-contact">
         <?php if ( uleam_opt( 'uleam_telefono' ) ) : ?>
           <li>
@@ -55,7 +55,7 @@
     </div>
     <?php if ( uleam_redes() ) : ?>
       <div>
-        <h2 class="footer-title">Síguenos</h2>
+        <h2 class="footer-title"><?php echo esc_html( uleam_opt( 'uleam_pie_redes' ) ); ?></h2>
         <div class="footer-social">
           <?php foreach ( uleam_redes() as $red ) : ?>
             <a href="<?php echo esc_url( $red[0] ); ?>" target="_blank" rel="noopener noreferrer" aria-label="<?php echo esc_attr( $red[1] . ' ULEAM (se abre en otra pestaña)' ); ?>">
@@ -66,7 +66,7 @@
       </div>
     <?php endif; ?>
   </div>
-  <div class="copy">© <?php echo esc_html( gmdate( 'Y' ) ); ?> Universidad Laica Eloy Alfaro de Manabí - Todos los derechos reservados.</div>
+  <div class="copy"><?php echo esc_html( str_replace( '{año}', wp_date( 'Y' ), uleam_opt( 'uleam_copyright' ) ) ); ?></div>
 </footer>
 
 <?php wp_footer(); ?>
