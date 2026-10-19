@@ -60,8 +60,9 @@ function uleam_asistente_config() {
 		is_array( $cfg ) ? $cfg : array(),
 		array(
 			'activo'      => 1,
-			'nombre'      => 'Asistente DGAC',
-			'bienvenida'  => "¡Hola! Soy el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad.\nPuedo ayudarte a encontrar documentos (formatos, informes, manuales, POA…) y resolver dudas frecuentes. ¿Qué necesitas?",
+			'personaje'   => 1,
+			'nombre'      => 'DGACITO',
+			'bienvenida'  => "¡Hola! Soy DGACITO 👋, el asistente virtual de la Dirección de Gestión y Aseguramiento de la Calidad de la ULEAM.\nTe ayudo a encontrar documentos (formatos, informes, manuales, POA…) y a resolver tus dudas sobre los procesos de la Dirección. ¿En qué te puedo ayudar hoy?",
 			'sugerencias' => "POA 2025\nFormatos de autoevaluación de carreras\nHorario de atención\n¿Cómo contacto a la Dirección?",
 			'proveedor'   => '', // '' = automático (Claude si hay clave), 'ninguno', 'claude', 'groq'
 			'modelo'      => 'claude-opus-5-5',
@@ -199,6 +200,7 @@ function uleam_asistente_guardar() {
 		delete_option( 'uleam_asistente_sin_respuesta' );
 	} else {
 		$cfg['activo']      = empty( $_POST['activo'] ) ? 0 : 1;
+		$cfg['personaje']   = empty( $_POST['personaje'] ) ? 0 : 1;
 		$cfg['nombre']      = sanitize_text_field( wp_unslash( $_POST['nombre'] ?? '' ) );
 		$cfg['bienvenida']  = sanitize_textarea_field( wp_unslash( $_POST['bienvenida'] ?? '' ) );
 		$cfg['sugerencias'] = sanitize_textarea_field( wp_unslash( $_POST['sugerencias'] ?? '' ) );
@@ -260,6 +262,13 @@ function uleam_asistente_pagina() {
 				<tr>
 					<th scope="row">Mostrar el asistente</th>
 					<td><label><input type="checkbox" name="activo" value="1" <?php checked( $cfg['activo'] ); ?> /> Activado en el sitio</label></td>
+				</tr>
+				<tr>
+					<th scope="row">Personaje animado</th>
+					<td>
+						<label><input type="checkbox" name="personaje" value="1" <?php checked( $cfg['personaje'] ); ?> /> Mostrar el personaje junto al chat</label>
+						<p class="description">Aparece a la izquierda de la ventana al abrirla (solo en pantallas grandes) y cambia de pose: saluda, escucha mientras escribes, piensa, responde o indica que no encontró la respuesta. Las imágenes están en <code>img/asistente/</code> del tema.</p>
+					</td>
 				</tr>
 				<tr>
 					<th scope="row"><label for="ua-nombre">Nombre</label></th>
@@ -1322,6 +1331,7 @@ function uleam_asistente_scripts() {
 			'email'       => $contacto['email'],
 			'telefono'    => $contacto['telefono'],
 			'ia'          => (bool) uleam_asistente_proveedor(),
+			'personaje'   => $cfg['personaje'] ? esc_url_raw( ULEAM_THEME_URI . '/img/asistente/' ) : '',
 		)
 	);
 }
@@ -1339,10 +1349,9 @@ function uleam_asistente_html() {
 	<div class="asistente" id="asistente">
 		<section class="asistente__panel" id="asistente-panel" role="dialog" aria-labelledby="asistente-titulo" hidden>
 			<div class="asistente__cabecera">
-				<span class="asistente__avatar" aria-hidden="true"><i class="fa-solid fa-robot"></i></span>
 				<div class="asistente__titulos">
 					<h2 class="asistente__titulo" id="asistente-titulo"><?php echo esc_html( $cfg['nombre'] ); ?></h2>
-					<p class="asistente__estado">Respuestas automáticas · disponible 24/7</p>
+					<p class="asistente__estado"><span class="asistente__en-linea" aria-hidden="true"></span>En línea · disponible 24/7</p>
 				</div>
 				<button type="button" class="asistente__icono-btn" data-asistente-reiniciar title="Nueva conversación" aria-label="Nueva conversación"><i class="fa-solid fa-rotate-right" aria-hidden="true"></i></button>
 				<button type="button" class="asistente__icono-btn" data-asistente-cerrar title="Cerrar" aria-label="Cerrar el chat"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>
@@ -1357,6 +1366,9 @@ function uleam_asistente_html() {
 				<?php echo uleam_asistente_proveedor() ? 'Respuestas generadas con IA a partir del contenido de este sitio; confirma en el documento oficial.' : 'Respuestas automáticas a partir del contenido de este sitio.'; ?>
 			</p>
 		</section>
+		<?php if ( $cfg['personaje'] ) : ?>
+			<img class="asistente__cabeza" src="<?php echo esc_url( ULEAM_THEME_URI . '/img/asistente/cabeza.webp' ); ?>" width="192" height="192" alt="" aria-hidden="true" decoding="async" />
+		<?php endif; ?>
 		<button type="button" class="asistente__fab" aria-expanded="false" aria-controls="asistente-panel" aria-label="<?php echo esc_attr( $cfg['nombre'] . ': chat de ayuda' ); ?>">
 			<i class="fa-solid fa-comments" aria-hidden="true"></i>
 			<span class="asistente__fab-texto">¿Te ayudo?</span>

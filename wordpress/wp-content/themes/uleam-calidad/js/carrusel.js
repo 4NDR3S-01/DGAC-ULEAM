@@ -110,7 +110,6 @@
         raiz.classList.toggle('is-atras', porPersona && n < actual);
         actual = nuevo;
       }
-      ladoControles();
       // Cuando la persona navega, el lector de pantalla anuncia la nueva diapositiva.
       if (porPersona) {
         pista.setAttribute('aria-live', 'polite');
@@ -119,12 +118,6 @@
       reiniciarProgreso();
       programar();
     }
-
-    // En el diseño por capas, los controles van al lado contrario de las personas.
-    function ladoControles() {
-      raiz.classList.toggle('carrusel--controles-der', slides[actual].classList.contains('carrusel__slide--persona-izq'));
-    }
-    ladoControles();
 
     raiz.querySelector('.carrusel__anterior').addEventListener('click', function () {
       ir(actual - 1, true);

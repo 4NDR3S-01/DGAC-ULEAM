@@ -202,6 +202,16 @@ function uleam_customize_register( $wp_customize ) {
 				'type'    => 'text',
 			)
 		);
+		$wp_customize->add_setting( "uleam_carrusel_{$n}_descripcion", array( 'sanitize_callback' => 'sanitize_textarea_field' ) );
+		$wp_customize->add_control(
+			"uleam_carrusel_{$n}_descripcion",
+			array(
+				'label'       => "Foto {$n}: descripción (opcional)",
+				'description' => 'Se muestra bajo el texto. Si es larga, en la portada se ven las primeras líneas y el resto al ampliar la foto.',
+				'section'     => 'uleam_carrusel',
+				'type'        => 'textarea',
+			)
+		);
 		$wp_customize->add_setting( "uleam_carrusel_{$n}_enlace", array( 'sanitize_callback' => 'esc_url_raw' ) );
 		$wp_customize->add_control(
 			"uleam_carrusel_{$n}_enlace",
@@ -218,7 +228,7 @@ add_action( 'customize_register', 'uleam_customize_register' );
 /**
  * Fotos del carrusel de la portada: las del Personalizador o, si no hay, las de las últimas noticias.
  *
- * @return array Lista de [ id, texto, url ].
+ * @return array Lista de [ id, texto, descripcion, url ].
  */
 function uleam_carrusel_fotos() {
 	$fotos = array();
@@ -226,9 +236,10 @@ function uleam_carrusel_fotos() {
 		$id = (int) get_theme_mod( "uleam_carrusel_{$n}_imagen" );
 		if ( $id && wp_attachment_is_image( $id ) ) {
 			$fotos[] = array(
-				'id'    => $id,
-				'texto' => (string) get_theme_mod( "uleam_carrusel_{$n}_texto" ),
-				'url'   => (string) get_theme_mod( "uleam_carrusel_{$n}_enlace" ),
+				'id'          => $id,
+				'texto'       => (string) get_theme_mod( "uleam_carrusel_{$n}_texto" ),
+				'descripcion' => trim( (string) get_theme_mod( "uleam_carrusel_{$n}_descripcion" ) ),
+				'url'         => (string) get_theme_mod( "uleam_carrusel_{$n}_enlace" ),
 			);
 		}
 	}
@@ -251,9 +262,10 @@ function uleam_carrusel_fotos() {
 			continue;
 		}
 		$fotos[] = array(
-			'id'    => $id,
-			'texto' => get_the_title( $post_id ),
-			'url'   => get_permalink( $post_id ),
+			'id'          => $id,
+			'texto'       => get_the_title( $post_id ),
+			'descripcion' => has_excerpt( $post_id ) ? trim( wp_strip_all_tags( get_the_excerpt( $post_id ) ) ) : '',
+			'url'         => get_permalink( $post_id ),
 		);
 		if ( count( $fotos ) >= ULEAM_CARRUSEL_MAX ) {
 			return $fotos;
@@ -266,9 +278,10 @@ function uleam_carrusel_fotos() {
 		$id = (int) uleam_opt( $opcion );
 		if ( $id && ! in_array( $id, $usados, true ) && wp_attachment_is_image( $id ) ) {
 			$fotos[] = array(
-				'id'    => $id,
-				'texto' => '',
-				'url'   => '',
+				'id'          => $id,
+				'texto'       => '',
+				'descripcion' => '',
+				'url'         => '',
 			);
 			$usados[] = $id;
 		}

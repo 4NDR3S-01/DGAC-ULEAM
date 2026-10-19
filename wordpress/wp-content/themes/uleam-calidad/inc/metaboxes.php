@@ -98,27 +98,36 @@ function uleam_save_documento_url( $post_id ) {
 add_action( 'save_post', 'uleam_save_documento_url' );
 
 /**
- * Campo "Icono de la cabecera" en las páginas (insignia sobre el título).
+ * Caja "Cabecera de la página": icono de la insignia y textos opcionales del banner.
  */
 function uleam_pagina_icono_metabox() {
-	add_meta_box( 'uleam_icono_cabecera', 'Icono de la cabecera', 'uleam_pagina_icono_html', 'page', 'side', 'low' );
+	add_meta_box( 'uleam_icono_cabecera', 'Cabecera de la página', 'uleam_pagina_icono_html', 'page', 'side', 'low' );
 }
 add_action( 'add_meta_boxes', 'uleam_pagina_icono_metabox' );
 
 /**
- * Renderiza el campo del icono de cabecera.
+ * Renderiza los campos de la cabecera.
  *
  * @param WP_Post $post Página actual.
  */
 function uleam_pagina_icono_html( $post ) {
-	$icono = get_post_meta( $post->ID, '_uleam_icono_cabecera', true );
+	$icono     = get_post_meta( $post->ID, '_uleam_icono_cabecera', true );
+	$subtitulo = get_post_meta( $post->ID, '_uleam_cabecera_subtitulo', true );
+	$puntos    = get_post_meta( $post->ID, '_uleam_cabecera_puntos', true );
 	wp_nonce_field( 'uleam_icono_cabecera', 'uleam_icono_cabecera_nonce' );
-	echo '<input type="text" name="uleam_icono_cabecera" value="' . esc_attr( $icono ) . '" style="width:100%" placeholder="fa-solid fa-award" />';
+	echo '<p><label for="uleam-icono-cabecera"><strong>Icono de la insignia</strong></label>';
+	echo '<input type="text" id="uleam-icono-cabecera" name="uleam_icono_cabecera" value="' . esc_attr( $icono ) . '" style="width:100%" placeholder="fa-solid fa-award" /></p>';
 	echo '<p class="description">Opcional. Icono que acompaña al nombre sobre el título. Búscalo en <a href="https://fontawesome.com/search?o=r&m=free" target="_blank" rel="noopener">Font Awesome</a> y copia su clase.</p>';
+	echo '<hr /><p class="description">Con una <strong>Imagen destacada</strong>, la cabecera se muestra como banner: el título en grande con su última palabra resaltada y estos textos (todos opcionales).</p>';
+	echo '<p><label for="uleam-cabecera-subtitulo"><strong>Subtítulo</strong></label>';
+	echo '<textarea id="uleam-cabecera-subtitulo" name="uleam_cabecera_subtitulo" rows="2" style="width:100%" placeholder="Comprometidos con una educación de excelencia">' . esc_textarea( $subtitulo ) . '</textarea></p>';
+	echo '<p><label for="uleam-cabecera-puntos"><strong>Puntos destacados</strong></label>';
+	echo '<textarea id="uleam-cabecera-puntos" name="uleam_cabecera_puntos" rows="4" style="width:100%" placeholder="fa-solid fa-shield-halved | Evaluación Institucional">' . esc_textarea( $puntos ) . '</textarea></p>';
+	echo '<p class="description">Uno por línea: <code>icono | texto</code>. Se muestran como etiquetas bajo el subtítulo (no en celulares).</p>';
 }
 
 /**
- * Guarda el icono de cabecera de la página.
+ * Guarda los campos de la cabecera de la página.
  *
  * @param int $post_id ID de la página.
  */
@@ -131,6 +140,11 @@ function uleam_save_pagina_icono( $post_id ) {
 	}
 	if ( isset( $_POST['uleam_icono_cabecera'] ) ) {
 		update_post_meta( $post_id, '_uleam_icono_cabecera', sanitize_text_field( wp_unslash( $_POST['uleam_icono_cabecera'] ) ) );
+	}
+	foreach ( array( 'subtitulo', 'puntos' ) as $campo ) {
+		if ( isset( $_POST[ 'uleam_cabecera_' . $campo ] ) ) {
+			update_post_meta( $post_id, '_uleam_cabecera_' . $campo, sanitize_textarea_field( wp_unslash( $_POST[ 'uleam_cabecera_' . $campo ] ) ) );
+		}
 	}
 }
 add_action( 'save_post_page', 'uleam_save_pagina_icono' );

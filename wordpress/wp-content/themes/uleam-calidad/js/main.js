@@ -204,6 +204,42 @@
     programar();
   });
 
+  // Galería de "Actualidad": si la descripción no cabe en sus líneas, "Leer más" abre la foto
+  // ampliada con el texto completo (el botón solo aparece cuando de verdad está recortada).
+  (function () {
+    var descs = Array.prototype.slice.call(document.querySelectorAll('.gallery__desc'));
+    if (!descs.length) {
+      return;
+    }
+    descs.forEach(function (desc) {
+      var boton = document.createElement('button');
+      boton.type = 'button';
+      boton.className = 'gallery__mas';
+      boton.hidden = true;
+      boton.innerHTML = 'Leer más <i class="fa-solid fa-angle-right" aria-hidden="true"></i>';
+      boton.addEventListener('click', function () {
+        var ampliar = desc.closest('.gallery__slide').querySelector('.gallery__ampliar');
+        if (ampliar) {
+          ampliar.click();
+        }
+      });
+      desc.parentNode.insertBefore(boton, desc.nextSibling);
+    });
+    function revisar() {
+      descs.forEach(function (desc) {
+        var slide = desc.closest('.gallery__slide');
+        // Las fotos ocultas también ocupan su lugar (visibility), así que se pueden medir.
+        desc.nextSibling.hidden = !(slide && desc.scrollHeight > desc.clientHeight + 2);
+      });
+    }
+    revisar();
+    window.addEventListener('load', revisar);
+    window.addEventListener('resize', function () {
+      clearTimeout(revisar.t);
+      revisar.t = setTimeout(revisar, 150);
+    });
+  })();
+
   // Noticias de "Actualidad": junto a la galería se muestran tantas noticias como quepan en su
   // altura (de 4 a 8), para no dejar un hueco en blanco en pantallas grandes.
   (function () {
@@ -357,13 +393,16 @@
         '<a class="visor__btn visor__original" target="_blank" rel="noopener"><i class="fa-solid fa-arrow-up-right-from-square" aria-hidden="true"></i> <span>Abrir original</span></a>' +
         '<button type="button" class="visor__btn visor__cerrar" aria-label="Cerrar"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button>' +
       '</div>' +
-      '<div class="visor__lienzo"><img class="visor__img" alt="" decoding="async" /></div>';
+      '<div class="visor__lienzo"><img class="visor__img" alt="" decoding="async" /></div>' +
+      // Texto completo de la foto de la galería (en la portada se ve recortado).
+      '<div class="visor__pie" hidden><p class="visor__pie-titulo"></p><p class="visor__pie-desc"></p></div>';
     document.body.appendChild(dialogo);
     var lienzo = dialogo.querySelector('.visor__lienzo');
     var foto = dialogo.querySelector('.visor__img');
     var titulo = dialogo.querySelector('.visor__titulo');
     var zoom = dialogo.querySelector('.visor__zoom');
     var original = dialogo.querySelector('.visor__original');
+    var pie = dialogo.querySelector('.visor__pie');
     var origen = null;
 
     // La versión más grande disponible: el enlace a la imagen, o la mayor del srcset.
@@ -402,10 +441,20 @@
       var src = fuenteGrande(img);
       var texto = img.getAttribute('alt') || '';
       var leyenda = img.closest('figure') && img.closest('figure').querySelector('figcaption');
-      if (leyenda && leyenda.textContent.trim() && !leyenda.querySelector('.screen-reader-text:only-child')) {
+      var descripcion = '';
+      if (leyenda && leyenda.classList.contains('gallery__caption')) {
+        // Galería de Actualidad: título y descripción por separado.
+        var t = leyenda.querySelector('.gallery__titulo');
+        var d = leyenda.querySelector('.gallery__desc');
+        texto = (t && t.textContent.trim()) || texto;
+        descripcion = d ? d.textContent.trim() : '';
+      } else if (leyenda && leyenda.textContent.trim() && !leyenda.querySelector('.screen-reader-text:only-child')) {
         texto = leyenda.textContent.trim();
       }
       titulo.textContent = texto;
+      pie.hidden = !descripcion;
+      pie.querySelector('.visor__pie-titulo').textContent = descripcion ? texto : '';
+      pie.querySelector('.visor__pie-desc').textContent = descripcion;
       foto.alt = img.getAttribute('alt') || texto;
       foto.src = img.currentSrc || img.src; // se ve al instante…
       if (src !== foto.src) {
@@ -824,12 +873,46 @@
       });
     });
 
-    // Permite enlazar directo a un área: /aseguramiento-de-la-calidad/#planes-de-mejora
+    // Etiquetas de subsección (p. ej. Planes de Mejora › Carreras): muestran solo esa subsección.
+    function filtrarSub(panel, slug) {
+      panel.querySelectorAll('.dgac-repo-filtro').forEach(function (b) {
+        var on = b.getAttribute('data-sub') === slug;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      panel.querySelectorAll('.dgac-repo-sub').forEach(function (sub) {
+        sub.classList.toggle('is-sub-oculta', slug !== '' && sub.getAttribute('data-sub') !== slug);
+      });
+      syncToggle();
+    }
+    repo.querySelectorAll('.dgac-repo-filtro').forEach(function (b) {
+      b.addEventListener('click', function () {
+        var panel = b.closest('.dgac-repo-panel');
+        var slug = b.getAttribute('data-sub');
+        filtrarSub(panel, slug);
+        if (history.replaceState) {
+          history.replaceState(null, '', '#' + (slug || panel.id));
+        }
+      });
+    });
+
+    // Permite enlazar directo a un área (/aseguramiento-de-la-calidad/#planes-de-mejora) o a una
+    // subsección (#planes-mejora-carreras): abre su área con la etiqueta ya elegida.
+    function irA(id) {
+      var sub = repo.querySelector('.dgac-repo-sub[data-sub="' + CSS.escape(id) + '"]');
+      if (sub) {
+        var panel = sub.closest('.dgac-repo-panel');
+        activate(panel.id, false);
+        filtrarSub(panel, id);
+        return true;
+      }
+      return activate(id, false);
+    }
     if (location.hash) {
-      activate(decodeURIComponent(location.hash.slice(1)), false);
+      irA(decodeURIComponent(location.hash.slice(1)));
     }
     window.addEventListener('hashchange', function () {
-      if (activate(decodeURIComponent(location.hash.slice(1)), false)) {
+      if (irA(decodeURIComponent(location.hash.slice(1)))) {
         repo.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
     });
@@ -838,7 +921,7 @@
     function visibleAccordions() {
       var scope = repo.classList.contains('is-searching') ? repo : repo.querySelector('.dgac-repo-panel.is-active') || repo;
       return Array.prototype.filter.call(scope.querySelectorAll('.dgac-year-accordion'), function (d) {
-        return !d.classList.contains('is-filtered-out');
+        return !d.classList.contains('is-filtered-out') && !d.closest('.is-sub-oculta');
       });
     }
     function syncToggle() {
@@ -870,6 +953,14 @@
     function filter(raw) {
       var q = normalizar(raw.trim());
       repo.classList.toggle('is-searching', q !== '');
+      // La búsqueda recorre todo: se vuelve a "Todas" en las etiquetas de subsección.
+      if (q) {
+        repo.querySelectorAll('.dgac-repo-panel').forEach(function (p) {
+          if (p.querySelector('.dgac-repo-filtro.is-active[data-sub]:not([data-sub=""])')) {
+            filtrarSub(p, '');
+          }
+        });
+      }
       var total = 0;
       repo.querySelectorAll('.dgac-doc-row').forEach(function (row) {
         var title = row.querySelector('.dgac-doc-row-title');

@@ -90,3 +90,40 @@ function uleam_url_menu( $atts ) {
 	return $atts;
 }
 add_filter( 'nav_menu_link_attributes', 'uleam_url_menu', 5 );
+
+/**
+ * Color del borde izquierdo de un banner (promedio de su primera columna), para continuar el
+ * fondo de la cabecera sin que se note la unión con la imagen. Se guarda en la imagen.
+ *
+ * @param int $adjunto_id ID de la imagen.
+ * @return string Color hexadecimal o '' si no se puede leer.
+ */
+function uleam_color_borde_banner( $adjunto_id ) {
+	$archivo = get_attached_file( $adjunto_id );
+	$version = $archivo && file_exists( $archivo ) ? (string) filemtime( $archivo ) : '';
+	$guardado = get_post_meta( $adjunto_id, '_uleam_color_borde', true );
+	if ( is_array( $guardado ) && $guardado['version'] === $version ) {
+		return $guardado['color'];
+	}
+	$color = '';
+	if ( $version && function_exists( 'imagecreatefromstring' ) ) {
+		$img = @imagecreatefromstring( (string) file_get_contents( $archivo ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
+		if ( $img ) {
+			$alto  = imagesy( $img );
+			$suma  = array( 0, 0, 0 );
+			$pasos = 40;
+			for ( $i = 0; $i < $pasos; $i++ ) {
+				$rgb      = imagecolorsforindex( $img, imagecolorat( $img, 2, (int) ( ( $i + .5 ) * $alto / $pasos ) ) );
+				$suma[0] += $rgb['red'];
+				$suma[1] += $rgb['green'];
+				$suma[2] += $rgb['blue'];
+			}
+			imagedestroy( $img );
+			$color = vsprintf( '#%02x%02x%02x', array_map( function ( $v ) use ( $pasos ) {
+				return (int) round( $v / $pasos );
+			}, $suma ) );
+		}
+	}
+	update_post_meta( $adjunto_id, '_uleam_color_borde', array( 'version' => $version, 'color' => $color ) );
+	return $color;
+}

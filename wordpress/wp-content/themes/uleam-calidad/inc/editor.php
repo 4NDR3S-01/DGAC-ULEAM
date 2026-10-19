@@ -7,7 +7,12 @@
  * "Clásico" (TinyMCE). Por defecto TinyMCE "limpia" ese HTML al guardar:
  * - borra las etiquetas <i> y <span> vacías (los iconos Font Awesome),
  * - borra los <summary> de los acordeones,
- * - quita los <a> que envuelven bloques (<div>), p. ej. tarjetas de contacto.
+ * - quita los <a> que envuelven bloques (<div>), p. ej. tarjetas de contacto;
+ * - y, en el bloque Clásico, quita los <p> al guardar ("wpautop"), aunque el tema
+ *   muestra las páginas sin volver a añadirlos: el texto quedaba suelto y se descuadraba.
+ *
+ * La tecla Enter se ajusta en js/editor-mce.js y lo que aún quede desordenado se
+ * corrige al guardar (inc/contenido-limpio.php).
  *
  * @package uleam-calidad
  */
@@ -34,10 +39,11 @@ function uleam_mce_append( $init, $key, $values ) {
  *
  * Aplica tanto al bloque Clásico de Gutenberg ('classic-block') como al editor clásico.
  *
- * @param array $init Configuración de TinyMCE.
+ * @param array  $init      Configuración de TinyMCE.
+ * @param string $editor_id Editor ('classic-block' es el bloque Clásico).
  * @return array
  */
-function uleam_mce_preservar_html( $init ) {
+function uleam_mce_preservar_html( $init, $editor_id = '' ) {
 	// Redefinir i/span quita la regla "eliminar si está vacío" que traen por defecto.
 	$init = uleam_mce_append( $init, 'extended_valid_elements', 'i[*],span[*],summary[*],details[*]' );
 
@@ -55,9 +61,58 @@ function uleam_mce_preservar_html( $init ) {
 	}
 	$init = uleam_mce_append( $init, 'non_empty_elements', 'i' );
 
+	// Las páginas se muestran tal cual se guardan (page.php no aplica wpautop), así que
+	// el bloque Clásico debe guardar los <p> en lugar de quitarlos.
+	if ( 'classic-block' === $editor_id ) {
+		$init['wpautop'] = false;
+
+		// Iconos y tipografía como enlaces (ver uleam_editor_fuentes()).
+		$init['content_css'] = implode( ',', array_filter( array_merge( empty( $init['content_css'] ) ? array() : array( $init['content_css'] ), uleam_editor_fuentes() ) ) );
+	}
+
 	return $init;
 }
-add_filter( 'tiny_mce_before_init', 'uleam_mce_preservar_html' );
+add_filter( 'tiny_mce_before_init', 'uleam_mce_preservar_html', 10, 2 );
+
+/**
+ * Carga el ajuste de la tecla Enter (js/editor-mce.js) en el editor visual.
+ *
+ * @param array $plugins Complementos externos de TinyMCE.
+ * @return array
+ */
+function uleam_mce_complementos( $plugins ) {
+	$plugins['uleam'] = ULEAM_THEME_URI . '/js/editor-mce.js?ver=' . ULEAM_THEME_VERSION;
+	return $plugins;
+}
+add_filter( 'mce_external_plugins', 'uleam_mce_complementos' );
+
+/**
+ * Hojas de iconos (Font Awesome) y de tipografía (Montserrat) del sitio.
+ *
+ * No van en add_editor_style(): ahí WordPress copia su contenido dentro del editor y
+ * se pierden las rutas relativas de sus archivos de letra, así que los iconos salían
+ * como cuadros vacíos. Se cargan como enlaces normales.
+ *
+ * @return string[]
+ */
+function uleam_editor_fuentes() {
+	return array(
+		'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
+		'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap',
+	);
+}
+
+/**
+ * Carga iconos y tipografía en el lienzo del editor de bloques.
+ */
+function uleam_editor_fuentes_bloques() {
+	if ( is_admin() ) {
+		foreach ( uleam_editor_fuentes() as $i => $url ) {
+			wp_enqueue_style( 'uleam-editor-fuente-' . $i, $url, array(), null );
+		}
+	}
+}
+add_action( 'enqueue_block_assets', 'uleam_editor_fuentes_bloques' );
 
 /**
  * Muestra el contenido en el editor con los estilos e iconos reales del sitio,
@@ -67,7 +122,6 @@ function uleam_editor_styles() {
 	add_theme_support( 'editor-styles' );
 	add_editor_style(
 		array(
-			'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css',
 			'css/variables.css',
 			'css/pages.css',
 			'css/institutional.css',

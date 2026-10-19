@@ -34,8 +34,28 @@ while ( have_posts() ) :
 			}
 		}
 	}
+	// La "Imagen destacada" de la página se usa como banner de la cabecera (textos en "Cabecera de la página").
+	$banner    = has_post_thumbnail() ? wp_get_attachment_image_url( get_post_thumbnail_id(), 'full' ) : '';
+	$estilo    = '';
+	if ( $banner ) {
+		$fondo  = uleam_color_borde_banner( get_post_thumbnail_id() );
+		$estilo = '--page-header-banner:url(' . esc_url( $banner ) . ');' . ( $fondo ? '--page-header-fondo:' . $fondo . ';' : '' );
+	}
+	$subtitulo = $banner ? trim( (string) get_post_meta( get_the_ID(), '_uleam_cabecera_subtitulo', true ) ) : '';
+	$puntos    = array();
+	if ( $banner ) {
+		foreach ( preg_split( '/\R/', (string) get_post_meta( get_the_ID(), '_uleam_cabecera_puntos', true ) ) as $linea ) {
+			$partes = array_map( 'trim', explode( '|', $linea, 2 ) );
+			if ( isset( $partes[1] ) && '' !== $partes[1] ) {
+				$puntos[] = array( 'icono' => $partes[0], 'texto' => $partes[1] );
+			}
+		}
+	}
+	// En el banner, la última palabra del título va en su propia línea, más grande y resaltada.
+	$titulo   = get_the_title();
+	$palabras = preg_split( '/\s+/u', trim( wp_strip_all_tags( $titulo ) ) );
 	?>
-	<header class="page-header">
+	<header class="page-header<?php echo $banner ? ' page-header--banner' : ''; ?>"<?php echo $estilo ? ' style="' . esc_attr( $estilo ) . '"' : ''; ?>>
 		<div class="page-header__wrap">
 			<span class="page-header__badge">
 				<?php if ( $badge_icon ) : ?>
@@ -43,7 +63,32 @@ while ( have_posts() ) :
 				<?php endif; ?>
 				<?php echo esc_html( $badge_text ); ?>
 			</span>
-			<h1 class="page-header__title"><?php the_title(); ?></h1>
+			<?php if ( $banner && count( $palabras ) > 1 ) : ?>
+				<h1 class="page-header__title"><?php echo esc_html( implode( ' ', array_slice( $palabras, 0, -1 ) ) ); ?> <span class="page-header__resalte"><?php echo esc_html( end( $palabras ) ); ?></span></h1>
+			<?php else : ?>
+				<h1 class="page-header__title"><?php the_title(); ?></h1>
+			<?php endif; ?>
+			<?php if ( $subtitulo || $puntos ) : ?>
+				<div class="page-header__extras">
+			<?php endif; ?>
+			<?php if ( $subtitulo ) : ?>
+				<p class="page-header__subtitulo"><?php echo nl2br( esc_html( $subtitulo ) ); ?></p>
+			<?php endif; ?>
+			<?php if ( $puntos ) : ?>
+				<ul class="page-header__puntos">
+					<?php foreach ( $puntos as $punto ) : ?>
+						<li class="page-header__punto">
+							<?php if ( $punto['icono'] ) : ?>
+								<i class="<?php echo esc_attr( $punto['icono'] ); ?>" aria-hidden="true"></i>
+							<?php endif; ?>
+							<?php echo esc_html( $punto['texto'] ); ?>
+						</li>
+					<?php endforeach; ?>
+				</ul>
+			<?php endif; ?>
+			<?php if ( $subtitulo || $puntos ) : ?>
+				</div>
+			<?php endif; ?>
 		</div>
 	</header>
 	<div class="entry-content">

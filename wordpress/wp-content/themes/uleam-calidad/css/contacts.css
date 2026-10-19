@@ -119,17 +119,20 @@
   flex-direction:column;
   gap:12px;
 }
-.dgac-phone-item{
+.dgac-phone-list > li{
   display:flex;
   align-items:center;
   justify-content:space-between;
+  flex-wrap:wrap;
+  gap:10px 14px;
+  margin:0;
   padding:12px 14px;
   background:#f8fafc;
   border:1px solid #edf2f7;
   border-radius:10px;
   transition:background 0.2s ease, border-color 0.2s ease;
 }
-.dgac-phone-item:hover{
+.dgac-phone-list > li:hover{
   background:#eff6ff;
   border-color:#bfdbfe;
 }
@@ -142,8 +145,10 @@
   font-size:12px;
   color:#475569;
 }
-.dgac-phone-btn{
+.dgac-phone-btn,
+.dgac-phone-list > li > a{
   display:inline-flex;
+  white-space:nowrap;
   align-items:center;
   gap:6px;
   background:var(--uleam-blue-700);
@@ -155,7 +160,8 @@
   text-decoration:none !important;
   transition:background 0.2s ease;
 }
-.dgac-phone-btn:hover{
+.dgac-phone-btn:hover,
+.dgac-phone-list > li > a:hover{
   background:var(--uleam-blue-900);
 }
 .dgac-main-email-card{
@@ -202,10 +208,10 @@
   border-radius:12px;
 }
 
-/* Directorio de Áreas Especializadas (3 columnas) */
+/* Directorio de Áreas Especializadas (3 columnas; más o menos tarjetas se reacomodan) */
 .dgac-areas-grid{
   display:grid;
-  grid-template-columns:repeat(3, minmax(0, 1fr));
+  grid-template-columns:repeat(auto-fit, minmax(min(100%, 270px), 1fr));
   gap:22px;
   margin:26px 0 34px;
 }
@@ -223,6 +229,19 @@
   transform:translateY(-3px);
   box-shadow:0 8px 24px rgba(3, 46, 85, 0.08);
   border-color:#cbd5e1;
+}
+/* Las listas de correos de todas las tarjetas empiezan a la misma altura,
+   aunque las descripciones tengan distinto largo. */
+@supports (grid-template-rows:subgrid){
+  .dgac-area-card{
+    display:grid;
+    grid-row:span 2;
+    grid-template-rows:subgrid;
+    row-gap:0;
+    align-content:start;
+  }
+  .dgac-area-card > .dgac-area-head{margin-bottom:0;padding-bottom:14px}
+  .dgac-area-card > .dgac-area-contacts{margin-top:4px;align-self:start}
 }
 .dgac-area-card--procesos{border-top:4px solid #0369a1}
 .dgac-area-card--calidad{border-top:4px solid #059669}
@@ -271,12 +290,19 @@
   gap:10px;
   flex-grow:1;
 }
-.dgac-area-contact-item{
+/* Por estructura y no solo por clase: una fila añadida en el editor se ve igual. */
+.dgac-area-contacts > li{
   padding:0;
   margin:0;
   list-style:none;
 }
-.dgac-area-contact-link{
+.dgac-area-contacts > li.dgac-area-contact-note{
+  font-size:12.5px;
+  color:#475569;
+  line-height:1.5;
+  padding:0 4px;
+}
+.dgac-area-contacts > li > a{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -290,7 +316,7 @@
   box-sizing:border-box;
   gap:8px;
 }
-.dgac-area-contact-link:hover{
+.dgac-area-contacts > li > a:hover{
   background:#eff6ff;
   border-color:#93c5fd;
   transform:translateY(-1px);
@@ -315,19 +341,20 @@
   flex-shrink:0;
   transition:all 0.2s ease;
 }
-.dgac-area-contact-link:hover .dgac-contact-mail-icon{
+.dgac-area-contacts > li > a:hover .dgac-contact-mail-icon{
   background:var(--uleam-blue-700);
   color:#ffffff;
 }
 .dgac-contact-email-text{
-  font-size:clamp(11px, 2.6vw, 13px);
+  font-size:clamp(12px, 3.3vw, 13px);
   font-weight:600;
   color:var(--uleam-blue-900);
-  word-break:break-all;
+  overflow-wrap:anywhere;
+  min-width:0;
   line-height:1.35;
   transition:color 0.2s ease;
 }
-.dgac-area-contact-link:hover .dgac-contact-email-text{
+.dgac-area-contacts > li > a:hover .dgac-contact-email-text{
   color:var(--uleam-blue-700);
 }
 .dgac-contact-arrow-btn{
@@ -346,58 +373,122 @@
   transition:all 0.2s ease;
   box-shadow:0 1px 3px rgba(0,0,0,0.04);
 }
-.dgac-area-contact-link:hover .dgac-contact-arrow-btn{
+.dgac-area-contacts > li > a:hover .dgac-contact-arrow-btn{
   background:var(--accent);
   border-color:var(--accent);
   color:#ffffff;
   transform:scale(1.06);
 }
 
-/* Nota de Atención Institucional */
-.dgac-note-box{
-  background:linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
-  border:1px solid #c8dff5;
-  border-left:4px solid var(--uleam-blue-700);
-  border-radius:12px;
-  padding:20px 24px;
-  display:flex;
-  align-items:flex-start;
-  gap:16px;
+/* Encuesta de satisfacción: texto y botón a la izquierda, código QR a la derecha */
+.dgac-encuesta{
+  display:grid;
+  grid-template-columns:minmax(0, 1fr) auto;
+  align-items:center;
+  gap:28px;
   margin-top:30px;
-  box-shadow:0 3px 12px rgba(0, 89, 168, 0.04);
-  font-size:14px;
-  line-height:1.65;
-  color:#1e3a5f;
+  padding:28px 30px;
+  background:linear-gradient(135deg, var(--uleam-blue-900) 0%, var(--uleam-blue-700) 100%);
+  border-radius:16px;
+  color:#ffffff;
+  box-shadow:0 8px 26px rgba(3, 46, 85, 0.16);
 }
-.dgac-note-box i{
-  font-size:22px;
-  color:var(--uleam-blue-700);
-  flex-shrink:0;
-  margin-top:2px;
+.dgac-encuesta__kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:#bfdbfe;
 }
-.dgac-note-box p,
-.dgac-note-box .dgac-note-content,
-.dgac-note-box > div{
-  font-size:14px;
+.entry-content .dgac-encuesta h2.dgac-encuesta__titulo,
+.dgac-encuesta__titulo{
+  margin:6px 0 4px;
+  font-size:clamp(21px, 3vw, 26px);
+  line-height:1.25;
+  color:#ffffff;
+}
+.dgac-encuesta__nombre{
+  margin:0 0 10px;
+  font-size:12.5px;
+  line-height:1.5;
+  color:#bfdbfe;
+}
+.dgac-encuesta__desc{
+  margin:0 0 18px;
+  font-size:14.5px;
   line-height:1.65;
-  color:#1e3a5f;
+  color:#e2edf9;
+  max-width:620px;
+}
+.dgac-encuesta__acciones{
   margin:0;
-  flex:1;
-  min-width:0;
 }
-.dgac-note-box a{
-  color:var(--uleam-blue-700);
+.entry-content .dgac-encuesta__acciones a,
+.dgac-encuesta__acciones a{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding:11px 20px;
+  border-radius:10px;
+  background:#ffffff;
+  color:var(--uleam-blue-900);
+  font-size:14px;
   font-weight:600;
   text-decoration:none;
+  transition:transform var(--dur-fast, 0.15s) ease, box-shadow var(--dur-fast, 0.15s) ease;
 }
-.dgac-note-box a:hover{
-  text-decoration:underline;
+.entry-content .dgac-encuesta__acciones a:hover,
+.dgac-encuesta__acciones a:hover{
+  color:var(--uleam-blue-900);
+  transform:translateY(-1px);
+  box-shadow:0 6px 16px rgba(0, 0, 0, 0.18);
+}
+.dgac-encuesta__acciones a:focus-visible,
+.dgac-encuesta__qr a:focus-visible{
+  outline:3px solid #fbbf24;
+  outline-offset:3px;
+}
+.dgac-encuesta__qr{
+  width:195px;
+  box-sizing:border-box;
+  margin:0;
+  padding:12px 12px 10px;
+  background:#ffffff;
+  border-radius:14px;
+  text-align:center;
+}
+.dgac-encuesta__qr a{
+  display:block;
+  line-height:0;
+  border-radius:6px;
+}
+.entry-content .dgac-encuesta__qr img,
+.dgac-encuesta__qr img{
+  display:block;
+  width:171px; /* 57 módulos x 3 px: tamaño exacto para que el QR se lea nítido */
+  height:171px;
+  margin:0 auto;
+  border-radius:0;
+}
+.dgac-encuesta__qr-texto{
+  display:block;
+  margin-top:6px;
+  font-size:11.5px;
+  line-height:1.3;
+  color:#475569;
+}
+@media(max-width:600px){
+  .dgac-encuesta{grid-template-columns:1fr;padding:24px 20px}
+  /* En el celular el QR no sirve (no se puede escanear la propia pantalla): basta el botón. */
+  .dgac-encuesta__qr{display:none}
 }
 
 /* Responsividad de Contactos y Horario */
 @media(max-width:960px){
   .dgac-contact-top-grid{grid-template-columns:1fr}
-  .dgac-areas-grid{grid-template-columns:1fr}
 }
 @media(max-width:600px){
   .dgac-schedule-hero{padding:26px 18px}

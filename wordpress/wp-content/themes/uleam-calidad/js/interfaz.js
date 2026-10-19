@@ -46,7 +46,7 @@
     '.dgac-mv-card', '.dgac-pilar-card', '.dgac-area-card', '.dgac-audit-card',
     '.dgac-catalog-card', '.dgac-macro-card', '.dgac-contact-box', '.dgac-overview-card',
     '.dgac-obligacion-card', '.dgac-intro-box', '.dgac-note-box', '.dgac-main-email-card',
-    '.dgac-normativa-box', '.dgac-timeline-item', '.dgac-file-card', '.dgac-proc-row',
+    '.dgac-normativa-box', '.dgac-encuesta', '.dgac-timeline-item', '.dgac-file-card', '.dgac-proc-row',
     '.footer-grid > *'
   ].join(',');
 

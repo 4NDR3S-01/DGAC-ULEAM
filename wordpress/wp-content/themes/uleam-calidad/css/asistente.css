@@ -18,7 +18,7 @@
   align-items:center;
   gap:10px;
   min-height:56px;
-  padding:0 22px 0 18px;
+  padding:0 24px;
   border:0;
   border-radius:999px;
   background:var(--primary);
@@ -34,6 +34,8 @@
 .asistente__fab i{ font-size:22px; }
 .asistente__fab:hover{ background:var(--accent-dark); transform:translateY(-2px); }
 .asistente__fab:focus-visible{ outline:3px solid var(--accent); outline-offset:3px; }
+/* Cerrado: solo el texto "¿Te ayudo?"; abierto: solo el ícono. */
+.asistente:not(.is-abierto) .asistente__fab i{ display:none; }
 .asistente.is-abierto .asistente__fab-texto{ display:none; }
 .asistente.is-abierto .asistente__fab{ padding:0; width:56px; justify-content:center; }
 
@@ -56,24 +58,44 @@
 .asistente__cabecera{
   display:flex;
   align-items:center;
-  gap:10px;
-  padding:14px 12px 14px 16px;
+  gap:4px;
+  min-height:68px;
+  padding:10px 10px 10px 20px;
   background:linear-gradient(135deg, var(--primary-dark), var(--primary));
   color:#fff;
 }
-.asistente__avatar{
-  display:grid;
-  place-items:center;
-  flex:none;
-  width:40px;
-  height:40px;
-  border-radius:50%;
-  background:rgba(255,255,255,.16);
+.asistente__titulos{ flex:1; min-width:0; display:flex; flex-direction:column; gap:3px; }
+.asistente__titulo{
+  margin:0;
   font-size:18px;
+  font-weight:700;
+  line-height:1.15;
+  letter-spacing:.06em;
+  color:#fff;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.asistente__titulos{ flex:1; min-width:0; }
-.asistente__titulo{ margin:0; font-size:16px; line-height:1.2; color:#fff; }
-.asistente__estado{ margin:2px 0 0; font-size:12px; opacity:.88; }
+.asistente__estado{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  margin:0;
+  font-size:12px;
+  line-height:1.2;
+  opacity:.9;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.asistente__en-linea{
+  flex:none;
+  width:8px;
+  height:8px;
+  border-radius:50%;
+  background:#4ade80;
+  box-shadow:0 0 0 2px rgba(74,222,128,.3);
+}
 .asistente__icono-btn{
   display:grid;
   place-items:center;
@@ -274,6 +296,128 @@
   text-align:center;
 }
 
+/* Cabeza flotante junto al botón mientras el chat está cerrado (al hacer clic abre el chat). */
+.asistente__cabeza{
+  position:absolute;
+  right:100%;
+  bottom:-8px;
+  width:88px;
+  height:88px;
+  margin-right:6px;
+  cursor:pointer;
+  filter:drop-shadow(0 4px 8px rgba(15,39,68,.22));
+  animation:asistente-cabeza-entrar .5s var(--ease-out, ease-out) .8s both, asistente-flotar 3.2s ease-in-out 1.3s infinite;
+}
+.asistente.is-abierto .asistente__cabeza{ display:none; }
+@keyframes asistente-cabeza-entrar{
+  from{ opacity:0; transform:translateX(16px) scale(.6); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes asistente-flotar{
+  0%, 100%{ transform:translateY(0) rotate(0); }
+  50%{ transform:translateY(-6px) rotate(-3deg); }
+}
+@media (max-width:600px){
+  .asistente__cabeza{ width:68px; height:68px; bottom:-6px; }
+}
+
+/* Personaje animado a la izquierda del chat (js/asistente.js: data-pose), con los pies a la
+   altura del final de la ventana (56 px del botón + 12 px de separación). Su tamaño se adapta al
+   alto de la pantalla y al espacio libre a la izquierda de la ventana. En celulares el chat
+   ocupa toda la pantalla y el personaje no se muestra. */
+.asistente__personaje{ display:none; }
+@media (min-width:601px) and (min-height:501px){
+  .asistente.is-abierto .asistente__personaje{
+    display:block;
+    position:absolute;
+    right:100%;
+    bottom:68px;
+    height:min(380px, calc(100dvh - 170px), calc((100vw - 460px) * 1.7));
+    aspect-ratio:342 / 600;
+    margin-right:6px;
+    pointer-events:none;
+    animation:asistente-personaje-entrar .45s var(--ease-out, ease-out) both;
+  }
+}
+/* Sombra en el piso. */
+.asistente__personaje::after{
+  content:"";
+  position:absolute;
+  left:22%;
+  right:22%;
+  bottom:-4px;
+  height:12px;
+  border-radius:50%;
+  background:radial-gradient(closest-side, rgba(15,39,68,.28), transparent);
+}
+.asistente__personaje-cuerpo{
+  position:relative;
+  z-index:1;
+  height:100%;
+  transform-origin:50% 100%;
+  animation:asistente-respirar 4s ease-in-out infinite;
+}
+.asistente__personaje-img{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  object-fit:contain;
+  opacity:0;
+  transition:opacity .22s ease;
+  filter:drop-shadow(0 6px 10px rgba(15,39,68,.12));
+}
+.asistente__personaje-img.is-activa{ opacity:1; }
+
+/* Movimiento propio de cada pose. */
+.asistente__personaje[data-pose="saludo"] .asistente__personaje-cuerpo,
+.asistente__personaje[data-pose="saludo-izq"] .asistente__personaje-cuerpo{
+  animation:asistente-saltito .6s var(--ease-out, ease-out), asistente-respirar 4s ease-in-out .6s infinite;
+}
+.asistente__personaje[data-pose="escuchando"] .asistente__personaje-cuerpo{
+  animation:asistente-inclinarse 3s ease-in-out infinite;
+}
+.asistente__personaje[data-pose="pensando"] .asistente__personaje-cuerpo{
+  animation:asistente-balanceo 2.4s ease-in-out infinite;
+}
+.asistente__personaje[data-pose="respondiendo"] .asistente__personaje-cuerpo{
+  animation:asistente-hablar .8s ease-in-out infinite;
+}
+.asistente__personaje[data-pose="no-entendi"] .asistente__personaje-cuerpo{
+  animation:asistente-encogerse .5s ease-out, asistente-respirar 4s ease-in-out .5s infinite;
+}
+@keyframes asistente-personaje-entrar{
+  from{ opacity:0; transform:translateX(40px); }
+  to{ opacity:1; transform:none; }
+}
+@keyframes asistente-respirar{
+  0%, 100%{ transform:none; }
+  50%{ transform:translateY(-3px) scaleY(1.008); }
+}
+@keyframes asistente-saltito{
+  0%{ transform:none; }
+  35%{ transform:translateY(-14px); }
+  65%{ transform:translateY(0) scaleY(.98); }
+  100%{ transform:none; }
+}
+@keyframes asistente-inclinarse{
+  0%, 100%{ transform:rotate(0); }
+  50%{ transform:rotate(1.5deg); }
+}
+@keyframes asistente-balanceo{
+  0%, 100%{ transform:rotate(-1.5deg); }
+  50%{ transform:rotate(1.5deg) translateY(-2px); }
+}
+@keyframes asistente-hablar{
+  0%, 100%{ transform:none; }
+  50%{ transform:translateY(-4px) scale(1.01); }
+}
+@keyframes asistente-encogerse{
+  0%{ transform:none; }
+  40%{ transform:scale(1.04, .96); }
+  100%{ transform:none; }
+}
+
 @keyframes asistente-abrir{
   from{ opacity:0; transform:translateY(12px) scale(.96); }
   to{ opacity:1; transform:none; }
@@ -290,14 +434,13 @@
   .asistente__entrada{ font-size:16px; }
 }
 
-/* Celulares: solo el ícono en el botón flotante. */
+/* Celulares: botón un poco más compacto. */
 @media (max-width:600px){
   .asistente{
     right:max(16px, calc(env(safe-area-inset-right) + 8px));
     bottom:max(16px, calc(env(safe-area-inset-bottom) + 8px));
   }
-  .asistente__fab-texto{ display:none; }
-  .asistente__fab{ padding:0; width:56px; justify-content:center; }
+  .asistente__fab{ min-height:52px; padding:0 20px; font-size:14px; }
   .asistente__entrada{ font-size:16px; }
 }
 
@@ -351,7 +494,11 @@ html.asistente-pantalla-completa body{ overflow:hidden; }
 
 @media (prefers-reduced-motion:reduce){
   .asistente__fab,
-  .asistente__escribiendo span[aria-hidden]{ transition:none; animation:none; }
+  .asistente__escribiendo span[aria-hidden],
+  .asistente__cabeza,
+  .asistente.is-abierto .asistente__personaje,
+  .asistente__personaje .asistente__personaje-cuerpo,
+  .asistente__personaje-img{ transition:none; animation:none !important; }
 }
 
 @media print{

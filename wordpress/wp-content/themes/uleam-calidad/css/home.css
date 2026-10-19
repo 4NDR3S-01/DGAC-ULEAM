@@ -233,6 +233,7 @@
 @media (max-width:960px){
   .two-col:has(.gallery) .news-list{display:grid;justify-content:normal}
 }
+
 .news-more{
   color:var(--uleam-blue-700);
   font-weight:600;
@@ -300,6 +301,7 @@
   position:absolute;
   inset:-6%;
   width:112%;
+  max-width:none; /* sin esto, img{max-width:100%} lo acorta y queda una franja azul a la derecha */
   height:112%;
   object-fit:cover;
   opacity:.75;
@@ -324,7 +326,45 @@
   line-height:1.4;
   overflow-wrap:anywhere;
 }
-.gallery__caption a{color:var(--uleam-blue-700);display:inline-flex;align-items:center;gap:.4rem}
+/* Título (2 líneas como máximo) y descripción (3): un texto largo no empuja la galería;
+   completo se lee al ampliar la foto. */
+.gallery__titulo,
+.gallery__desc{
+  margin:0;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+.gallery__titulo{-webkit-line-clamp:2;line-clamp:2}
+.gallery__desc{
+  -webkit-line-clamp:3;
+  line-clamp:3;
+  margin-top:4px;
+  color:var(--muted);
+  font-weight:400;
+  font-size:14px;
+  line-height:1.5;
+  white-space:pre-line;
+}
+.gallery__caption.screen-reader-text{padding:0}
+.gallery__mas{
+  margin-top:2px;
+  padding:2px 0;
+  border:none;
+  background:none;
+  color:var(--uleam-blue-700);
+  font:inherit;
+  font-size:13.5px;
+  font-weight:600;
+  cursor:pointer;
+}
+.gallery__mas i{font-size:.8em;margin-left:2px;transition:transform var(--dur-1, .15s) ease}
+.gallery__mas:hover{color:var(--accent)}
+.gallery__mas:hover i{transform:translateX(2px)}
+.gallery__mas:focus-visible{outline:3px solid var(--accent);outline-offset:2px;border-radius:4px}
+.gallery__mas[hidden]{display:none}
+.gallery__caption a{color:var(--uleam-blue-700)}
+.gallery__caption a i{margin-left:.3rem}
 .gallery__caption a i{font-size:.75em;transition:transform var(--dur-1) ease}
 .gallery__caption a:hover{color:var(--accent)}
 .gallery__caption a:hover i{transform:translateX(3px)}
@@ -334,9 +374,12 @@
   gap:8px;
   padding:10px 16px 16px 20px;
 }
-.gallery__dots{display:flex;align-items:center;gap:6px;margin-right:auto}
+.gallery__dots{display:flex;flex:0 1 auto;align-items:center;gap:6px;min-width:0;margin-right:auto}
+/* Los puntos se encogen si falta espacio (celulares pequeños o muchas fotos); los botones no. */
 .gallery__dot{
   position:relative;
+  flex:0 1 24px;
+  min-width:12px;
   width:24px;               /* área táctil cómoda; el punto visible es más pequeño */
   height:24px;
   padding:0;
@@ -354,8 +397,8 @@
   background:#b9cde6;
   transition:width var(--dur-2) var(--ease-out), background-color var(--dur-2) ease;
 }
-.gallery__dot.is-active{width:40px}
-.gallery__dot.is-active::before{width:32px;background:#dbe7f5}
+.gallery__dot.is-active{flex-basis:40px;min-width:22px;width:40px}
+.gallery__dot.is-active::before{width:calc(100% - 8px);background:#dbe7f5}
 /* Barra de tiempo hasta la siguiente foto (solo con cambio automático) */
 .gallery__dot-fill{
   position:absolute;
@@ -367,12 +410,13 @@
   border-radius:999px;
   background:var(--uleam-blue-700);
 }
-.gallery__dot.is-active .gallery__dot-fill{width:32px;transform-origin:left;transform:scaleX(1)}
+.gallery__dot.is-active .gallery__dot-fill{width:calc(100% - 8px);transform-origin:left;transform:scaleX(1)}
 .gallery.is-playing .gallery__dot.is-active .gallery__dot-fill{animation:gallery-progreso var(--gallery-intervalo) linear forwards}
 .gallery.is-paused .gallery__dot.is-active .gallery__dot-fill{animation-play-state:paused}
 @keyframes gallery-progreso{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 .gallery__dot:focus-visible{outline:3px solid var(--accent);outline-offset:1px;border-radius:999px}
 .gallery__btn{
+  flex:none;
   width:40px;
   height:40px;
   display:grid;
@@ -386,6 +430,11 @@
 }
 .gallery__btn:hover{background:var(--uleam-blue-900);border-color:var(--uleam-blue-900);color:#fff}
 .gallery__btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* Pantallas táctiles: botones de 44 px, el tamaño recomendado para tocar con el dedo. */
+@media (pointer:coarse){
+  .gallery__btn{width:44px;height:44px}
+  .gallery__controls{gap:6px}
+}
 .gallery__ampliar{
   position:absolute;
   inset:0;
@@ -674,4 +723,18 @@ html.quick-dialog-abierto{overflow:hidden}
 .quick-modal__opcion:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion:reduce){
   .quick-dialog[open],.quick-dialog[open]::backdrop,.quick-dialog.is-cerrando,.quick-dialog.is-cerrando::backdrop{animation:none}
+}
+
+/* Galería de altura fija: todas las fotos miden lo mismo con o sin texto. La foto ocupa lo
+   que deja libre su texto (sin texto, más foto), así no quedan huecos ni se mueven las
+   noticias de al lado al cambiar de foto. */
+@supports (height:1cqi){
+  .panel.gallery{container-type:inline-size;--gallery-foto:min(80cqi, 560px, 68vh)}
+  .gallery__track{height:calc(var(--gallery-foto) + 6rem)}
+  .gallery__slide{height:100%;min-height:0}
+  .gallery__media{flex:1 1 auto;min-height:0;aspect-ratio:auto;max-height:none}
+  .gallery__caption{flex:none;min-height:0}
+}
+@media (max-width:960px){
+  .panel.gallery{--gallery-foto:min(125cqi, 560px, 68vh)}
 }

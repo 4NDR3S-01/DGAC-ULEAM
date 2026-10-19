@@ -356,27 +356,28 @@
   flex-shrink:0;
 }
 
-/* Nota Informativa Institucional */
+/* Nota Informativa Institucional
+   El icono va fuera del flujo: el texto se acomoda igual si está en un párrafo, en
+   varios o suelto (como lo deje el editor). */
 .dgac-note-box{
+  position:relative;
   background:linear-gradient(135deg, #f0f7ff 0%, #ffffff 100%);
   border:1px solid #c8dff5;
   border-left:4px solid var(--uleam-blue-700);
   border-radius:12px;
-  padding:20px 24px;
-  display:flex;
-  align-items:flex-start;
-  gap:16px;
+  padding:20px 24px 20px 62px;
   margin-top:30px;
   box-shadow:0 3px 12px rgba(0, 89, 168, 0.04);
   font-size:14px;
   line-height:1.65;
   color:#1e3a5f;
 }
-.dgac-note-box i{
+.dgac-note-box > i:first-child{
+  position:absolute;
+  left:24px;
+  top:22px;
   font-size:22px;
   color:var(--uleam-blue-700);
-  flex-shrink:0;
-  margin-top:2px;
 }
 .dgac-note-box p,
 .dgac-note-box .dgac-note-content,
@@ -385,8 +386,9 @@
   line-height:1.65;
   color:#1e3a5f;
   margin:0;
-  flex:1;
-  min-width:0;
+}
+.dgac-note-box p + p{
+  margin-top:8px;
 }
 .dgac-note-box a{
   color:var(--uleam-blue-700);
@@ -395,6 +397,10 @@
 }
 .dgac-note-box a:hover{
   text-decoration:underline;
+}
+@media(max-width:600px){
+  .dgac-note-box{padding:18px 18px 18px 52px}
+  .dgac-note-box > i:first-child{left:18px;top:20px;font-size:20px}
 }
 
 /* Hub Portal: Auditoría de la Calidad */

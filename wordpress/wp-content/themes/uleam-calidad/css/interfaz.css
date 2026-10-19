@@ -418,6 +418,103 @@ a:hover > .fa-chevron-right,
 .page-header__title{ color:#fff; letter-spacing:-.01em; }
 .page-header__title::after{ background:linear-gradient(90deg, #fff, rgba(255,255,255,.4)); }
 
+/* Cabecera con banner: la "Imagen destacada" de la página (page.php). Misma altura que las
+   demás cabeceras: título del mismo tamaño con la última palabra resaltada, subtítulo en una
+   línea y los puntos destacados como etiquetas (ocupan el lugar de la insignia). */
+.page-header--banner{
+  /* La imagen va anclada a la derecha y más alta que la cabecera, para que se vea completa la
+     foto con los íconos; a la izquierda continúa el azul del borde de la imagen
+     (--page-header-fondo, lo calcula uleam_color_borde_banner()). */
+  background:
+    linear-gradient(90deg, rgba(0,20,60,.4) 0%, transparent 45%),
+    var(--page-header-banner) right 50% / auto 150% no-repeat,
+    var(--page-header-fondo, #021f53);
+}
+.page-header--banner::after{ display:none; }
+.page-header--banner .page-header__badge{ display:none; }
+.page-header--banner .page-header__title{
+  /* La letra extra gruesa es más ancha: un poco más pequeña, pero con la misma altura de línea
+     que el título estándar (clamp(26px, 4vw, 36px) × 1.2) para no cambiar la altura. */
+  max-width:min(860px, 76%);
+  font-family:"Montserrat Banner", "Montserrat", system-ui, sans-serif;
+  font-weight:800;
+  font-size:calc(.89 * clamp(26px, 4vw, 36px));
+  line-height:calc(1.2 * clamp(26px, 4vw, 36px));
+  text-shadow:0 2px 12px rgba(0,20,60,.35);
+}
+.page-header--banner .page-header__title::after{ display:none; }
+.page-header__resalte{ color:#5cb8ff; }
+.page-header__subtitulo{
+  margin:2px 0 0;
+  font-family:"Montserrat Banner", "Montserrat", system-ui, sans-serif;
+  font-style:italic;
+  font-weight:400;
+  font-size:15px;
+  line-height:1.4;
+  color:rgba(255,255,255,.9);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.page-header__subtitulo br{ display:none; }
+/* Misma altura que las demás cabeceras: el subtítulo (23 px) y la fila de etiquetas (30 px)
+   ocupan lo mismo que allí la insignia con su margen (37 px) y la línea bajo el título (16 px).
+   Así, con un título de una o dos líneas, la cabecera mide lo mismo que una página normal. */
+.page-header__extras{ height:53px; overflow:hidden; }
+.page-header__puntos{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  height:30px;
+  margin:0;
+  padding:6px 0 0;
+  overflow:hidden;
+  list-style:none;
+}
+.page-header__punto{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  height:24px;
+  padding:0 12px;
+  border:1px solid rgba(255,255,255,.22);
+  border-radius:999px;
+  background:rgba(255,255,255,.1);
+  font-size:12.5px;
+  font-weight:600;
+  line-height:1;
+  color:#fff;
+  white-space:nowrap;
+}
+.page-header__punto i{ color:#7cc4ff; font-size:12px; }
+/* Pantallas angostas: la foto queda detrás del título, así que se oscurece para que se lea. */
+@media (max-width:760px){
+  .page-header--banner{
+    background:
+      linear-gradient(90deg, rgba(0,40,100,.92) 0%, rgba(0,40,100,.7) 60%, rgba(0,40,100,.45) 100%),
+      var(--page-header-banner) 72% 40% / cover no-repeat,
+      var(--uleam-blue-900);
+  }
+  .page-header__subtitulo{ font-size:14px; }
+  .page-header--banner .page-header__title{ max-width:none; }
+}
+
+/* Fuentes solo del banner (en el tema, con su propio nombre para no cambiar los pesos que usa
+   el resto del sitio con Montserrat). */
+@font-face{
+  font-family:"Montserrat Banner";
+  font-style:normal;
+  font-weight:800;
+  font-display:swap;
+  src:url("../fonts/montserrat-800.woff2") format("woff2");
+}
+@font-face{
+  font-family:"Montserrat Banner";
+  font-style:italic;
+  font-weight:400;
+  font-display:swap;
+  src:url("../fonts/montserrat-400-italic.woff2") format("woff2");
+}
 /* --- Noticia individual: franja azul como el resto de páginas interiores ------------------
    Fondo a todo el ancho sin cambiar el HTML: border-image extiende el degradado a los lados. */
 .reading__header{

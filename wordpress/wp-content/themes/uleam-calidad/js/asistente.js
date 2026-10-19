@@ -21,6 +21,56 @@
   var conversacion = [];
   var ocupado = false;
 
+  // Personaje animado a la izquierda del chat: una imagen por pose (img/asistente/<pose>.webp).
+  // Se crea al abrir el chat por primera vez para no descargar las imágenes en cada página.
+  var POSES = ['reposo', 'saludo', 'saludo-izq', 'escuchando', 'pensando', 'respondiendo', 'no-entendi'];
+  var personaje = null;
+  var posePendiente = null;
+
+  function crearPersonaje() {
+    if (personaje || !cfg.personaje) {
+      return;
+    }
+    personaje = el('div', 'asistente__personaje');
+    personaje.setAttribute('aria-hidden', 'true');
+    var cuerpo = personaje.appendChild(el('div', 'asistente__personaje-cuerpo'));
+    POSES.forEach(function (pose) {
+      var img = el('img', 'asistente__personaje-img');
+      img.src = cfg.personaje + pose + '.webp';
+      img.alt = '';
+      img.width = 342;
+      img.height = 600;
+      img.decoding = 'async';
+      img.setAttribute('data-pose', pose);
+      cuerpo.appendChild(img);
+    });
+    raiz.insertBefore(personaje, panel);
+  }
+
+  // Pose "de fondo" cuando termina una pose temporal: piensa mientras espera, escucha mientras escribes.
+  function poseBase() {
+    if (ocupado) {
+      return 'pensando';
+    }
+    return document.activeElement === entrada && entrada.value.trim() ? 'escuchando' : 'reposo';
+  }
+
+  // ms: la pose dura ese tiempo y luego vuelve a la pose de fondo.
+  function posar(pose, ms) {
+    if (!personaje) {
+      return;
+    }
+    clearTimeout(posePendiente);
+    personaje.setAttribute('data-pose', pose);
+    personaje.querySelectorAll('.asistente__personaje-img').forEach(function (img) {
+      img.classList.toggle('is-activa', img.getAttribute('data-pose') === pose);
+    });    if (ms) {
+      posePendiente = setTimeout(function () {
+        posar(poseBase());
+      }, ms);
+    }
+  }
+
   function guardar() {
     try {
       sessionStorage.setItem(CLAVE, JSON.stringify({ abierto: !panel.hidden, mensajes: conversacion.slice(-40) }));
@@ -210,6 +260,7 @@
     ocupado = true;
     enviar.disabled = true;
     escribiendo(true);
+    posar('pensando');
 
     var inicio = Date.now();
     function conPausa(fn) {
@@ -251,6 +302,12 @@
         pintar(resp);
         sugerencias(resp.sugerencias);
         bajar();
+        // Sin resultados se encoge de hombros; si no, "habla" más tiempo cuanto más larga es la respuesta.
+        if (resp.contacto) {
+          posar('no-entendi', 3200);
+        } else {
+          posar('respondiendo', Math.min(6000, Math.max(2200, resp.plano.length * 30)));
+        }
       }))
       .catch(conPausa(function (e) {
         escribiendo(false);
@@ -260,6 +317,7 @@
         var err = { rol: 'bot', texto: msg, contacto: true, consulta: texto };
         conversacion.push(err);
         pintar(err);
+        posar('no-entendi', 3200);
       }))
       .then(function () {
         ocupado = false;
@@ -336,6 +394,13 @@
     if (!log.children.length) {
       iniciar();
     }
+    crearPersonaje();
+    // Saluda al abrirlo con el botón; al recuperar el chat abierto en otra página, solo aparece.
+    if (enfocar) {
+      posar('saludo', 2600);
+    } else {
+      posar(poseBase());
+    }
     modoPantalla();
     bajar();
     if (enfocar) {
@@ -382,11 +447,19 @@
       cerrar();
     }
   });
+  // La cabeza flotante es decorativa (el teclado usa el botón), pero con el ratón también abre el chat.
+  var cabeza = raiz.querySelector('.asistente__cabeza');
+  if (cabeza) {
+    cabeza.addEventListener('click', function () {
+      abrir(true);
+    });
+  }
   raiz.querySelector('[data-asistente-cerrar]').addEventListener('click', cerrar);
   raiz.querySelector('[data-asistente-reiniciar]').addEventListener('click', function () {
     iniciar();
     guardar();
     entrada.focus();
+    posar('saludo-izq', 2400);
   });
   panel.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') {
@@ -405,6 +478,18 @@
     }
   });
   entrada.addEventListener('input', ajustarAltura);
+  // Escucha mientras escribes (sin interrumpir mientras piensa).
+  function poseAlEscribir() {
+    if (personaje && !ocupado) {
+      var pose = poseBase();
+      if (personaje.getAttribute('data-pose') !== pose && (pose === 'escuchando' || personaje.getAttribute('data-pose') === 'escuchando')) {
+        posar(pose);
+      }
+    }
+  }
+  entrada.addEventListener('input', poseAlEscribir);
+  entrada.addEventListener('focus', poseAlEscribir);
+  entrada.addEventListener('blur', poseAlEscribir);
 
   // Recupera la conversación al cambiar de página.
   var previo = leer();

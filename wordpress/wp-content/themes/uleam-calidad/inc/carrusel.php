@@ -139,7 +139,10 @@ function uleam_carrusel_metabox_html( $post ) {
 			echo '<textarea id="' . esc_attr( $id ) . '" name="' . esc_attr( $clave ) . '" rows="3" class="large-text" maxlength="260">' . esc_textarea( $valor ) . '</textarea>';
 		} elseif ( 'imagen' === $c[1] ) {
 			$vista = $valor ? wp_get_attachment_image( (int) $valor, 'medium', false, array( 'style' => 'max-height:120px;width:auto;background:#003366;padding:6px;border-radius:6px' ) ) : '';
-			echo '<div class="uleam-imagen-campo">'
+			if ( '_slide_recorte' === $clave && $valor && ! uleam_imagen_transparente( (int) $valor ) ) {
+				echo '<div class="notice notice-error inline" style="margin:0 0 10px"><p>' . wp_kses_post( uleam_carrusel_aviso_sin_fondo() ) . '</p></div>';
+			}
+			echo '<div class="uleam-imagen-campo" data-campo="' . esc_attr( $clave ) . '">'
 				. '<input type="hidden" id="' . esc_attr( $id ) . '" name="' . esc_attr( $clave ) . '" value="' . esc_attr( $valor ) . '" />'
 				. '<div class="uleam-imagen-vista" style="margin-bottom:8px">' . $vista . '</div>' // phpcs:ignore WordPress.Security.EscapeOutput -- HTML de wp_get_attachment_image.
 				. '<button type="button" class="button uleam-imagen-elegir" data-titulo="' . esc_attr( $c[0] ) . '">Elegir imagen</button> '
@@ -216,6 +219,10 @@ function uleam_carrusel_media_scripts( $hook ) {
 					var img=marco.state().get('selection').first().toJSON();
 					var url=(img.sizes&&img.sizes.medium?img.sizes.medium.url:img.url);
 					caja.find('input').val(img.id);
+					caja.prevAll('.notice').remove();
+					if(caja.data('campo')==='_slide_recorte' && !/png|webp|gif|avif/.test(img.mime||'')){
+						caja.before($('<div class=\"notice notice-error inline\" style=\"margin:0 0 10px\"><p></p></div>').find('p').html(" . wp_json_encode( uleam_carrusel_aviso_sin_fondo() ) . ").end());
+					}
 					caja.find('.uleam-imagen-vista').html($('<img>',{src:url,alt:'',style:'max-height:120px;width:auto;background:#003366;padding:6px;border-radius:6px'}));
 					caja.find('.uleam-imagen-quitar').prop('hidden',false);
 				});
@@ -226,6 +233,7 @@ function uleam_carrusel_media_scripts( $hook ) {
 				var caja=$(this).closest('.uleam-imagen-campo');
 				caja.find('input').val('');
 				caja.find('.uleam-imagen-vista').empty();
+				caja.prevAll('.notice').remove();
 				$(this).prop('hidden',true);
 			});
 		});"
@@ -281,7 +289,7 @@ add_action( 'pre_get_posts', 'uleam_carrusel_orden_admin' );
 
 /**
  * Versión desenfocada de la foto, generada una sola vez en el servidor y guardada junto al
- * original (…-desenfocada-v2.jpg). Así el navegador solo muestra una imagen: el desenfoque
+ * original (…-desenfocada-v3.jpg). Así el navegador solo muestra una imagen: el desenfoque
  * con CSS era costoso en celulares y hacía que el cambio de diapositiva se trabara.
  *
  * @param int $attachment_id Imagen.
@@ -296,7 +304,7 @@ function uleam_carrusel_desenfocada( $attachment_id ) {
 	// La versión depende del archivo usado: si cambian la imagen, se genera otra.
 	$fuente  = path_join( dirname( get_attached_file( $attachment_id ) ), wp_basename( $origen[0] ) );
 	$fuente  = file_exists( $fuente ) ? $fuente : $ruta;
-	$destino = preg_replace( '/\.[^.]+$/', '', $fuente ) . '-desenfocada-v2.jpg';
+	$destino = preg_replace( '/\.[^.]+$/', '', $fuente ) . '-desenfocada-v3.jpg';
 	$url     = str_replace( wp_basename( $origen[0] ), wp_basename( $destino ), $origen[0] );
 	if ( file_exists( $destino ) && filemtime( $destino ) >= filemtime( $fuente ) ) {
 		return $url;
@@ -308,11 +316,13 @@ function uleam_carrusel_desenfocada( $attachment_id ) {
 	$w = imagesx( $img );
 	$h = imagesy( $img );
 	// Desenfoque suave sin "cuadritos": reducir mucho y volver a ampliar POR ETAPAS,
-	// desenfocando en cada una (ampliar de golpe deja bloques visibles).
-	$actual = imagecreatetruecolor( 48, max( 1, (int) round( 48 * $h / $w ) ) );
+	// desenfocando en cada una (ampliar de golpe deja bloques visibles). Se parte de 14 px de
+	// ancho para que solo queden los colores: en afiches con letras grandes, con más detalle se
+	// adivinaban manchas de texto y bordes a los lados de la foto.
+	$actual = imagecreatetruecolor( 14, max( 1, (int) round( 14 * $h / $w ) ) );
 	imagecopyresampled( $actual, $img, 0, 0, 0, 0, imagesx( $actual ), imagesy( $actual ), $w, $h );
 	$ancho_final = min( 768, $w );
-	foreach ( array( 96, 192, 384, $ancho_final ) as $ancho ) {
+	foreach ( array( 28, 56, 112, 224, 448, $ancho_final ) as $ancho ) {
 		$alto      = max( 1, (int) round( $ancho * $h / $w ) );
 		$siguiente = imagecreatetruecolor( $ancho, $alto );
 		imagecopyresampled( $siguiente, $actual, 0, 0, 0, 0, $ancho, $alto, imagesx( $actual ), imagesy( $actual ) );
@@ -378,6 +388,103 @@ function uleam_carrusel_duotono( $attachment_id ) {
 }
 
 /**
+ * Indica si una imagen tiene transparencia de verdad (no solo si es PNG).
+ *
+ * Las imágenes generadas con IA suelen "dibujar" el cuadriculado gris y blanco que
+ * imita la transparencia: parece sin fondo, pero el cuadriculado es parte de la foto.
+ * Se revisa una muestra de píxeles y el resultado se guarda hasta que el archivo cambie.
+ *
+ * @param int $id Adjunto.
+ * @return bool
+ */
+function uleam_imagen_transparente( $id ) {
+	$archivo = get_attached_file( $id );
+	if ( ! $archivo || ! file_exists( $archivo ) ) {
+		return false;
+	}
+	$firma    = filemtime( $archivo ) . ':' . filesize( $archivo );
+	$guardado = get_post_meta( $id, '_uleam_transparente', true );
+	if ( is_array( $guardado ) && isset( $guardado['firma'] ) && $guardado['firma'] === $firma ) {
+		return ! empty( $guardado['si'] );
+	}
+
+	$si = false;
+	if ( in_array( get_post_mime_type( $id ), array( 'image/png', 'image/webp', 'image/gif', 'image/avif' ), true ) && function_exists( 'imagecreatefromstring' ) ) {
+		$img = @imagecreatefromstring( (string) file_get_contents( $archivo ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+		if ( $img ) {
+			$w             = imagesx( $img );
+			$h             = imagesy( $img );
+			$color         = imageistruecolor( $img );
+			$transparentes = 0;
+			for ( $y = 0; $y < 40; $y++ ) {
+				for ( $x = 0; $x < 40; $x++ ) {
+					$c              = imagecolorat( $img, (int) ( ( $x + 0.5 ) * $w / 40 ), (int) ( ( $y + 0.5 ) * $h / 40 ) );
+					$alfa           = $color ? ( $c >> 24 ) & 0x7F : imagecolorsforindex( $img, $c )['alpha'];
+					$transparentes += $alfa >= 100 ? 1 : 0;
+				}
+			}
+			$si = $transparentes >= 80; // Al menos el 5 % de la muestra es (casi) transparente.
+			imagedestroy( $img );
+		}
+	}
+	update_post_meta( $id, '_uleam_transparente', array( 'si' => $si, 'firma' => $firma ) );
+	return $si;
+}
+
+/**
+ * Lados en los que las personas recortadas llegan al borde de la imagen (foto cortada).
+ *
+ * Si la foto corta a una persona en un lado, ese lado se pega al borde de la
+ * diapositiva; si no, el corte recto se vería flotando.
+ *
+ * @param int $id Adjunto.
+ * @return array { izq: bool, der: bool }
+ */
+function uleam_imagen_bordes( $id ) {
+	$sin     = array( 'izq' => false, 'der' => false );
+	$archivo = get_attached_file( $id );
+	if ( ! $archivo || ! file_exists( $archivo ) || ! function_exists( 'imagecreatefromstring' ) ) {
+		return $sin;
+	}
+	$firma    = filemtime( $archivo ) . ':' . filesize( $archivo );
+	$guardado = get_post_meta( $id, '_uleam_bordes', true );
+	if ( is_array( $guardado ) && isset( $guardado['firma'] ) && $guardado['firma'] === $firma ) {
+		return array( 'izq' => ! empty( $guardado['izq'] ), 'der' => ! empty( $guardado['der'] ) );
+	}
+
+	$bordes = $sin;
+	$img    = @imagecreatefromstring( (string) file_get_contents( $archivo ) ); // phpcs:ignore WordPress.PHP.NoSilencedErrors, WordPress.WP.AlternativeFunctions
+	if ( $img ) {
+		$w     = imagesx( $img );
+		$h     = imagesy( $img );
+		$color = imageistruecolor( $img );
+		foreach ( array( 'izq' => 1, 'der' => $w - 2 ) as $lado => $x ) {
+			$opacos = 0;
+			for ( $i = 0; $i < 100; $i++ ) {
+				$c       = imagecolorat( $img, $x, (int) ( ( $i + 0.5 ) * $h / 100 ) );
+				$alfa    = $color ? ( $c >> 24 ) & 0x7F : imagecolorsforindex( $img, $c )['alpha'];
+				$opacos += $alfa < 60 ? 1 : 0;
+			}
+			$bordes[ $lado ] = $opacos >= 4;
+		}
+		imagedestroy( $img );
+	}
+	update_post_meta( $id, '_uleam_bordes', $bordes + array( 'firma' => $firma ) );
+	return $bordes;
+}
+
+/**
+ * Aviso cuando la foto recortada no tiene el fondo transparente.
+ *
+ * @return string HTML.
+ */
+function uleam_carrusel_aviso_sin_fondo() {
+	return '<strong>Esta imagen no tiene el fondo transparente.</strong> Si es un JPG, o si el cuadriculado gris y blanco «de transparencia» '
+		. 'es parte de la foto (pasa con imágenes hechas con IA), ese fondo tapa el diseño. Usa un <strong>PNG</strong> recortado de verdad. '
+		. 'Mientras tanto, la portada muestra esta diapositiva con el diseño normal.';
+}
+
+/**
  * Diapositivas publicadas con imagen, en orden.
  *
  * @return array Lista de arrays listos para pintar.
@@ -389,14 +496,28 @@ function uleam_carrusel_diapositivas() {
 			'post_status' => 'publish',
 			'numberposts' => 8,
 			'orderby'     => array( 'menu_order' => 'ASC', 'date' => 'DESC' ),
-			'meta_key'    => '_thumbnail_id', // phpcs:ignore WordPress.DB.SlowDBQuery -- pocas filas.
+			// Con imagen, o con foto recortada (el diseño por capas con textura no necesita imagen).
+			'meta_query'  => array( // phpcs:ignore WordPress.DB.SlowDBQuery -- pocas filas.
+				'relation' => 'OR',
+				array( 'key' => '_thumbnail_id', 'compare' => 'EXISTS' ),
+				array( 'key' => '_slide_recorte', 'value' => '', 'compare' => '!=' ),
+			),
 		)
 	);
 	$slides = array();
 	foreach ( $posts as $p ) {
+		$imagen  = (int) get_post_thumbnail_id( $p );
+		$recorte = (int) get_post_meta( $p->ID, '_slide_recorte', true );
+		// Imágenes borradas de la Biblioteca de medios: como si no estuvieran.
+		$imagen  = $imagen && wp_attachment_is_image( $imagen ) ? $imagen : 0;
+		$recorte = $recorte && wp_attachment_is_image( $recorte ) ? $recorte : 0;
+		if ( ! $imagen && ! $recorte ) {
+			continue;
+		}
+		$fondo    = get_post_meta( $p->ID, '_slide_fondo', true ) ?: 'foto';
 		$slides[] = array(
 			'id'        => $p->ID,
-			'imagen'    => (int) get_post_thumbnail_id( $p ),
+			'imagen'    => $imagen,
 			'titulo'    => get_the_title( $p ),
 			'etiqueta'  => get_post_meta( $p->ID, '_slide_etiqueta', true ),
 			'destacado' => get_post_meta( $p->ID, '_slide_destacado', true ),
@@ -405,9 +526,9 @@ function uleam_carrusel_diapositivas() {
 			'enlace'    => get_post_meta( $p->ID, '_slide_enlace', true ),
 			'enfoque'   => get_post_meta( $p->ID, '_slide_enfoque', true ) ?: 'center',
 			'franja'    => get_post_meta( $p->ID, '_slide_franja', true ),
-			'recorte'   => (int) get_post_meta( $p->ID, '_slide_recorte', true ),
+			'recorte'   => $recorte,
 			'lado'      => get_post_meta( $p->ID, '_slide_lado', true ) ?: 'derecha',
-			'fondo'     => get_post_meta( $p->ID, '_slide_fondo', true ) ?: 'foto',
+			'fondo'     => $imagen ? $fondo : 'textura',
 			'insignia'  => (int) get_post_meta( $p->ID, '_slide_insignia', true ),
 			'insignia_color' => get_post_meta( $p->ID, '_slide_insignia_color', true ) ?: 'blanco',
 		);
@@ -454,7 +575,12 @@ function uleam_carrusel_render() {
 				$vars   = '--slide-enfoque:' . $s['enfoque'] . ';';
 				if ( $capas ) {
 					// Diseño por capas: fondo azul (foto en duotono o textura) + personas recortadas + panel.
-					$clases .= ' carrusel__slide--capas carrusel__slide--persona-' . ( 'izquierda' === $s['lado'] ? 'izq' : 'der' );
+					$lado_p  = 'izquierda' === $s['lado'] ? 'izq' : 'der';
+					$clases .= ' carrusel__slide--capas carrusel__slide--persona-' . $lado_p;
+					$clases .= uleam_imagen_bordes( $s['recorte'] )[ $lado_p ] ? ' carrusel__slide--al-borde' : '';
+					// Foto de grupo (bastante más ancha que alta): ocupa más ancho y el panel de texto se estrecha.
+					$dims    = wp_get_attachment_metadata( $s['recorte'] );
+					$clases .= ! empty( $dims['height'] ) && $dims['width'] / $dims['height'] > 1.6 ? ' carrusel__slide--grupo' : '';
 					$duotono = 'foto' === $s['fondo'] ? uleam_carrusel_duotono( $s['imagen'] ) : '';
 					$clases .= $duotono ? '' : ' carrusel__slide--textura';
 				} else {

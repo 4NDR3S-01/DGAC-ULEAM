@@ -115,13 +115,23 @@ if ( ! uleam_carrusel_render() ) :
               ?>
               <button type="button" class="gallery__ampliar" aria-label="<?php echo esc_attr( 'Ampliar foto: ' . $alt ); ?>"><i class="fa-solid fa-magnifying-glass-plus" aria-hidden="true"></i></button>
             </div>
-            <figcaption class="gallery__caption">
-              <?php if ( '' === $foto['texto'] ) : ?>
-                <span class="screen-reader-text"><?php echo esc_html( $alt ); ?></span>
-              <?php elseif ( $foto['url'] ) : ?>
-                <a href="<?php echo esc_url( uleam_url( $foto['url'] ) ); ?>"><?php echo esc_html( $foto['texto'] ); ?> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+            <?php // Sin texto ni descripción, el pie no ocupa espacio: la foto usa toda la altura. ?>
+            <figcaption class="gallery__caption<?php echo '' === $foto['texto'] && '' === $foto['descripcion'] ? ' screen-reader-text' : ''; ?>">
+              <?php if ( '' === $foto['texto'] && '' === $foto['descripcion'] ) : ?>
+                <?php echo esc_html( $alt ); ?>
               <?php else : ?>
-                <?php echo esc_html( $foto['texto'] ); ?>
+                <?php if ( '' !== $foto['texto'] ) : ?>
+                  <p class="gallery__titulo">
+                    <?php if ( $foto['url'] ) : ?>
+                      <a href="<?php echo esc_url( uleam_url( $foto['url'] ) ); ?>"><?php echo esc_html( $foto['texto'] ); ?> <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+                    <?php else : ?>
+                      <?php echo esc_html( $foto['texto'] ); ?>
+                    <?php endif; ?>
+                  </p>
+                <?php endif; ?>
+                <?php if ( '' !== $foto['descripcion'] ) : ?>
+                  <p class="gallery__desc"><?php echo esc_html( $foto['descripcion'] ); ?></p>
+                <?php endif; ?>
               <?php endif; ?>
             </figcaption>
           </figure>

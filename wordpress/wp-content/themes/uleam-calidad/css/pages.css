@@ -59,8 +59,9 @@
 .entry-content a:hover{
   color:var(--uleam-blue-900);
 }
-.entry-content ul,
-.entry-content ol{
+/* :where() deja esta regla con poca prioridad: las listas con diseño propio
+   (contactos, teléfonos...) ponen su propio margen y no quedan corridas. */
+.entry-content :where(ul, ol){
   padding-left:22px;
 }
 .entry-content img{
@@ -270,6 +271,22 @@ html.visor-abierto{overflow:hidden}
   margin:16px;
   cursor:zoom-out;
   animation:none;
+}
+/* Título y descripción completos de una foto de la galería de Actualidad */
+.visor__pie{
+  flex:none;
+  max-height:32vh;
+  overflow:auto;
+  padding:14px 20px 18px;
+  background:rgba(0,0,0,.35);
+  border-top:1px solid rgba(255,255,255,.12);
+}
+.visor__pie[hidden]{display:none}
+.visor__pie p{max-width:900px;margin:0 auto}
+.visor__pie-titulo{font-weight:600;font-size:15px;color:#fff}
+.visor__pie-desc{margin-top:6px !important;font-size:14px;line-height:1.6;color:rgba(255,255,255,.82);white-space:pre-line}
+@media (min-width:601px){
+  .visor__pie-titulo{display:none} /* ya está en la barra superior */
 }
 @media (max-width:600px){
   .visor.is-real .visor__img{width:calc(300% - 32px)}

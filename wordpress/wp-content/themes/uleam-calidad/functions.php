@@ -11,6 +11,7 @@
  * /inc/customizer.php  -> Opciones editables del personalizador de WordPress.
  * /inc/navigation.php  -> Menú principal, fallback, reglas de reescritura y estado activo.
  * /inc/editor.php      -> Ajustes del editor (TinyMCE) para editar páginas sin perder iconos ni estructura.
+ * /inc/contenido-limpio.php -> Repara al guardar lo que el editor visual desordena (vacíos, contactos, notas).
  * /inc/repositorio.php -> Repositorio documental automático (secciones, bloque y listado por año).
  * /inc/busqueda.php    -> Búsqueda del sitio: filtros por tipo, resaltado y sugerencias en vivo.
  * /inc/noticias.php    -> Imágenes de noticias: relacionada automática, predeterminada y respaldo.
@@ -28,7 +29,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 // Constantes globales del tema
 define( 'ULEAM_THEME_DIR', get_template_directory() );
 define( 'ULEAM_THEME_URI', get_template_directory_uri() );
-define( 'ULEAM_THEME_VERSION', '1.41.1' );
+define( 'ULEAM_THEME_VERSION', '1.46.0' );
 
 // 1. Configuración básica y encolado de estilos/scripts
 require_once ULEAM_THEME_DIR . '/inc/setup.php';
@@ -53,6 +54,7 @@ require_once ULEAM_THEME_DIR . '/inc/navigation.php';
 
 // 8. Editor: conservar iconos, acordeones y enlaces al editar páginas
 require_once ULEAM_THEME_DIR . '/inc/editor.php';
+require_once ULEAM_THEME_DIR . '/inc/contenido-limpio.php';
 
 // 9. Repositorio documental: Documentos por sección/año y bloque que los lista
 require_once ULEAM_THEME_DIR . '/inc/repositorio.php';

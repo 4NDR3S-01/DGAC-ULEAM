@@ -639,9 +639,25 @@ function uleam_repositorio_render( $attrs ) {
 				<?php
 				$subs = uleam_seccion_hijas( $area->term_id );
 				if ( $subs ) {
+					$conteos = array();
 					foreach ( $subs as $sub ) {
-						$n = count( uleam_repositorio_docs( $sub ) );
-						echo '<div class="dgac-repo-sub"><h4 class="dgac-repo-sub__title"><i class="fa-solid fa-angles-right" aria-hidden="true"></i> '
+						$conteos[ $sub->term_id ] = count( uleam_repositorio_docs( $sub ) );
+					}
+					// Etiquetas para ver una sola subsección sin recorrer todas (js/main.js).
+					if ( count( $subs ) > 1 ) {
+						echo '<div class="dgac-repo-filtros" role="group" aria-label="' . esc_attr( 'Filtrar ' . $area->name ) . '">';
+						echo '<button type="button" class="dgac-repo-filtro is-active" data-sub="" aria-pressed="true"><i class="fa-solid fa-layer-group" aria-hidden="true"></i> Todas <span class="dgac-repo-filtro__n">' . esc_html( array_sum( $conteos ) ) . '</span></button>';
+						foreach ( $subs as $sub ) {
+							$icono_sub = get_term_meta( $sub->term_id, 'icono', true );
+							echo '<button type="button" class="dgac-repo-filtro" data-sub="' . esc_attr( $sub->slug ) . '" aria-pressed="false">'
+								. '<i class="' . esc_attr( $icono_sub ? $icono_sub : 'fa-solid fa-folder' ) . '" aria-hidden="true"></i> '
+								. esc_html( $sub->name ) . ' <span class="dgac-repo-filtro__n">' . esc_html( $conteos[ $sub->term_id ] ) . '</span></button>';
+						}
+						echo '</div>';
+					}
+					foreach ( $subs as $sub ) {
+						$n = $conteos[ $sub->term_id ];
+						echo '<div class="dgac-repo-sub" id="' . esc_attr( $sub->slug ) . '" data-sub="' . esc_attr( $sub->slug ) . '"><h4 class="dgac-repo-sub__title"><i class="fa-solid fa-angles-right" aria-hidden="true"></i> '
 							. esc_html( $sub->name ) . ' <span class="dgac-repo-sub__count">' . esc_html( uleam_n_documentos( $n ) ) . '</span></h4>';
 						if ( $sub->description ) {
 							echo '<div class="dgac-repo-panel__desc">' . wp_kses_post( wpautop( $sub->description ) ) . '</div>';
