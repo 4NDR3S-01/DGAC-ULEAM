@@ -32,3 +32,6 @@
 
 # Respaldo local del contenido del sitio oficial
 /respaldo-sitio-oficial-*/
+
+# Paquete de despliegue generado (volcados con datos, uploads copiados)
+/dist/
