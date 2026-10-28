@@ -46,7 +46,7 @@ cp herramientas/despliegue/wp-config.local.php.example wordpress/wp-config.php  
 ./arrancar.php.sh           # solo PHP en http://localhost:8000, usa la base de tu wp-config.php
 ```
 
-`arrancar.sh` y `detener.sh` tienen rutas fijas de otra máquina; usa los `.docker.sh` o `arrancar.php.sh`.
+`arrancar.sh` / `detener.sh` son los de la máquina de andr3s (MariaDB en `~/local-mariadb`, puerto 3307, y ruta fija `WP=` al WordPress); ahí el `wp-config.php` va dentro de esa ruta `WP` y debe usar `DB_HOST` `127.0.0.1:3307`.
 
 Crea `wordpress/wp-config.php` (ignorado por git) con los datos de tu base local; para producción usa `herramientas/despliegue/wp-config.produccion.php.example`. Por defecto todo escucha solo en `127.0.0.1`; para compartirlo en la red local define `BIND=0.0.0.0` en `.env`.
 
