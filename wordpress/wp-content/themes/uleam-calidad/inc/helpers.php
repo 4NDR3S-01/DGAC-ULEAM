@@ -61,7 +61,7 @@ function uleam_url( $u ) {
  * Adapta una URL local guardada en el contenido al host usado para esta visita.
  *
  * Los documentos importados pueden conservar enlaces absolutos de la instalación
- * local (localhost:8000). En la red, esos enlaces deben apuntar a la IP actual.
+ * local de desarrollo. En la red, esos enlaces deben apuntar a la IP actual.
  *
  * @param string $url URL.
  * @return string

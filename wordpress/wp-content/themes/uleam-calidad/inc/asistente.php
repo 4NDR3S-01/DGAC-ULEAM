@@ -1279,7 +1279,12 @@ function uleam_asistente_rest() {
 					return new WP_Error( 'asistente_inactivo', 'El asistente está desactivado.', array( 'status' => 403 ) );
 				}
 				// Límite por conexión: 100 consultas cada 10 minutos (holgado: en el campus muchos comparten IP).
-				$ip    = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+				$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
+				// Detrás de un proxy propio: definir ULEAM_PROXY_CONFIABLE en wp-config.php para usar la IP real del visitante.
+				if ( defined( 'ULEAM_PROXY_CONFIABLE' ) && ULEAM_PROXY_CONFIABLE && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
+					$reenviada = trim( explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) )[0] );
+					$ip        = filter_var( $reenviada, FILTER_VALIDATE_IP ) ? $reenviada : $ip;
+				}
 				$llave = 'uleam_asis_' . md5( $ip . wp_salt() );
 				$usos  = (int) get_transient( $llave );
 				if ( $usos >= 100 ) {

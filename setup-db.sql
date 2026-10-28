@@ -4,7 +4,7 @@ CREATE DATABASE IF NOT EXISTS wordpress
   COLLATE utf8mb4_unicode_ci;
 
 CREATE USER IF NOT EXISTS 'wpuser'@'localhost'
-  IDENTIFIED BY '0043fc294eed0bc74d2baae3506bf76d';
+  IDENTIFIED BY 'CAMBIAR_ESTA_CLAVE';
 
 GRANT ALL PRIVILEGES ON wordpress.* TO 'wpuser'@'localhost';
 

@@ -21,7 +21,7 @@ else
     --socket="$HOME/local-mariadb/mysql.sock" \
     --pid-file="$HOME/local-mariadb/mysql.pid" \
     --port=3307 \
-    --bind-address=0.0.0.0 \
+    --bind-address="${BIND:-127.0.0.1}" \
     > /tmp/mariadb.log 2>&1 &
   # Espera a que el puerto esté listo (máx ~15 s)
   for i in $(seq 1 15); do
@@ -36,7 +36,7 @@ if fuser 8000/tcp >/dev/null 2>&1; then
   echo "✔ El servidor ya está corriendo (puerto 8000)."
 else
   echo "▶ Arrancando servidor PHP..."
-  PHP_CLI_SERVER_WORKERS=4 nohup php -S 0.0.0.0:8000 -t "$WP" > /tmp/php-server.log 2>&1 &
+  PHP_CLI_SERVER_WORKERS=4 nohup php -S "${BIND:-127.0.0.1}:8000" -t "$WP" > /tmp/php-server.log 2>&1 &
   sleep 2
 fi
 
@@ -49,5 +49,4 @@ echo "  Sitio (en red):  http://${IP_LAN:-<tu-IP>}:8000"
 echo "  Desde otra laptop, ambas deben estar en la misma red Wi-Fi."
 echo "  Admin:  http://localhost:8000/wp-admin/"
 echo "  Admin en red: http://${IP_LAN:-<tu-IP>}:8000/wp-admin/"
-echo "  usuario: dgac_admin   contraseña: Uleam2026"
 echo "========================================"
