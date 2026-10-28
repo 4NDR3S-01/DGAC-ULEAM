@@ -6,27 +6,30 @@ Sitio WordPress en la **raíz del dominio** (sin subcarpeta), sobre Apache. Los 
 
 ---
 
-## Origen de los datos: base y `uploads/` del compañero
+## Origen de los datos: base y `uploads/` del compañero (fuente de verdad)
 
 La base y los archivos deben ser **de la misma versión** (la base cita los archivos por nombre). Orden recomendado:
 
 1. **Congelar:** el compañero deja de editar contenido y subir archivos hasta terminar.
 2. **Base de datos:** no hace falta que te mande nada. `preparar-paquete.sh` lee directamente su MariaDB (`192.168.88.56:3307`) en **solo lectura**, la importa en una copia de trabajo, la limpia (URLs, contraseñas, claves de IA, restos de plugins) y exporta el `.sql.gz`. Su PC debe estar encendido y accesible. Repítelo con `--nuevo-volcado` cuando haya cambios.
-3. **Uploads:** viven solo en el disco de cada uno (no van en git). Trae los de tu compañero **fusionándolos** con los tuyos, sin borrar nada:
+3. **Uploads:** la fuente de verdad es la carpeta `wordpress/wp-content/uploads/` **de tu compañero** (la que va con su base de datos). No hay que mezclarla con la de nadie. Dos formas de llevarla a la VM:
    ```bash
-   # a) Por SSH, desde tu PC (ajusta usuario y ruta de su clon):
-   rsync -av --ignore-existing --progress USUARIO@192.168.88.56:/RUTA/DGAC-ULEAM/wordpress/wp-content/uploads/ wordpress/wp-content/uploads/
-   # b) Sin SSH: él empaqueta y te lo pasa (USB, carpeta compartida)…
+   # A) Directo desde el PC del compañero a la VM (si tiene ruta SSH hasta la VM). Se puede reanudar:
+   rsync -av --partial --progress wordpress/wp-content/uploads/ USUARIO@VM:/var/www/dgacweb/wp-content/uploads/
+
+   # B) Sin acceso directo: él los comprime, te los pasa (USB, carpeta compartida) y tú los subes.
+   #    En su PC:
    tar czf uploads-companero.tar.gz -C wordpress/wp-content uploads
-   #    …y tú lo extrayendo sin pisar tus archivos:
-   tar xzf uploads-companero.tar.gz -C wordpress/wp-content --keep-old-files
+   #    En el tuyo, extrae en una carpeta APARTE (no sobre tu uploads/):
+   mkdir -p ~/uploads-companero && tar xzf uploads-companero.tar.gz -C ~/uploads-companero
+   rsync -av --partial --progress ~/uploads-companero/uploads/ USUARIO@VM:/var/www/dgacweb/wp-content/uploads/
    ```
-4. **Verificar:** compara lo que cita la base con lo que hay en disco.
+4. **Verificar** que lo que cita la base está en esa carpeta (en el equipo donde esté la copia de sus uploads y la base de trabajo):
    ```bash
-   MYSQL_ROOT_PASSWORD=<root-del-contenedor> python3 herramientas/despliegue/verificar-uploads.py
+   MYSQL_ROOT_PASSWORD=<root-del-contenedor> python3 herramientas/despliegue/verificar-uploads.py ~/uploads-companero/uploads
    ```
-   Repite el paso 3 hasta que «faltan» en contenido publicado sea 0 (o solo enlaces que ya estaban rotos en el sitio oficial). La lista queda en `dist/uploads-faltantes.txt`.
-5. **Subir** a la VM todo junto: paquete + base + `uploads/` ya completo (paso 4 de esta guía).
+   Debe dar 0 faltantes en contenido publicado (o solo enlaces que ya estaban rotos en el sitio oficial). La lista queda en `dist/uploads-faltantes.txt`.
+5. **Subir** a la VM todo junto: paquete + base + `uploads/` de tu compañero (paso 4 de esta guía).
 
 ## Ensayo previo (recomendado, 5 minutos)
 
