@@ -83,3 +83,25 @@ function uleam_scripts() {
 	);
 }
 add_action( 'wp_enqueue_scripts', 'uleam_scripts' );
+
+/**
+ * Seguridad: los visitantes no pueden listar usuarios (REST ni ?author=N).
+ */
+add_filter(
+	'rest_endpoints',
+	function ( $endpoints ) {
+		if ( ! is_user_logged_in() ) {
+			unset( $endpoints['/wp/v2/users'], $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
+		}
+		return $endpoints;
+	}
+);
+add_action(
+	'template_redirect',
+	function () {
+		if ( ! is_user_logged_in() && ( isset( $_GET['author'] ) || is_author() ) ) { // phpcs:ignore WordPress.Security.NonceVerification
+			wp_safe_redirect( home_url( '/' ), 301 );
+			exit;
+		}
+	}
+);

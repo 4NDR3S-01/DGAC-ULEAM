@@ -20,6 +20,13 @@ $ORIGENES = array(
 	'https://realize-incident-geographic-victor.trycloudflare.com',
 );
 
+// Orígenes extra (túneles de desarrollo nuevos), separados por comas: URLS_ORIGEN_EXTRA=https://x.trycloudflare.com
+foreach ( array_filter( array_map( 'trim', explode( ',', (string) getenv( 'URLS_ORIGEN_EXTRA' ) ) ) ) as $extra ) {
+	if ( preg_match( '#^https?://[A-Za-z0-9.-]+(:[0-9]+)?$#', $extra ) ) {
+		$ORIGENES[] = $extra;
+	}
+}
+
 if ( $argc < 6 ) {
 	fwrite( STDERR, "Uso: MYSQL_PWD=<clave> php reemplazar-urls.php <host> <puerto> <usuario> <base> <nueva-url> [--aplicar]\n" );
 	exit( 2 );

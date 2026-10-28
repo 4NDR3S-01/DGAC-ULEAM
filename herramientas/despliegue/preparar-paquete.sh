@@ -67,6 +67,9 @@ docker exec -i -e MYSQL_PWD="$LOCAL_PASS" uleam-mariadb mariadb -uroot "$BD" < "
 
 # ---- 3. URLs ----
 echo "▶ Reemplazando URLs de desarrollo por $URL"
+# Túneles de desarrollo (trycloudflare) presentes en el volcado: se reemplazan sin importar su subdominio.
+URLS_ORIGEN_EXTRA="$(grep -oE 'https?://[A-Za-z0-9-]+\.trycloudflare\.com' "$VOLCADO" | sort -u | paste -sd, - || true)"
+export URLS_ORIGEN_EXTRA
 MYSQL_PWD="$LOCAL_PASS" php "$DEP/reemplazar-urls.php" 127.0.0.1 3307 root "$BD" "$URL" --aplicar
 
 # ---- 4. Subcarpeta ----
@@ -122,4 +125,4 @@ fi
 tar -C "$DIST" -czf "$DIST/paquete-uleam-calidad.tar.gz" paquete
 echo "✔ Listo: $SALIDA"
 echo "✔ Listo: $DIST/paquete-uleam-calidad.tar.gz"
-echo "  Uploads: NO incluidos (3,2 GB). Ver DESPLIEGUE.md para copiarlos."
+echo "  Uploads: NO incluidos (3,2 GB). Ver README-DESPLIEGUE.md para copiarlos."
