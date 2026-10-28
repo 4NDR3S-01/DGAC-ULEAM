@@ -30,7 +30,7 @@ define( 'DB_USER', 'wpuser' );
 define( 'DB_PASSWORD', '0043fc294eed0bc74d2baae3506bf76d' );
 
 /** Database hostname */
-define( 'DB_HOST', '192.168.88.56:3307' ); // Base del compañero. Base propia: '127.0.0.1:3307'
+define( 'DB_HOST', '127.0.0.1:3307' );
 
 /** Database charset to use in creating database tables. */
 define( 'DB_CHARSET', 'utf8' );
@@ -78,6 +78,10 @@ $table_prefix = 'wp_';
  * http://<IP-de-la-máquina>:8000 (para que otro equipo en la LAN pueda abrirlo).
  * Toma el host de cada petición, así no hay URLs fijas que se rompan.
  */
+// Detrás de un túnel/proxy HTTPS (p. ej. Cloudflare) la petición llega como http.
+if ( isset( $_SERVER['HTTP_X_FORWARDED_PROTO'] ) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https' ) {
+	$_SERVER['HTTPS'] = 'on';
+}
 $uleam_scheme = ( isset( $_SERVER['HTTPS'] ) && $_SERVER['HTTPS'] !== 'off' ) ? 'https' : 'http';
 $uleam_host   = isset( $_SERVER['HTTP_HOST'] ) ? $_SERVER['HTTP_HOST'] : 'localhost:8000';
 define( 'WP_HOME',    $uleam_scheme . '://' . $uleam_host );
