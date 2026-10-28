@@ -5,7 +5,7 @@
 #  2. Importación en una base de trabajo del contenedor local (uleam-mariadb).
 #  3. Reemplazo de URLs de desarrollo por la URL final (respeta datos serializados).
 #  4. Ajustes para subcarpeta (solo si la URL final tiene ruta; para el dominio raíz se omite).
-#  4b. Bloqueo de contraseñas de desarrollo (sanear-para-produccion.sql).
+#  4b. Bloqueo de contraseñas de desarrollo y vaciado de claves de API (sanear-para-produccion.sql, quitar-claves-asistente.php).
 #  5. Exportación de la base a dist/ y árbol de WordPress en dist/paquete/.
 #
 #  Uso: herramientas/despliegue/preparar-paquete.sh <URL_FINAL> <BASE_TRABAJO> [--nuevo-volcado]
@@ -83,6 +83,9 @@ fi
 # ---- 4b. Sin credenciales de desarrollo ----
 echo "▶ Bloqueando contraseñas de desarrollo y limpiando sesiones/transitorios"
 docker exec -i -e MYSQL_PWD="$LOCAL_PASS" uleam-mariadb mariadb -uroot "$BD" < "$DEP/sanear-para-produccion.sql"
+
+# Las claves de API del asistente no viajan: en producción van como constantes en wp-config.php.
+MYSQL_PWD="$LOCAL_PASS" php "$DEP/quitar-claves-asistente.php" 127.0.0.1 3307 root "$BD"
 
 N_ADMIN="$(docker exec -e MYSQL_PWD="$LOCAL_PASS" uleam-mariadb mariadb -uroot -N "$BD" -e "SELECT COUNT(*) FROM wp_users WHERE user_login='dgac_uleam' AND user_pass LIKE '\$P\$%'")"
 if [ "$N_ADMIN" != "1" ]; then

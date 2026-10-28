@@ -116,7 +116,7 @@ cp /ruta/repo/herramientas/despliegue/wp-config.produccion.php.example wp-config
 nano wp-config.php
 ```
 
-Completa: base/usuario/clave del paso 3, **salts nuevos** (<https://api.wordpress.org/secret-key/1.1/salt/>) y, si usas el asistente con IA, `ULEAM_GROQ_API_KEY` o `ULEAM_CLAUDE_API_KEY`. Activa `ULEAM_PROXY_CONFIABLE` solo si TI confirma un proxy propio delante **que añade la IP real al final de `X-Forwarded-For`** (el sitio usa el último valor).
+Completa: base/usuario/clave del paso 3, **salts nuevos** (<https://api.wordpress.org/secret-key/1.1/salt/>) y, si quieres que el asistente use IA, `ULEAM_GROQ_API_KEY` o `ULEAM_CLAUDE_API_KEY`. **La base del paquete NO trae las claves de API del asistente** (se vacían al empaquetar); la clave de Groq actual está en la BD compartida de desarrollo. Sin ella el asistente funciona igual, sin IA. Activa `ULEAM_PROXY_CONFIABLE` solo si TI confirma un proxy propio delante **que añade la IP real al final de `X-Forwarded-For`** (el sitio usa el último valor).
 
 ## 6. Permisos
 
