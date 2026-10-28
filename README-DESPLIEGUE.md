@@ -6,6 +6,28 @@ Sitio WordPress en la **raíz del dominio** (sin subcarpeta), sobre Apache. Los 
 
 ---
 
+## Origen de los datos: base y `uploads/` del compañero
+
+La base y los archivos deben ser **de la misma versión** (la base cita los archivos por nombre). Orden recomendado:
+
+1. **Congelar:** el compañero deja de editar contenido y subir archivos hasta terminar.
+2. **Base de datos:** no hace falta que te mande nada. `preparar-paquete.sh` lee directamente su MariaDB (`192.168.88.56:3307`) en **solo lectura**, la importa en una copia de trabajo, la limpia (URLs, contraseñas, claves de IA, restos de plugins) y exporta el `.sql.gz`. Su PC debe estar encendido y accesible. Repítelo con `--nuevo-volcado` cuando haya cambios.
+3. **Uploads:** viven solo en el disco de cada uno (no van en git). Trae los de tu compañero **fusionándolos** con los tuyos, sin borrar nada:
+   ```bash
+   # a) Por SSH, desde tu PC (ajusta usuario y ruta de su clon):
+   rsync -av --ignore-existing --progress USUARIO@192.168.88.56:/RUTA/DGAC-ULEAM/wordpress/wp-content/uploads/ wordpress/wp-content/uploads/
+   # b) Sin SSH: él empaqueta y te lo pasa (USB, carpeta compartida)…
+   tar czf uploads-companero.tar.gz -C wordpress/wp-content uploads
+   #    …y tú lo extrayendo sin pisar tus archivos:
+   tar xzf uploads-companero.tar.gz -C wordpress/wp-content --keep-old-files
+   ```
+4. **Verificar:** compara lo que cita la base con lo que hay en disco.
+   ```bash
+   MYSQL_ROOT_PASSWORD=<root-del-contenedor> python3 herramientas/despliegue/verificar-uploads.py
+   ```
+   Repite el paso 3 hasta que «faltan» en contenido publicado sea 0 (o solo enlaces que ya estaban rotos en el sitio oficial). La lista queda en `dist/uploads-faltantes.txt`.
+5. **Subir** a la VM todo junto: paquete + base + `uploads/` ya completo (paso 4 de esta guía).
+
 ## Ensayo previo (recomendado, 5 minutos)
 
 Antes de tocar la VM real, prueba todo el despliegue en local con Apache + PHP + MariaDB en Docker (mismo `.htaccess`, HTTPS autofirmado, raíz del dominio):
