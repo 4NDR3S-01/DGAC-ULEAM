@@ -58,6 +58,34 @@ function uleam_url( $u ) {
 }
 
 /**
+ * Adapta una URL local guardada en el contenido al host usado para esta visita.
+ *
+ * Los documentos importados pueden conservar enlaces absolutos de la instalación
+ * local (localhost:8000). En la red, esos enlaces deben apuntar a la IP actual.
+ *
+ * @param string $url URL.
+ * @return string
+ */
+function uleam_url_local_actual( $url ) {
+	if ( ! is_string( $url ) || '' === $url ) {
+		return $url;
+	}
+	$partes = wp_parse_url( $url );
+	$host   = isset( $partes['host'] ) ? strtolower( $partes['host'] ) : '';
+	if ( ! in_array( $host, array( 'localhost', '127.0.0.1' ), true ) ) {
+		return $url;
+	}
+	$ruta = isset( $partes['path'] ) ? $partes['path'] : '/';
+	if ( isset( $partes['query'] ) ) {
+		$ruta .= '?' . $partes['query'];
+	}
+	if ( isset( $partes['fragment'] ) ) {
+		$ruta .= '#' . $partes['fragment'];
+	}
+	return home_url( $ruta );
+}
+
+/**
  * Aplica uleam_url() a los enlaces del contenido escrito en el editor.
  *
  * @param string $html Contenido.

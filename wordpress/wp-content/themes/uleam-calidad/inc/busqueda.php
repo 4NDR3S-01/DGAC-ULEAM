@@ -244,7 +244,7 @@ function uleam_busqueda_item( $post ) {
 		'etiqueta' => $tipos[ $tipo ][1],
 		'icono'    => $tipos[ $tipo ][2],
 		'titulo'   => html_entity_decode( get_the_title( $post ), ENT_QUOTES, 'UTF-8' ),
-		'url'      => get_permalink( $post ),
+		'url'      => uleam_url_local_actual( get_permalink( $post ) ),
 		'archivo'  => '',
 		'ext'      => '',
 		'datos'    => array(),
@@ -253,7 +253,8 @@ function uleam_busqueda_item( $post ) {
 		$archivo = get_post_meta( $post->ID, '_documento_url', true );
 		if ( $archivo ) {
 			$item['archivo'] = $archivo;
-			$item['url']     = $archivo;
+			$item['archivo'] = uleam_url_local_actual( $archivo );
+			$item['url']     = $item['archivo'];
 			$item['ext']     = strtoupper( pathinfo( wp_parse_url( $archivo, PHP_URL_PATH ), PATHINFO_EXTENSION ) );
 			$item['icono']   = uleam_doc_icono( $archivo );
 		}

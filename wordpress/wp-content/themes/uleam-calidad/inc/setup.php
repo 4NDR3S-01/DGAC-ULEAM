@@ -74,5 +74,12 @@ function uleam_scripts() {
 		ULEAM_THEME_VERSION,
 		true
 	);
+	wp_enqueue_script(
+		'uleam-equipo',
+		get_template_directory_uri() . '/js/equipo.js',
+		array(),
+		ULEAM_THEME_VERSION,
+		true
+	);
 }
 add_action( 'wp_enqueue_scripts', 'uleam_scripts' );

@@ -1203,7 +1203,8 @@ function uleam_asistente_responder( $mensaje, $historial ) {
 		$con_docs = array_slice( $fuentes, 0, count( $docs['posts'] ) );
 		$puente   = $con_docs ? '<p>' . ( 1 === count( $con_docs ) ? 'Y aquí tienes el documento:' : 'Y aquí tienes los documentos, del más reciente al más antiguo:' ) . '</p>' : '';
 		return array(
-			'html'        => wp_kses_post( wpautop( do_shortcode( $faq->post_content ) ) ) . $puente,
+			// uleam_url_contenido(): los enlaces "/horario-atencion/" deben llevar la subcarpeta del sitio.
+			'html'        => wp_kses_post( uleam_url_contenido( wpautop( do_shortcode( $faq->post_content ) ) ) ) . $puente,
 			'fuentes'     => uleam_asistente_publicas( $con_docs ),
 			'ver_todos'   => $docs['total'] > count( $con_docs ) ? array( 'url' => $ver_mas, 'total' => $docs['total'] ) : null,
 			'contacto'    => false,

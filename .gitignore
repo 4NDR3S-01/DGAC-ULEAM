@@ -32,3 +32,6 @@
 
 # Respaldo local del contenido del sitio oficial
 /respaldo-sitio-oficial-*/
+
+# Paquetes para subir al servidor (contienen la BD)
+/paquete-migracion-*/

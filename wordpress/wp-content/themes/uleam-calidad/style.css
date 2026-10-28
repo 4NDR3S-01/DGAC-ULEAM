@@ -63,3 +63,6 @@ Text Domain: uleam-calidad
 
 /* 15. Interfaz moderna: navegación fija, microinteracciones y animaciones (va al final: refina lo anterior) */
 @import url('css/interfaz.css');
+
+/* 16. Carrusel de personal de Recursos Humanos */
+@import url('css/equipo.css');

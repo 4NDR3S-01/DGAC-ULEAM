@@ -2,6 +2,7 @@
 # ============================================================
 #  Arranca WordPress local (ULEAM Calidad)
 #  MariaDB (puerto 3307) + servidor PHP (http://localhost:8000)
+#  Desde otra laptop: http://<IP_DE_ESTA_MAQUINA>:8000
 #  Uso:  ./arrancar.sh
 # ============================================================
 
@@ -40,10 +41,13 @@ else
 fi
 
 echo ""
-IP_LAN=$(hostname -I 2>/dev/null | awk '{print $1}')
+# Usa la IPv4 de la red local y evita anunciar la interfaz de Tailscale.
+IP_LAN=$(ip -4 -o addr show scope global 2>/dev/null | awk '$2 != "tailscale0" {sub(/\/.*/, "", $4); print $4; exit}')
 echo "========================================"
 echo "  Sitio (local):   http://localhost:8000"
 echo "  Sitio (en red):  http://${IP_LAN:-<tu-IP>}:8000"
+echo "  Desde otra laptop, ambas deben estar en la misma red Wi-Fi."
 echo "  Admin:  http://localhost:8000/wp-admin/"
-echo "  usuario: admin   contraseña: Uleam2026"
+echo "  Admin en red: http://${IP_LAN:-<tu-IP>}:8000/wp-admin/"
+echo "  usuario: dgac_admin   contraseña: Uleam2026"
 echo "========================================"

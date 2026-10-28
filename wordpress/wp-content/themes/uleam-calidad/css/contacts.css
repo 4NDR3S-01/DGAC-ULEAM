@@ -63,6 +63,7 @@
   grid-template-columns:repeat(2, minmax(0, 1fr));
   gap:24px;
   margin-bottom:38px;
+  align-items:stretch;
 }
 .dgac-contact-box{
   background:#ffffff;
@@ -111,7 +112,8 @@
   color:var(--muted);
   margin:2px 0 0;
 }
-.dgac-phone-list{
+.dgac-phone-list,
+.dgac-official-list{
   list-style:none;
   padding:0;
   margin:0;
@@ -119,7 +121,12 @@
   flex-direction:column;
   gap:12px;
 }
-.dgac-phone-list > li{
+.dgac-official-list{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(0, 1fr));
+}
+.dgac-phone-list > li,
+.dgac-official-list > li{
   display:flex;
   align-items:center;
   justify-content:space-between;
@@ -132,7 +139,18 @@
   border-radius:10px;
   transition:background 0.2s ease, border-color 0.2s ease;
 }
-.dgac-phone-list > li:hover{
+.dgac-official-list > li{
+  align-items:flex-start;
+  min-width:0;
+}
+.dgac-official-list .dgac-phone-info{
+  min-width:0;
+}
+.dgac-official-list .dgac-phone-btn{
+  flex:none;
+}
+.dgac-phone-list > li:hover,
+.dgac-official-list > li:hover{
   background:#eff6ff;
   border-color:#bfdbfe;
 }
@@ -146,7 +164,8 @@
   color:#475569;
 }
 .dgac-phone-btn,
-.dgac-phone-list > li > a{
+.dgac-phone-list > li > a,
+.dgac-official-list > li > a{
   display:inline-flex;
   white-space:nowrap;
   align-items:center;
@@ -161,7 +180,8 @@
   transition:background 0.2s ease;
 }
 .dgac-phone-btn:hover,
-.dgac-phone-list > li > a:hover{
+.dgac-phone-list > li > a:hover,
+.dgac-official-list > li > a:hover{
   background:var(--uleam-blue-900);
 }
 .dgac-main-email-card{
@@ -493,4 +513,5 @@
 @media(max-width:600px){
   .dgac-schedule-hero{padding:26px 18px}
   .dgac-contact-box{padding:20px}
+  .dgac-official-list{grid-template-columns:1fr}
 }

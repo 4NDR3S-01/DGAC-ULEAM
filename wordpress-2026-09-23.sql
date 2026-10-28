@@ -162,7 +162,7 @@ INSERT INTO `wp_options` VALUES
 (4,'blogname','Mi Sitio WordPress','on'),
 (5,'blogdescription','','on'),
 (6,'users_can_register','0','on'),
-(7,'admin_email','admin@example.com','on'),
+(7,'admin_email','dgac@uleam.edu.ec','on'),
 (8,'start_of_week','1','on'),
 (9,'use_balanceTags','0','on'),
 (10,'use_smilies','1','on'),
@@ -626,7 +626,7 @@ SET @OLD_AUTOCOMMIT=@@AUTOCOMMIT, @@AUTOCOMMIT=0;
 LOCK TABLES `wp_users` WRITE;
 /*!40000 ALTER TABLE `wp_users` DISABLE KEYS */;
 INSERT INTO `wp_users` VALUES
-(1,'admin','$wp$2y$12$jmxjMibKn1xhIblpmsuECO62Tk.9gyiEJNQOHfgBz0Dcsfpoxy0we','admin','admin@example.com','http://localhost:8000','2026-09-23 21:10:28','',0,'admin');
+(1,'dgac_admin','$wp$2y$12$jmxjMibKn1xhIblpmsuECO62Tk.9gyiEJNQOHfgBz0Dcsfpoxy0we','dgac_admin','dgac@uleam.edu.ec','http://localhost:8000','2026-09-23 21:10:28','',0,'Administrador DGAC');
 /*!40000 ALTER TABLE `wp_users` ENABLE KEYS */;
 UNLOCK TABLES;
 COMMIT;

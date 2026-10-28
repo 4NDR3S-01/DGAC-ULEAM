@@ -93,8 +93,14 @@ while ( have_posts() ) :
 	</header>
 	<div class="entry-content">
 		<?php
-		remove_filter( 'the_content', 'wpautop' );
-		the_content();
+		$es_recursos_humanos = 'recursos-humanos' === get_post_field( 'post_name', get_the_ID() );
+		if ( ! $es_recursos_humanos ) {
+			remove_filter( 'the_content', 'wpautop' );
+			the_content();
+		}
+		if ( $es_recursos_humanos && ! has_shortcode( get_the_content(), 'equipo' ) ) {
+			echo do_shortcode( '[equipo]' );
+		}
 		?>
 	</div>
 	<?php

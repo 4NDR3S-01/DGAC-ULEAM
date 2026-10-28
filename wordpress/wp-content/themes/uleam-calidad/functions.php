@@ -74,5 +74,8 @@ require_once ULEAM_THEME_DIR . '/inc/asistente.php';
 // 14. Gestión de Procesos: procedimientos, estructura y archivos editables sin código
 require_once ULEAM_THEME_DIR . '/inc/procesos.php';
 
+// 15. Personal de Recursos Humanos y carrusel de equipo.
+require_once ULEAM_THEME_DIR . '/inc/equipo.php';
+
 // Redirecciones de las direcciones del sitio anterior (Herramientas → Redirecciones).
 require_once ULEAM_THEME_DIR . '/inc/redirecciones.php';
