@@ -84,6 +84,12 @@ fi
 echo "▶ Bloqueando contraseñas de desarrollo y limpiando sesiones/transitorios"
 docker exec -i -e MYSQL_PWD="$LOCAL_PASS" uleam-mariadb mariadb -uroot "$BD" < "$DEP/sanear-para-produccion.sql"
 
+N_ADMIN="$(docker exec -e MYSQL_PWD="$LOCAL_PASS" uleam-mariadb mariadb -uroot -N "$BD" -e "SELECT COUNT(*) FROM wp_users WHERE user_login='dgac_uleam' AND user_pass LIKE '\$P\$%'")"
+if [ "$N_ADMIN" != "1" ]; then
+  echo "✘ El volcado no trae el administrador 'dgac_uleam' con contraseña válida; repite con --nuevo-volcado" >&2
+  exit 7
+fi
+
 # ---- 5. Exportación ----
 SALIDA="$DIST/$BD-$(date +%Y%m%d).sql.gz"
 echo "▶ Exportando base a $SALIDA"

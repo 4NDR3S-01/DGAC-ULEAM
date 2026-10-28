@@ -90,7 +90,7 @@ add_action( 'wp_enqueue_scripts', 'uleam_scripts' );
 add_filter(
 	'rest_endpoints',
 	function ( $endpoints ) {
-		if ( ! is_user_logged_in() ) {
+		if ( ! current_user_can( 'list_users' ) ) {
 			unset( $endpoints['/wp/v2/users'], $endpoints['/wp/v2/users/(?P<id>[\d]+)'] );
 		}
 		return $endpoints;
@@ -100,8 +100,17 @@ add_action(
 	'template_redirect',
 	function () {
 		if ( ! is_user_logged_in() && ( isset( $_GET['author'] ) || is_author() ) ) { // phpcs:ignore WordPress.Security.NonceVerification
-			wp_safe_redirect( home_url( '/' ), 301 );
+			wp_safe_redirect( home_url( '/' ), 302 );
 			exit;
 		}
 	}
+);
+// El mapa del sitio también lista usuarios (user_nicename).
+add_filter(
+	'wp_sitemaps_add_provider',
+	function ( $provider, $name ) {
+		return 'users' === $name ? false : $provider;
+	},
+	10,
+	2
 );

@@ -1282,7 +1282,9 @@ function uleam_asistente_rest() {
 				$ip = isset( $_SERVER['REMOTE_ADDR'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REMOTE_ADDR'] ) ) : '';
 				// Detrás de un proxy propio: definir ULEAM_PROXY_CONFIABLE en wp-config.php para usar la IP real del visitante.
 				if ( defined( 'ULEAM_PROXY_CONFIABLE' ) && ULEAM_PROXY_CONFIABLE && ! empty( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) {
-					$reenviada = trim( explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) )[0] );
+					// El último valor lo añade nuestro proxy; los anteriores los controla el cliente.
+					$cadena    = array_map( 'trim', explode( ',', sanitize_text_field( wp_unslash( $_SERVER['HTTP_X_FORWARDED_FOR'] ) ) ) );
+					$reenviada = end( $cadena );
 					$ip        = filter_var( $reenviada, FILTER_VALIDATE_IP ) ? $reenviada : $ip;
 				}
 				$llave = 'uleam_asis_' . md5( $ip . wp_salt() );

@@ -6,6 +6,17 @@ Sitio WordPress en la **raíz del dominio** (sin subcarpeta), sobre Apache. Los 
 
 ---
 
+## Ensayo previo (recomendado, 5 minutos)
+
+Antes de tocar la VM real, prueba todo el despliegue en local con Apache + PHP + MariaDB en Docker (mismo `.htaccess`, HTTPS autofirmado, raíz del dominio):
+
+```bash
+herramientas/despliegue/ensayar-docker.sh          # construye, instala el paquete y ejecuta verificar-sitio.sh
+herramientas/despliegue/ensayar-docker.sh --limpiar
+```
+
+Requiere los puertos 80 y 443 libres. Para verlo en el navegador añade `127.0.0.1 dgacweb.uleam.edu.ec` a `/etc/hosts` (y quítalo después).
+
 ## 0. Qué hay que pedir a TI
 
 - Acceso SSH a la VM con un usuario con `sudo` (no root directo) y la ruta del DocumentRoot.
@@ -105,7 +116,7 @@ cp /ruta/repo/herramientas/despliegue/wp-config.produccion.php.example wp-config
 nano wp-config.php
 ```
 
-Completa: base/usuario/clave del paso 3, **salts nuevos** (<https://api.wordpress.org/secret-key/1.1/salt/>) y, si usas el asistente con IA, `ULEAM_GROQ_API_KEY` o `ULEAM_CLAUDE_API_KEY`. Activa `ULEAM_PROXY_CONFIABLE` solo si TI confirma un proxy propio delante.
+Completa: base/usuario/clave del paso 3, **salts nuevos** (<https://api.wordpress.org/secret-key/1.1/salt/>) y, si usas el asistente con IA, `ULEAM_GROQ_API_KEY` o `ULEAM_CLAUDE_API_KEY`. Activa `ULEAM_PROXY_CONFIABLE` solo si TI confirma un proxy propio delante **que añade la IP real al final de `X-Forwarded-For`** (el sitio usa el último valor).
 
 ## 6. Permisos
 
@@ -119,17 +130,14 @@ sudo chown -R www-data:www-data wp-content/uploads     # único lugar donde Apac
 
 ## 7. Administrador
 
-Todas las contraseñas importadas están bloqueadas. Fija la del administrador:
+El paquete trae el administrador **`dgac_uleam`** con su contraseña ya fijada (se entregó por separado; no está en el repositorio). Las demás cuentas vienen **bloqueadas**: restablécelas desde el administrador (*Usuarios → Enviar restablecimiento de contraseña*, requiere correo saliente) o fija una clave a mano:
 
 ```bash
-# con WP-CLI (recomendado)
-wp user list --path=/var/www/dgacweb
-wp user update <ID> --user_pass='<CLAVE-LARGA-UNICA>' --path=/var/www/dgacweb
-# sin WP-CLI
-mysql -u dgac_web -p dgac_web -e "UPDATE wp_users SET user_pass = MD5('<CLAVE-TEMPORAL-LARGA>') WHERE ID = <ID>;"
+wp user update <ID> --user_pass='<CLAVE-LARGA-UNICA>' --path=/var/www/dgacweb      # con WP-CLI
+mysql -u dgac_web -p dgac_web -e "UPDATE wp_users SET user_pass = MD5('<CLAVE-TEMPORAL-LARGA>') WHERE ID = <ID>;"   # sin WP-CLI
 ```
 
-Entra a `https://dgacweb.uleam.edu.ec/wp-admin/`, cambia la clave, y en **Ajustes → Generales** cambia el correo del administrador (viene `admin@example.com`). Elimina o desactiva cuentas que no correspondan y usa 2FA para administradores. Luego: **Ajustes → Enlaces permanentes → Guardar**.
+Entra a `https://dgacweb.uleam.edu.ec/wp-admin/` con `dgac_uleam` y **cambia la contraseña en el primer ingreso**. En **Ajustes → Generales** cambia el correo del administrador si hace falta. Elimina o desactiva cuentas que no correspondan y usa 2FA. Luego: **Ajustes → Enlaces permanentes → Guardar**.
 
 ## 8. Verificación
 
@@ -148,7 +156,13 @@ Comprueba archivos sensibles (403/404), HTTPS, cabeceras de seguridad, ausencia 
 
 ## 9. Operación
 
-- Respaldos diarios de base y `uploads/` **fuera** de la VM.
+- Respaldos diarios de base y `uploads/` **fuera** de la VM. Script incluido (copia de `herramientas/despliegue/respaldo.sh` a la VM):
+  ```bash
+  sudo install -m 750 respaldo.sh /usr/local/bin/respaldo-dgac.sh
+  echo '0 2 * * * root /usr/local/bin/respaldo-dgac.sh /var/www/dgacweb /var/backups/dgacweb' | sudo tee /etc/cron.d/respaldo-dgac
+  ```
+  Guarda 14 días en `/var/backups/dgacweb`; copia esa carpeta a otro servidor (`rsync`). Prueba una restauración al menos una vez.
+- **WordPress 7.1.4** ya está disponible (el paquete trae 7.1.3). Con `WP_AUTO_UPDATE_CORE='minor'` se actualiza solo; si TI actualiza a mano: `wp core update --path=/var/www/dgacweb` y haz respaldo antes.
 - Fail2ban para SSH y `wp-login.php`; actualizaciones de seguridad del SO.
 - Actualizar WordPress y plugins de forma controlada (`DISALLOW_FILE_MODS` en la plantilla si TI lo hace por línea de comandos).
 
