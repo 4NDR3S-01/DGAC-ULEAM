@@ -1,0 +1,30 @@
+# .htaccess para WordPress en /gestion-aseguramiento-calidad/ (Apache).
+# Copiar a la carpeta de la instalación con el nombre .htaccess.
+# Si el hosting ya trae reglas propias de WordPress, conservarlas y añadir solo lo necesario.
+
+RewriteEngine On
+RewriteBase /gestion-aseguramiento-calidad/
+# Archivos subidos que no existen: 404 directo (sin WordPress, que los redirigiría a la portada).
+RewriteRule ^wp-content/uploads/ - [L]
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /gestion-aseguramiento-calidad/index.php [L]
+
+# Ocultar la lista de archivos y proteger wp-config.php
+Options -Indexes
+<FilesMatch "^(wp-config\.php|xmlrpc\.php|readme\.html|license\.txt)$">
+	Require all denied
+</FilesMatch>
+# Ningún volcado, registro ni archivo de control de versiones debe servirse.
+<FilesMatch "\.(sql|sql\.gz|log|bak|env)$">
+	Require all denied
+</FilesMatch>
+RedirectMatch 404 /\.git
+
+# Cabeceras de seguridad (si el servidor tiene mod_headers).
+<IfModule mod_headers.c>
+	Header always set X-Content-Type-Options "nosniff"
+	Header always set X-Frame-Options "SAMEORIGIN"
+	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

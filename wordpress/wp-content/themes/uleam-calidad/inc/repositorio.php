@@ -325,7 +325,7 @@ function uleam_doc_es_archivo( $url ) {
 	$host = (string) wp_parse_url( $url, PHP_URL_HOST );
 	$path = rawurldecode( (string) wp_parse_url( $url, PHP_URL_PATH ) );
 	// Es de este sitio si el dominio coincide o si el archivo está en uploads (el dominio guardado
-	// puede ser otro: localhost:8000 visto desde un túnel, o el de antes de mudar el sitio).
+	// puede ser otro: el de un entorno de pruebas o el de antes de mudar el sitio).
 	$propio = '' === $host || wp_parse_url( home_url(), PHP_URL_HOST ) === $host
 		|| ( preg_match( '#/wp-content/uploads/(.+)$#', $path, $m ) && is_file( wp_upload_dir()['basedir'] . '/' . $m[1] ) );
 	if ( ! $propio ) {

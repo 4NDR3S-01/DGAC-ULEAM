@@ -593,6 +593,15 @@
   .carrusel__texto{ margin-bottom:1rem; }
 }
 
+/* El diseño por capas siempre es de una sola columna: las reglas de pantallas medianas y de poca altura
+   (arriba) lo partían en dos y el fondo solo cubría la mitad. */
+.carrusel__slide--capas{ grid-template-columns:minmax(0, 1fr); }
+@media (max-height:520px) and (orientation:landscape){
+  .carrusel__slide--capas .carrusel__titulo{ font-size:clamp(1.2rem, 3vw, 1.6rem); }
+  .carrusel__slide--capas .carrusel__texto{ font-size:.9rem; margin-bottom:.75rem; }
+  .carrusel__slide--capas .carrusel__franja span{ font-size:.75rem; padding:.3rem .6rem; }
+}
+
 @media print{
   .carrusel__slide:not(.is-activa), .carrusel__controles{ display:none; }
 }

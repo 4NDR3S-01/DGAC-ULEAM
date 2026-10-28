@@ -35,3 +35,6 @@
 
 # Paquetes para subir al servidor (contienen la BD)
 /paquete-migracion-*/
+
+# Paquete de despliegue generado (volcados con datos, uploads copiados)
+/dist/
