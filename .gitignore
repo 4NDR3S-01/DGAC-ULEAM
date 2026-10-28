@@ -38,3 +38,11 @@
 
 # Paquete de despliegue generado (volcados con datos, uploads copiados)
 /dist/
+
+# Volcados, paquetes y credenciales (nunca versionar)
+*.sql.gz
+*.zip
+*.deb
+/*.sql
+/credenciales*
+!/setup-db.sql

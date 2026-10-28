@@ -1,6 +1,6 @@
 <?php
 /**
- * Plantilla de wp-config.php para producción (departamentos.uleam.edu.ec/gestion-aseguramiento-calidad/).
+ * Plantilla de wp-config.php para producción (dgacweb.uleam.edu.ec/).
  *
  * Copiar a wp-config.php en el servidor y completar los valores entre < >.
  * No guardar el archivo real en git: contiene contraseñas y claves.
@@ -15,8 +15,8 @@ define( 'DB_CHARSET', 'utf8mb4' );
 define( 'DB_COLLATE', '' );
 
 // ** Dirección fija del sitio (no se toma del host de cada petición) ** //
-define( 'WP_HOME', 'https://departamentos.uleam.edu.ec/gestion-aseguramiento-calidad' );
-define( 'WP_SITEURL', 'https://departamentos.uleam.edu.ec/gestion-aseguramiento-calidad' );
+define( 'WP_HOME', 'https://dgacweb.uleam.edu.ec' );
+define( 'WP_SITEURL', 'https://dgacweb.uleam.edu.ec' );
 define( 'FORCE_SSL_ADMIN', true );
 
 // ** Claves y salts: generar nuevas en https://api.wordpress.org/secret-key/1.1/salt/ ** //
@@ -37,6 +37,14 @@ define( 'WP_DEBUG', false );
 define( 'WP_DEBUG_DISPLAY', false );
 define( 'WP_DEBUG_LOG', false );
 define( 'DISALLOW_FILE_EDIT', true );
+// define( 'DISALLOW_FILE_MODS', true ); // Descomentar si las actualizaciones las hace TI por línea de comandos.
+define( 'WP_AUTO_UPDATE_CORE', 'minor' );
+
+// ** Asistente virtual: las claves de API van aquí, no en la base de datos ** //
+// define( 'ULEAM_GROQ_API_KEY', '<clave>' );
+// define( 'ULEAM_CLAUDE_API_KEY', '<clave>' );
+// Si hay un proxy/balanceador propio delante, activar para limitar por IP real del visitante:
+// define( 'ULEAM_PROXY_CONFIABLE', true );
 
 /* That's all, stop editing! Happy publishing. */
 

@@ -1,23 +1,25 @@
-# .htaccess para WordPress en /gestion-aseguramiento-calidad/ (Apache).
-# Copiar a la carpeta de la instalación con el nombre .htaccess.
-# Si el hosting ya trae reglas propias de WordPress, conservarlas y añadir solo lo necesario.
+# .htaccess para WordPress en la raíz de https://dgacweb.uleam.edu.ec/ (Apache 2.4).
+# Copiar a la carpeta del sitio con el nombre .htaccess. Requiere mod_rewrite (y mod_headers para las cabeceras).
 
+# BEGIN WordPress
 RewriteEngine On
-RewriteBase /gestion-aseguramiento-calidad/
+RewriteBase /
 # Archivos subidos que no existen: 404 directo (sin WordPress, que los redirigiría a la portada).
 RewriteRule ^wp-content/uploads/ - [L]
 RewriteRule ^index\.php$ - [L]
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule . /gestion-aseguramiento-calidad/index.php [L]
+RewriteRule . /index.php [L]
+# END WordPress
 
-# Ocultar la lista de archivos y proteger wp-config.php
+# Ocultar la lista de archivos y proteger archivos sensibles
 Options -Indexes
-<FilesMatch "^(wp-config\.php|xmlrpc\.php|readme\.html|license\.txt)$">
+ServerSignature Off
+<FilesMatch "^(wp-config\.php|wp-config-sample\.php|xmlrpc\.php|readme\.html|license\.txt|\.env.*|\.htaccess|\.htpasswd)$">
 	Require all denied
 </FilesMatch>
-# Ningún volcado, registro ni archivo de control de versiones debe servirse.
-<FilesMatch "\.(sql|sql\.gz|log|bak|env)$">
+# Ningún volcado, registro, copia ni archivo de control de versiones debe servirse.
+<FilesMatch "\.(sql|sql\.gz|log|bak|env|zip|tar|tar\.gz|swp|orig)$">
 	Require all denied
 </FilesMatch>
 RedirectMatch 404 /\.git
@@ -27,4 +29,9 @@ RedirectMatch 404 /\.git
 	Header always set X-Content-Type-Options "nosniff"
 	Header always set X-Frame-Options "SAMEORIGIN"
 	Header always set Referrer-Policy "strict-origin-when-cross-origin"
+	Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+	Header always set Strict-Transport-Security "max-age=31536000"
+	# CSP mínima y segura: no rompe scripts/estilos en línea de WordPress.
+	Header always set Content-Security-Policy "frame-ancestors 'self'; base-uri 'self'; object-src 'none'; form-action 'self'"
+	Header always unset X-Powered-By
 </IfModule>

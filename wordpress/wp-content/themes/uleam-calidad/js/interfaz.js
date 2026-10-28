@@ -123,3 +123,40 @@
     elementos.forEach(terminar);
   });
 })();
+
+/**
+ * Acordeones importados (bloques "aab/accordion-block" del sitio anterior): el cuerpo viene oculto en línea
+ * y antes lo abría un plugin que ya no se usa. Este código los abre/cierra sin depender de él.
+ */
+(function () {
+  'use strict';
+
+  function alternar(cabecera) {
+    var cont = cabecera.closest('.aab__accordion_container');
+    var cuerpo = cont && cont.querySelector('.aab__accordion_body');
+    if (!cuerpo) {
+      return;
+    }
+    var abrir = window.getComputedStyle(cuerpo).display === 'none';
+    cuerpo.style.display = abrir ? 'block' : 'none';
+    cont.setAttribute('aria-expanded', abrir ? 'true' : 'false');
+    cont.classList.toggle('is-open', abrir);
+  }
+
+  document.querySelectorAll('.aab__accordion_head').forEach(function (c) {
+    c.setAttribute('tabindex', '0');
+  });
+  document.addEventListener('click', function (e) {
+    var cab = e.target.closest ? e.target.closest('.aab__accordion_head') : null;
+    if (cab) {
+      alternar(cab);
+    }
+  });
+  document.addEventListener('keydown', function (e) {
+    var cab = e.target.closest ? e.target.closest('.aab__accordion_head') : null;
+    if (cab && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      alternar(cab);
+    }
+  });
+})();
