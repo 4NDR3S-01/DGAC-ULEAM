@@ -40,5 +40,10 @@ echo "▶ Usuarios no enumerables"
 c=$(c -s -o /dev/null -w '%{http_code}' --max-time 20 "$URL/wp-json/wp/v2/users")
 case "$c" in 401|403|404) ok "/wp-json/wp/v2/users → $c" ;; *) mal "/wp-json/wp/v2/users → $c (expone usuarios)" ;; esac
 
+loc=$(c -s -o /dev/null -w '%{redirect_url}' --max-time 20 "$URL/?author=1")
+[[ "$loc" == *"/author/"* ]] && mal "/?author=1 revela el usuario ($loc)" || ok "/?author=1 no revela usuarios"
+c=$(c -s -o /dev/null -w '%{http_code}' --max-time 20 "$URL/wp-sitemap-users-1.xml")
+case "$c" in 404|403) ok "sitemap de usuarios → $c" ;; *) mal "sitemap de usuarios → $c (lista usuarios)" ;; esac
+
 echo; [ "$fallos" -eq 0 ] && echo "✔ Todo correcto" || echo "✘ $fallos comprobación(es) fallidas"
 exit "$fallos"

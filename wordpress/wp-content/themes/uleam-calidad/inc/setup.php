@@ -103,7 +103,8 @@ add_action(
 			wp_safe_redirect( home_url( '/' ), 302 );
 			exit;
 		}
-	}
+	},
+	0 // antes de redirect_canonical, que convertiría ?author=N en /author/<usuario>/
 );
 // El mapa del sitio también lista usuarios (user_nicename).
 add_filter(

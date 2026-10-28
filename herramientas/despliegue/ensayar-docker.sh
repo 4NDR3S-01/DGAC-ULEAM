@@ -10,9 +10,11 @@ DIST="$RAIZ/dist"
 RED=dgac-ensayo
 SITIO="$DIST/ensayo-sitio"
 
+# uploads/ queda con dueño www-data: se borra desde un contenedor (root) para no necesitar sudo.
+borrar_sitio() { [ -d "$SITIO" ] && docker run --rm -v "$DIST":/d --entrypoint rm dgac-ensayo-apache -rf /d/ensayo-sitio || true; rm -rf "$SITIO" 2>/dev/null || true; }
 limpiar() { docker rm -f dgac-ensayo-web dgac-ensayo-db >/dev/null 2>&1 || true; docker network rm "$RED" >/dev/null 2>&1 || true; }
 limpiar
-[ "${1:-}" = "--limpiar" ] && { rm -rf "$SITIO"; echo "✔ Entorno de ensayo eliminado"; exit 0; }
+[ "${1:-}" = "--limpiar" ] && { borrar_sitio; echo "✔ Entorno de ensayo eliminado"; exit 0; }
 
 PAQ="$DIST/paquete-uleam-calidad.tar.gz"; SQL="$(ls -t "$DIST"/wordpress_deploy-*.sql.gz 2>/dev/null | head -1)"
 [ -f "$PAQ" ] && [ -n "$SQL" ] || { echo "✘ Falta el paquete o la base en dist/ (ejecuta preparar-paquete.sh)" >&2; exit 1; }
@@ -31,7 +33,7 @@ for _ in $(seq 1 60); do docker exec -e MYSQL_PWD="$ROOT_PW" dgac-ensayo-db mari
 gunzip -c "$SQL" | docker exec -i -e MYSQL_PWD="$DB_PW" dgac-ensayo-db mariadb -udgac_web dgac_web
 
 echo "▶ Código (como en la VM: extraer paquete + wp-config desde la plantilla)"
-rm -rf "$SITIO"; mkdir -p "$SITIO"; tar -xzf "$PAQ" -C "$SITIO" --strip-components=1
+borrar_sitio; mkdir -p "$SITIO"; tar -xzf "$PAQ" -C "$SITIO" --strip-components=1
 sed -e "s/<base-de-datos>/dgac_web/" -e "s/<usuario>/dgac_web/" -e "s/<clave>/$DB_PW/" -e "s/<host-de-la-base>/dgac-ensayo-db/" \
     -e "s/<generar>/ensayo-$(head -c8 /dev/urandom | od -An -tx1 | tr -d ' \n')/" "$DEP/wp-config.produccion.php.example" > "$SITIO/wp-config.php"
 mkdir -p "$SITIO/wp-content/uploads"

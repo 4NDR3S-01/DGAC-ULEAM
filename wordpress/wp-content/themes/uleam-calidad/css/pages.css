@@ -298,3 +298,26 @@ html.visor-abierto{overflow:hidden}
 @media (prefers-reduced-motion:reduce){
   .visor[open],.visor.is-cerrando,.visor__img{animation:none}
 }
+
+/* Acordeones importados del sitio anterior (aab/accordion-block): se abren con js/interfaz.js */
+.aab__accordion_head {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+.aab__accordion_head:focus-visible {
+  outline: 2px solid var(--uleam-blue-400, #46a4ff);
+  outline-offset: 2px;
+}
+.aab__accordion_icon .aab__icon {
+  font-style: normal;
+}
+.aab__accordion_icon .aab__icon::before {
+  content: "+";
+  font-size: 1.4em;
+  font-weight: 600;
+}
+.aab__accordion_container.is-open > .aab__accordion_head .aab__icon::before {
+  content: "\2212";
+}

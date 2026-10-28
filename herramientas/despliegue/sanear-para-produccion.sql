@@ -6,3 +6,6 @@ UPDATE wp_users SET user_pass = CONCAT('!bloqueada!', SHA2(CONCAT(RAND(), UUID()
 UPDATE wp_users SET user_activation_key = '' WHERE user_login = 'dgac_uleam';
 DELETE FROM wp_usermeta WHERE meta_key = 'session_tokens';
 DELETE FROM wp_options WHERE option_name LIKE '\_transient\_%' OR option_name LIKE '\_site\_transient\_%';
+-- Restos de plugins que no se instalan en producción (Elementor, importador); el contenido de los posts no se toca.
+DELETE FROM wp_postmeta WHERE meta_key LIKE '\_elementor\_%';
+DELETE FROM wp_options WHERE option_name IN ('recently_activated');
