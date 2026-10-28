@@ -6,6 +6,31 @@ Sitio WordPress en la **raíz del dominio** (sin subcarpeta), sobre Apache. Los 
 
 ---
 
+## Origen de los datos: base y `uploads/` del compañero (fuente de verdad)
+
+La base y los archivos deben ser **de la misma versión** (la base cita los archivos por nombre). Orden recomendado:
+
+1. **Congelar:** el compañero deja de editar contenido y subir archivos hasta terminar.
+2. **Base de datos:** no hace falta que te mande nada. `preparar-paquete.sh` lee directamente su MariaDB (`192.168.88.56:3307`) en **solo lectura**, la importa en una copia de trabajo, la limpia (URLs, contraseñas, claves de IA, restos de plugins) y exporta el `.sql.gz`. Su PC debe estar encendido y accesible. Repítelo con `--nuevo-volcado` cuando haya cambios.
+3. **Uploads:** la fuente de verdad es la carpeta `wordpress/wp-content/uploads/` **de tu compañero** (la que va con su base de datos). No hay que mezclarla con la de nadie. Dos formas de llevarla a la VM:
+   ```bash
+   # A) Directo desde el PC del compañero a la VM (si tiene ruta SSH hasta la VM). Se puede reanudar:
+   rsync -av --partial --progress wordpress/wp-content/uploads/ USUARIO@VM:/var/www/dgacweb/wp-content/uploads/
+
+   # B) Sin acceso directo: él los comprime, te los pasa (USB, carpeta compartida) y tú los subes.
+   #    En su PC:
+   tar czf uploads-companero.tar.gz -C wordpress/wp-content uploads
+   #    En el tuyo, extrae en una carpeta APARTE (no sobre tu uploads/):
+   mkdir -p ~/uploads-companero && tar xzf uploads-companero.tar.gz -C ~/uploads-companero
+   rsync -av --partial --progress ~/uploads-companero/uploads/ USUARIO@VM:/var/www/dgacweb/wp-content/uploads/
+   ```
+4. **Verificar** que lo que cita la base está en esa carpeta (en el equipo donde esté la copia de sus uploads y la base de trabajo):
+   ```bash
+   MYSQL_ROOT_PASSWORD=<root-del-contenedor> python3 herramientas/despliegue/verificar-uploads.py ~/uploads-companero/uploads
+   ```
+   Debe dar 0 faltantes en contenido publicado (o solo enlaces que ya estaban rotos en el sitio oficial). La lista queda en `dist/uploads-faltantes.txt`.
+5. **Subir** a la VM todo junto: paquete + base + `uploads/` de tu compañero (paso 4 de esta guía).
+
 ## Ensayo previo (recomendado, 5 minutos)
 
 Antes de tocar la VM real, prueba todo el despliegue en local con Apache + PHP + MariaDB en Docker (mismo `.htaccess`, HTTPS autofirmado, raíz del dominio):
